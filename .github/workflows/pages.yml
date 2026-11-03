@@ -1,0 +1,45 @@
+name: Deploy frontend to GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+      - name: Build read-only preview
+        working-directory: frontend
+        env:
+          VITE_GITHUB_PAGES: 'true'
+        run: npm run build
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload website artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: frontend/dist
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

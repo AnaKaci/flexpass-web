@@ -1,6 +1,13 @@
 import type { LoginResult } from './types';
+import { previewCatalog, previewInfo } from './preview';
+export const pagesPreview = import.meta.env.VITE_GITHUB_PAGES === 'true';
 export const TOKEN_KEY = 'flexpass_demo_token';
 export async function request<T>(path:string, token = '', options:RequestInit = {}):Promise<T> {
+  if (pagesPreview) {
+    if (path === '/info') return previewInfo as T;
+    if (path.startsWith('/catalog')) return previewCatalog(path) as T;
+    throw new Error('Read-only GitHub Pages preview: logins, bookings and credits need the separately hosted API.');
+  }
   const response = await fetch(`/api${path}`, {
     ...options,
     headers: {

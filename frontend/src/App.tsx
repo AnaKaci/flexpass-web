@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { PropsWithChildren, ReactNode, FormEvent } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import type { AppInfo, LoginResult, Role, User } from './types';
-import { TOKEN_KEY, icons, labels, login, request } from './api';
+import { TOKEN_KEY, icons, labels, login, pagesPreview, request } from './api';
 import { ServicesPage } from './ServicesPage';
 import { Dashboard } from './Dashboard';
 
@@ -19,10 +19,10 @@ export function useApp(){const value=useContext(AppContext);if(!value)throw new 
 const groups=Object.keys(labels) as (keyof typeof labels)[];
 function Brand(){return <Link className="logo" to="/"><span className="logo-mark">✳</span>FlexPass</Link>;}
 function PublicLayout({children}:PropsWithChildren){const {user,info}=useApp();const location=useLocation();return <>
-  {info?.demo_mode && <div className="top-strip"><strong>Demo environment</strong> &nbsp; Fictional Tirana data and no live payment processing.</div>}
+  {pagesPreview ? <div className="top-strip"><strong>Read-only public preview</strong> &nbsp; Fictional services. No accounts, bookings, payments or live availability.</div> : info?.demo_mode && <div className="top-strip"><strong>Demo environment</strong> &nbsp; Fictional Tirana data and no live payment processing.</div>}
   <header className="site-header"><div className="container header-row"><Brand/>
     <nav className="category-nav" aria-label="Experience categories">{groups.map(group=><Link key={group} className={new URLSearchParams(location.search).get('group')===group?'active':''} to={`/services?group=${group}`}>{labels[group]}</Link>)}</nav>
-    <div className="header-actions">{user?<><span className="nav-user">{user.role}</span><Link className="btn btn-primary btn-sm" to={`/${user.role}`}>Dashboard ↗</Link></>:<><Link className="btn btn-outline btn-sm" to="/login">Log in</Link><Link className="btn btn-primary btn-sm" to="/contact">Request access ↗</Link></>}</div>
+    <div className="header-actions">{user?<><span className="nav-user">{user.role}</span><Link className="btn btn-primary btn-sm" to={`/${user.role}`}>Dashboard ↗</Link></>:<>{pagesPreview?<span className="nav-user">Preview only</span>:<Link className="btn btn-outline btn-sm" to="/login">Log in</Link>}<Link className="btn btn-primary btn-sm" to="/contact">About the pilot ↗</Link></>}</div>
   </div></header>
   {children}
   <footer className="foot"><div className="container foot-row"><div><Brand/><p>Private-launch access pass for premium daily services, real booking, and hard-to-reach routines.</p></div><div className="footlinks"><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/contact">Contact</Link></div></div></footer>
@@ -33,6 +33,7 @@ function Home(){return <PublicLayout><main className="container"><section classN
   <div className="section-spacer"/><div className="callout-gradient"><div className="eyebrow" style={{color:'#e3d2ff'}}>B2B access</div><h2>Built for your team, designed for everyday life.</h2><p>Employer-funded credits with a flexible network of experiences.</p><Link className="btn btn-outline" to="/contact">Request access →</Link></div>
 </main></PublicLayout>}
 function Login(){const {signIn,notify,user,info}=useApp();const navigate=useNavigate();const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);
+  if(pagesPreview)return <PublicLayout><main className="auth-page"><div className="auth-card"><Brand/><h1>Accounts are not enabled in this preview</h1><p>This GitHub Pages site shows fictional services only. Sign-in and the three dashboards require the separate FastAPI backend and database.</p><Link className="btn btn-primary" to="/services">Explore sample services →</Link></div></main></PublicLayout>;
   if(user)return <Navigate to={`/${user.role}`} replace/>;
   async function submit(e:FormEvent){e.preventDefault();setBusy(true);try{const u=await signIn(email,password);navigate(`/${u.role}`,{replace:true});notify('Signed in successfully.');}catch(err){notify((err as Error).message,true);}finally{setBusy(false)}}
   return <PublicLayout><main className="auth-page"><div className="auth-card"><Brand/><div className="eyebrow">Welcome back</div><h1>Log in to FlexPass</h1><p>Access your services, bookings and management tools.</p><form className="stack" onSubmit={submit}>
@@ -44,7 +45,7 @@ function Login(){const {signIn,notify,user,info}=useApp();const navigate=useNavi
     <p className="muted" style={{marginTop:17}}>Local-only demo password: <b>Demo123!</b> · Fictional accounts only.</p></>}
   </div></main></PublicLayout>;
 }
-function StaticPage({kind}:{kind:'contact'|'privacy'|'terms'}){const contents={contact:['Request access','FlexPass is a private-launch B2B pilot. Contact the project team through your organization to join an approved pilot.','Online application and payment are intentionally not enabled in the MVP.'],privacy:['Privacy notice','This is a local demo application with fictional accounts and services. Do not enter real personal or payment information.','A reviewed production privacy policy is required before a public pilot.'],terms:['Terms of use','This project is a functional MVP demonstration, not a live consumer service.','Booking and cancellation policies must be approved before real-world operation.']} as const;const [title,body,note]=contents[kind];return <PublicLayout><main className="content-page"><div className="eyebrow">FlexPass</div><h1>{title}</h1><p>{body}</p><div className="notice">{note}</div><p style={{marginTop:22}}><Link to="/services" className="btn btn-primary">Explore services</Link></p></main></PublicLayout>}
+function StaticPage({kind}:{kind:'contact'|'privacy'|'terms'}){const contents={contact:['Request access','FlexPass is a private-launch B2B pilot. Contact the project team through your organization to join an approved pilot.','Online application and payment are intentionally not enabled in the MVP.'],privacy:['Privacy notice','This is an MVP preview with fictional services. Do not enter real personal or payment information.','A reviewed production privacy policy is required before a public pilot.'],terms:['Terms of use','This project is a functional MVP demonstration, not a live consumer service.','Booking and cancellation policies must be approved before real-world operation.']} as const;const [title,body,note]=contents[kind];return <PublicLayout><main className="content-page"><div className="eyebrow">FlexPass</div><h1>{title}</h1><p>{body}</p><div className="notice">{note}</div><p style={{marginTop:22}}><Link to="/services" className="btn btn-primary">Explore services</Link></p></main></PublicLayout>}
 function Authenticated({role}:{role:Role}){const {user}=useApp();if(!user)return <Navigate to="/login" replace/>;if(user.role!==role)return <Navigate to={`/${user.role}`} replace/>;return <Dashboard role={role}/>;}
 export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem(TOKEN_KEY)||'');const [user,setUser]=useState<User|null>(null);const [info,setInfo]=useState<AppInfo|null>(null);const [loading,setLoading]=useState(Boolean(sessionStorage.getItem(TOKEN_KEY)));const [message,setMessage]=useState<{body:string;error:boolean}|null>(null);
   useEffect(()=>{request<AppInfo>('/info').then(setInfo).catch(()=>{});},[]);

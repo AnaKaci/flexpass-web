@@ -4,6 +4,12 @@
 
 This is an **MVP/pilot codebase**, not a finished commercial service. The frontend is responsive and includes three roles, and the API includes reservation, credit ledger and financial tracking logic. It **does not** include real invitation emails, complete user and partner onboarding, live invoicing, payment processing, approved credit expiry policies, or a production security/privacy review. Do not store real employee/customer financial or personal information in it before those tasks are completed.
 
+## Live frontend demo
+
+**[Open the FlexPass demo](https://anakaci.github.io/flexpass-web/)**
+
+This GitHub Pages site is a **read-only frontend preview** using fictional catalog data. The FastAPI backend, login, bookings, and database operations require separate hosting and are not available in this demo.
+
 ## Functional scope
 
 | Role | Included in demo |

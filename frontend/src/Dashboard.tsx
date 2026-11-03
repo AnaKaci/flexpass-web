@@ -1,0 +1,99 @@
+import {useCallback,useEffect,useState} from 'react';
+import type {ReactNode} from 'react';
+import {Link,useNavigate} from 'react-router-dom';
+import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,AdminSummary,Company,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog} from './types';
+import {dateTime,icons,labels,money,month,post,request} from './api';
+import {Heading,Panel,Stat,StatusTag,useApp} from './App';
+import {BookingDialog,ServiceCard} from './ServicesPage';
+import {ActionDialog} from './Forms';
+
+interface AllData {
+  employeeSummary?:EmployeeSummary;
+  partnerSummary?:PartnerSummary;
+  adminSummary?:AdminSummary;
+  bookings:Booking[];
+  ledger:LedgerRow[];
+  partnerServices:PartnerService[];
+  companies:Company[];
+  employees:Employee[];
+  plans:Plan[];
+  invoices:Invoice[];
+  settlements:Settlement[];
+  audit:AuditRow[];
+  catalog:Service[];
+}
+const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[]};
+const menu:Record<Role,Array<[Section,string,string]>>={
+  employee:[['overview','Overview','▦'],['discover','Explore services','✦'],['bookings','My bookings','▤'],['wallet','Wallet & credits','◉']],
+  partner:[['overview','Overview','▦'],['reservations','Reservations','▤'],['services','My services','✦'],['settlements','Settlements','◉']],
+  admin:[['overview','Overview','▦'],['companies','Companies','▤'],['employees','Employees','♙'],['plans','Credit plans','◇'],['invoices','Company invoices','▣'],['settlements','Partner settlements','◉'],['audit','Audit log','☷']],
+};
+function Table({columns,rows}:{columns:string[];rows:ReactNode[][]}){return <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(col=><th key={col}>{col}</th>)}</tr></thead><tbody>{rows.length?rows.map((row,i)=><tr key={i}>{row.map((cell,k)=><td key={k}>{cell}</td>)}</tr>):<tr><td colSpan={columns.length} className="muted">No records yet.</td></tr>}</tbody></table></div>}
+function BookingTable({bookings,role,action}:{bookings:Booking[];role:'employee'|'partner';action:(book:Booking)=>void}){
+  return <Table columns={['Experience','Date / venue','Credits','Status','Action']} rows={bookings.map(b=>[
+    <><b>{b.service}</b><br/><small>{b.reference}</small></>,<><b>{dateTime(b.start_at)}</b><br/><small>{b.partner}</small></>,`${b.credits} credits`,<StatusTag status={b.status}/>,b.status==='BOOKED'?<button className={`btn ${role==='employee'?'btn-outline':'btn-primary'} btn-sm`} onClick={()=>action(b)}>{role==='employee'?'Cancel':'Confirm arrival'}</button>:'—',
+  ])}/>;
+}
+function SummaryCards({items}:{items:Array<[string,string,string|number,string?]>}){return <div className="stats">{items.map(([icon,label,value,small])=><Stat key={label} icon={icon} label={label} value={value} small={small}/>)}</div>}
+const ERROR_MESSAGE='Could not load this dashboard. Check the API server and sign in again.';
+export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify}=useApp();const navigate=useNavigate();const [section,setSection]=useState<Section>('overview');const [data,setData]=useState<AllData>(emptyData);const [category,setCategory]=useState<Group>('fitness');const [selectedService,setSelectedService]=useState<Service|null>(null);const [form,setForm]=useState<FormDialog|null>(null);const [revision,setRevision]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const refresh=useCallback(()=>setRevision(x=>x+1),[]);
+  useEffect(()=>{let valid=true;setLoading(true);setError('');
+    const get=<T,>(path:string)=>request<T>(path,token);
+    async function load(){
+      if(role==='employee'){
+        const [summary,bookings,ledger,catalog]=await Promise.all([get<EmployeeSummary>('/employee/summary'),get<Booking[]>('/employee/bookings'),get<LedgerRow[]>('/employee/ledger'),get<Service[]>(`/catalog?group=${category}`)]);
+        if(valid)setData({...emptyData,employeeSummary:summary,bookings,ledger,catalog});
+      }else if(role==='partner'){
+        const [summary,bookings,services,settlements]=await Promise.all([get<PartnerSummary>('/partner/summary'),get<Booking[]>('/partner/bookings'),get<PartnerService[]>('/partner/services'),get<Settlement[]>('/settlements')]);
+        if(valid)setData({...emptyData,partnerSummary:summary,bookings,partnerServices:services,settlements});
+      }else{
+        const [summary,companies,employees,plans,invoices,settlements,audit]=await Promise.all([get<AdminSummary>('/admin/summary'),get<Company[]>('/admin/companies'),get<Employee[]>('/admin/employees'),get<Plan[]>('/admin/plans'),get<Invoice[]>('/admin/invoices'),get<Settlement[]>('/settlements'),get<AuditRow[]>('/admin/audit')]);
+        if(valid)setData({...emptyData,adminSummary:summary,companies,employees,plans,invoices,settlements,audit});
+      }
+    }
+    load().catch((e:Error)=>{if(valid)setError(e.message)}).finally(()=>{if(valid)setLoading(false)});
+    return()=>{valid=false};
+  },[role,token,revision,category]);
+  async function mutate(path:string,body:Record<string,unknown>={}){try{await post(path,token,body);notify('Change saved successfully.');refresh();}catch(err){notify((err as Error).message,true)}}
+  function cancelBooking(b:Booking){if(!window.confirm(`Cancel ${b.reference} and return its ${b.credits} credits?`))return;void mutate(`/bookings/${b.id}/cancel`)}
+  function checkIn(b:Booking){if(!window.confirm(`Confirm arrival for ${b.user} (${b.reference})? This action cannot be repeated.`))return;void mutate(`/partner/bookings/${b.id}/checkin`)}
+  const active=menu[role].find(row=>row[0]===section)||menu[role][0];
+  if(!user)return null;
+  return <div className="app-shell"><aside className="sidebar"><Link className="logo" to="/"><span className="logo-mark">✳</span>FlexPass</Link><div className="side-label">{role[0].toUpperCase()+role.slice(1)} workspace</div><nav className="side-nav" aria-label={`${role} workspace`}>
+    {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} onClick={()=>setSection(name)}><span className="side-ico">{icon}</span>{label}</button>)}</nav>
+    <div className="sidebar-bottom"><div className="profile-pill"><div className="avatar">{user.full_name.slice(0,1)}</div><div><b>{user.full_name}</b><small>{user.email}</small></div></div><button className="side-link" onClick={()=>{signOut();navigate('/login')}}>↪ &nbsp; Sign out</button></div></aside>
+    <div className="dash-main"><header className="dash-topbar"><div><small>FlexPass / {role}</small><b>{active[1]}</b></div><div className="flex-between"><span className="status">● &nbsp; Pilot environment</span><Link className="btn btn-outline btn-sm" to="/services?maxCredits=5">Public catalog ↗</Link><button className="btn btn-outline btn-sm" onClick={()=>{signOut();navigate('/login')}}>Sign out</button></div></header>
+      <main className="dash-content">{loading?<div className="loading">Loading workspace...</div>:error?<div className="notice warn"><b>{ERROR_MESSAGE}</b><p>{error}</p><button className="btn btn-outline btn-sm" onClick={refresh}>Retry</button></div>:<>
+        {role==='employee'&&data.employeeSummary&&<EmployeeView section={section} data={data} onSection={setSection} onBooking={cancelBooking} onService={setSelectedService} category={category} onCategory={setCategory}/>}
+        {role==='partner'&&data.partnerSummary&&<PartnerView section={section} data={data} onSection={setSection} onBooking={checkIn} onForm={setForm}/>}
+        {role==='admin'&&data.adminSummary&&<AdminView section={section} data={data} onSection={setSection} onForm={setForm} onGenerate={()=>{void mutate(`/admin/settlements/generate?period=${month()}`)}}/>}
+      </>}</main></div>
+    {selectedService&&<BookingDialog service={selectedService} onClose={()=>setSelectedService(null)} onBooked={()=>{setSection('bookings');refresh()}}/>}
+    {form&&<ActionDialog dialog={form} data={data} onClose={()=>setForm(null)} onSuccess={()=>{setForm(null);notify('Change saved.');refresh()}}/>}
+  </div>;
+}
+function EmployeeView({section,data,onSection,onBooking,onService,category,onCategory}:{section:Section;data:AllData;onSection:(v:Section)=>void;onBooking:(b:Booking)=>void;onService:(s:Service)=>void;category:Group;onCategory:(v:Group)=>void}){const s=data.employeeSummary!;
+  if(section==='overview')return <><Heading title="Your FlexPass" subtitle="Your next experience starts here." action={<button className="btn btn-primary" onClick={()=>onSection('discover')}>Explore experiences →</button>}/><SummaryCards items={[["✦","Available credits",s.balance,"From your employer-funded wallet"],["▤","Upcoming bookings",s.active_bookings,"Confirmed reservations"],["✓","Visits completed",s.visits,"Confirmed attendance"],["◉","Monthly plan",s.plan,s.company]]}/>
+    <div className="dash-grid"><Panel title="Your recent bookings" action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('bookings')}>View all →</button>}><BookingTable bookings={data.bookings.slice(0,5)} role="employee" action={onBooking}/></Panel><div className="stack"><div className="callout-gradient"><div className="eyebrow" style={{color:'#e8d6fc'}}>Your wellness wallet</div><h2>{s.balance} credits available</h2><p>Make time for what moves you.</p><button className="btn btn-outline" onClick={()=>onSection('discover')}>Find an activity →</button></div><Panel title="Membership"><div className="stack"><div className="flex-between"><span className="muted">Company</span><b>{s.company}</b></div><div className="flex-between"><span className="muted">Plan</span><b>{s.plan}</b></div><div className="flex-between"><span className="muted">Monthly allowance</span><b>{s.monthly_credits} credits</b></div></div></Panel></div></div></>;
+  if(section==='wallet')return <><Heading title="Wallet & credit history" subtitle="Track every allocation, reservation and refund."/><div className="dash-grid"><Panel title="Current balance"><div className="wallet-big"><strong>{s.balance}</strong><span>available credits</span></div><div className="progress-track"><div className="progress-bar" style={{width:`${Math.min(100,Math.max(0,100*s.balance/Math.max(1,s.monthly_credits)))}%`}}/></div><p className="muted">{s.plan} · {s.monthly_credits} credits per standard cycle</p><div className="notice">Wallet balances come from the ledger. Booking debits and eligible refunds are handled by the API.</div></Panel><Panel title="Recent ledger entries"><Table columns={['Date','Type','Credits','Details']} rows={data.ledger.map(l=>[dateTime(l.created_at),<StatusTag status={l.kind}/>,<b className={l.amount>=0?'positive':'negative'}>{l.amount>0?'+':''}{l.amount}</b>,l.reason])}/></Panel></div></>;
+  if(section==='bookings')return <><Heading title="My bookings" subtitle="Review, attend or cancel reservations."/><Panel title="Booking history"><BookingTable role="employee" bookings={data.bookings} action={onBooking}/></Panel></>;
+  if(section==='discover')return <><Heading title="Explore experiences" subtitle="Available experiences across FlexPass categories."/><div className="tabs">{(Object.keys(labels) as Group[]).map(group=><button className={`tab-btn ${category===group?'active':''}`} key={group} onClick={()=>onCategory(group)}>{labels[group]}</button>)}</div><div className="services-grid">{data.catalog.length?data.catalog.map(s=><ServiceCard service={s} onSelect={onService} key={s.id}/>):<div className="empty"><p>No activities available in this category.</p></div>}</div></>;
+  return null;
+}
+function PartnerView({section,data,onSection,onBooking,onForm}:{section:Section;data:AllData;onSection:(v:Section)=>void;onBooking:(b:Booking)=>void;onForm:(f:FormDialog)=>void}){const s=data.partnerSummary!;
+  if(section==='overview')return <><Heading title="Partner overview" subtitle={`Welcome to ${s.partner} · ${s.zone}`}/><SummaryCards items={[["◇","Active services",s.services],["▤","Total reservations",s.bookings],["✓","Confirmed visits",s.checkins],["◉","Earned (all time)",money(s.earnings_cents),"Confirmed attendance only"]]}/><div className="dash-grid"><Panel title="Reservations" action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('reservations')}>View all →</button>}><BookingTable bookings={data.bookings.slice(0,6)} role="partner" action={onBooking}/></Panel><div className="stack"><Panel title="Partner guidance"><p>Check the guest name and booking reference, then confirm arrival once.</p><div className="notice">You can only see your partner organization’s bookings. Settlements use confirmed attendance.</div></Panel><div className="callout-gradient"><h2>Manage your sessions</h2><p>Publish services and available class times.</p><button className="btn btn-outline" onClick={()=>onSection('services')}>Manage services →</button></div></div></div></>;
+  if(section==='reservations')return <><Heading title="Reservations" subtitle="Check guests in and review attendance."/><Panel title="All partner bookings"><BookingTable bookings={data.bookings} role="partner" action={onBooking}/></Panel></>;
+  if(section==='services')return <><Heading title="My services" subtitle="Manage approved offerings and publish class slots." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'service'})}>+ New service</button>}/><div className="notice notice-gap">Active price changes need Admin approval in production. Publishing new services here is for the pilot.</div><Panel title="Your services"><Table columns={['Service','Category','Credits','Slots','Action']} rows={data.partnerServices.map(s=>[<b>{s.name}</b>,labels[s.group],`${s.credits} credits`,`${s.slots.length} slots`,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'slot',id:s.id})}>Add slot +</button>])}/></Panel></>;
+  if(section==='settlements')return <><Heading title="Settlement reports" subtitle="Monthly payouts based on confirmed attendance."/><div className="notice notice-gap">Bank transfers are processed outside the app. Admin maintains settlement statuses.</div><Panel title="Settlement history"><Table columns={['Period','Visits','Amount','Status','Invoice ref.']} rows={data.settlements.map(s=>[s.period,s.bookings,money(s.amount_cents),<StatusTag status={s.status}/>,s.invoice_reference||'—'])}/></Panel></>;
+  return null;
+}
+function AdminView({section,data,onSection,onForm,onGenerate}:{section:Section;data:AllData;onSection:(v:Section)=>void;onForm:(f:FormDialog)=>void;onGenerate:()=>void}){const s=data.adminSummary!;
+  if(section==='overview')return <><Heading title="Business overview" subtitle="An operational view of your FlexPass pilot." action={<button className="btn btn-primary" onClick={()=>onSection('companies')}>Manage companies →</button>}/><SummaryCards items={[["♙","Employees",s.employees,"Across all client companies"],["◈","Partners",s.partners],["▤","Bookings",s.bookings],["✓","Confirmed visits",s.visits]]}/><SummaryCards items={[["▣","Companies",s.companies],["✦","Services",s.services],["◉","Credits allocated",s.credits_issued],["↗","Partner payables",money(s.partner_payables_cents)]]}/><div className="dash-grid"><Panel title="Company snapshot" action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('companies')}>View all →</button>}><Table columns={['Company','HR contact','Employees','Status']} rows={data.companies.map(c=>[<b>{c.name}</b>,c.hr_email,c.employees,<StatusTag status={c.status}/>])}/></Panel><Panel title="Pilot operating principles"><div className="notice">Three workspaces only: Admin, Partner, Employee. HR submits lists outside the app.</div><p>Bookings, credit movements and refunds are validated by the API and recorded in the ledger.</p><p>Company invoices and partner payouts are tracked here but paid outside FlexPass.</p></Panel></div></>;
+  if(section==='companies')return <><Heading title="Companies" subtitle="Track employer accounts and HR contacts." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'company'})}>+ Add company</button>}/><Panel title="Registered companies"><Table columns={['Company','HR email','Employees','Status']} rows={data.companies.map(c=>[<b>{c.name}</b>,c.hr_email,c.employees,<StatusTag status={c.status}/>])}/></Panel></>;
+  if(section==='employees')return <><Heading title="Employees" subtitle="Invite and administer employer-funded members." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'employee'})}>+ Invite employee</button>}/><div className="notice notice-gap">Invitations are recorded; email delivery and self-activation require Supabase Auth integration. Newly invited accounts cannot log in yet.</div><Panel title="Employees"><Table columns={['Name','Company','Plan','Wallet','Status','Action']} rows={data.employees.map(e=>[<><b>{e.full_name}</b><br/><small>{e.email}</small></>,e.company,e.plan,`${e.balance} credits`,<StatusTag status={e.status}/>,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'adjust',id:e.id})}>Adjust credits</button>])}/></Panel></>;
+  if(section==='plans')return <><Heading title="Credit plans" subtitle="Three employer packages configured for the pilot."/><div className="stats three-cols">{data.plans.map((p,i)=><Stat key={p.id} icon={['✧','✦','◈'][i]||'✦'} label={p.name} value={`${p.credits} credits`} small="Monthly allowance · price unapproved"/>)}</div><div className="notice">Plan prices, rollover, expiration and change dates require FlexPass approval.</div></>;
+  if(section==='invoices')return <><Heading title="Company invoices" subtitle="Track invoice references and manual payment confirmation." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'invoice'})}>+ New invoice</button>}/><Panel title="Invoice register"><Table columns={['Reference','Company','Period','Amount','Status','Action']} rows={data.invoices.map(i=>[<b>{i.reference}</b>,i.company,i.period,money(i.amount_cents),<StatusTag status={i.status}/>,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'invoice-status',id:i.id})}>Update status</button>])}/></Panel></>;
+  if(section==='settlements')return <><Heading title="Partner settlements" subtitle="Create and review monthly partner payout reports." action={<button className="btn btn-primary" onClick={onGenerate}>Generate {month()} ↗</button>}/><div className="notice notice-gap">Settlement amounts use the original booking payout snapshot and confirmed attendance; payments occur outside the app.</div><Panel title="Settlement register"><Table columns={['Partner','Period','Visits','Payable','Status','Action']} rows={data.settlements.map(st=>[<b>{st.partner}</b>,st.period,st.bookings,money(st.amount_cents),<StatusTag status={st.status}/>,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'settlement-status',id:st.id})}>Update status</button>])}/></Panel></>;
+  if(section==='audit')return <><Heading title="Audit log" subtitle="Trace administrative changes and bookings."/><Panel title="Recent events"><Table columns={['Timestamp','Actor ID','Action','Details']} rows={data.audit.map(a=>[dateTime(a.at),a.actor_id||'System',<b>{a.action}</b>,a.detail])}/></Panel></>;
+  return null;
+}

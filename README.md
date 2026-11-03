@@ -1,3 +1,76 @@
-# FlexPass Web Application
+# FlexPass — browser-based web application (MVP)
 
-Initial repository setup. Application source will be committed next.
+**React 18 + TypeScript + Vite**, with a **FastAPI + SQLAlchemy** API. The web interface and API can be served together from **one HTTPS origin** using the supplied Dockerfile. It is a browser application, not a native Windows/macOS/mobile application.
+
+This is an **MVP/pilot codebase**, not a finished commercial service. The frontend is responsive and includes three roles, and the API includes reservation, credit ledger and financial tracking logic. It **does not** include real invitation emails, complete user and partner onboarding, live invoicing, payment processing, approved credit expiry policies, or a production security/privacy review. Do not store real employee/customer financial or personal information in it before those tasks are completed.
+
+## Functional scope
+
+| Role | Included in demo |
+|---|---|
+| Employee | Browse catalog and available slots, reserve/cancel, see wallet and history |
+| Partner | View its own reservations, check in attendance, create services/slots, view settlements |
+| Admin | Company records, invitation records, credit corrections, invoices and reconciliation |
+
+The document's **HR dashboard is intentionally not implemented**. HR coordination is outside the MVP. The sample partners, prices and plans are illustrative, not real FlexPass offerings.
+
+## Local development
+
+Requires Python 3.10+, Node.js 20+ and npm with access to its package registry. From the root directory:
+
+Terminal 1:
+
+```bash
+python -m pip install -r backend/requirements.txt
+python run.py
+```
+
+Terminal 2:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open **http://127.0.0.1:5173**. The frontend proxies `/api` to the backend. Backend API docs: **http://127.0.0.1:8000/docs**.
+
+### Local fictional accounts
+
+| Role | Email | Password |
+|---|---|---|
+| Employee | employee@flexpass.demo | Demo123! |
+| Partner | partner@flexpass.demo | Demo123! |
+| Admin | admin@flexpass.demo | Demo123! |
+
+These fixed credentials are enabled in *development demo mode only* by default, and **must never be exposed in a public hosting configuration**. Set `FLEXPASS_ENV=production` when hosting. In production the application defaults to `FLEXPASS_DEMO_MODE=false` and does **not** seed the known demonstration credentials.
+
+## Deploy as a web application
+
+- `Dockerfile`: builds Vite frontend and serves it from FastAPI alongside `/api`.
+- `render.yaml`: Render Blueprint defining a web service plus PostgreSQL database. Uses an auto-generated signing key; asks for administrator credentials during provisioning. **Review Render's current pricing before creating resources.**
+- `DEPLOYMENT.md`: GitHub and Render deployment walkthrough.
+- `.github/workflows/ci.yml`: runs Python tests and TypeScript build on every push and pull request.
+
+Hosted production requires `FLEXPASS_ENV=production`, `FLEXPASS_SECRET` (32+ random characters), `DATABASE_URL` (prefer PostgreSQL), `FLEXPASS_ADMIN_EMAIL`, and `FLEXPASS_ADMIN_PASSWORD` (12+ characters). These are private environment values, **not source-controlled variables**. On first initialization only an administrator is created. The commercial plans, partners, invitation activation and credential setup must be implemented/approved before onboarding real users.
+
+A separate **hosted demo** can be enabled with `FLEXPASS_DEMO_MODE=true`, but requires three strong *distinct* passwords in `FLEXPASS_DEMO_ADMIN_PASSWORD`, `FLEXPASS_DEMO_PARTNER_PASSWORD`, and `FLEXPASS_DEMO_EMPLOYEE_PASSWORD`. The hosted UI never displays these passwords. Use fictional data only.
+
+## Tests
+
+```bash
+python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
+python -m pytest -q tests
+cd frontend
+npm install
+npm run typecheck
+npm run build
+```
+
+Checked in the delivery environment: **5 backend tests passed**, a production-mode API smoke test passed, and all seven TypeScript source files parsed/transpiled without syntax diagnostics. **The npm registry was unreachable (`EAI_AGAIN`), so dependency-based frontend type-check, Vite build, Docker build, visual browser tests and hosted deployment have not been verified.** GitHub Actions will rerun the frontend checks after the code is uploaded.
+
+## MVP limitations
+
+The feature scope and acceptance criteria are derived from the supplied FlexPass MVP document. Important unfinished functions include email invitations, CSV import, partner user provisioning, package effective dates, approved cancellation policy, wallet expiry/rollover, audit coverage, concurrency verification on production PostgreSQL, partner invoice file uploads, production database migrations, bank-payment verification, privacy controls and independent security review.
+
+The specification document is excluded from Git by `.gitignore` because it is marked confidential. It is not necessary for the app to run.

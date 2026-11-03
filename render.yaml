@@ -1,0 +1,29 @@
+# Preview deployment blueprint. A Render account and GitHub connection are required.
+# This creates billable resources depending on the chosen Render plan; review before deploying.
+services:
+  - type: web
+    name: flexpass-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: FLEXPASS_ENV
+        value: production
+      - key: FLEXPASS_DEMO_MODE
+        value: 'false'
+      - key: FLEXPASS_SECRET
+        generateValue: true
+      - key: FLEXPASS_ADMIN_EMAIL
+        sync: false
+      - key: FLEXPASS_ADMIN_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: flexpass-db
+          property: connectionString
+
+databases:
+  - name: flexpass-db
+    databaseName: flexpass
+    user: flexpass

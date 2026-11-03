@@ -2,7 +2,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { PropsWithChildren, ReactNode, FormEvent } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import type { AppInfo, LoginResult, Role, User } from './types';
-import { TOKEN_KEY, icons, labels, login, pagesPreview, request } from './api';
+import { TOKEN_KEY, labels, login, pagesPreview, request } from './api';
+import { BrandIcon } from './BrandIcon';
 import { ServicesPage } from './ServicesPage';
 import { Dashboard } from './Dashboard';
 
@@ -17,20 +18,37 @@ interface AppContextValue {
 const AppContext=createContext<AppContextValue|null>(null);
 export function useApp(){const value=useContext(AppContext);if(!value)throw new Error('Missing app context');return value;}
 const groups=Object.keys(labels) as (keyof typeof labels)[];
-function Brand(){return <Link className="logo" to="/"><span className="logo-mark">✳</span>FlexPass</Link>;}
+function Brand(){return <Link className="logo" to="/" aria-label="FlexPass home"><span className="brand-monogram" aria-hidden="true">FP</span><span className="brand-wordmark"><strong>FLEXPASS</strong><small>A FLEXIBLE EVERYDAY</small></span></Link>;}
 function PublicLayout({children}:PropsWithChildren){const {user,info}=useApp();const location=useLocation();return <>
-  {pagesPreview ? <div className="top-strip"><strong>Read-only public preview</strong> &nbsp; Fictional services. No accounts, bookings, payments or live availability.</div> : info?.demo_mode && <div className="top-strip"><strong>Demo environment</strong> &nbsp; Fictional Tirana data and no live payment processing.</div>}
+  <div className="top-strip"><span>{pagesPreview?'DESIGN PREVIEW · FICTIONAL EXPERIENCES · BOOKINGS DISABLED':info?.demo_mode?'DEMO ENVIRONMENT · FICTIONAL SERVICES':'WELLNESS · LIFESTYLE · FREEDOM · EXPERIENCES'}</span></div>
   <header className="site-header"><div className="container header-row"><Brand/>
     <nav className="category-nav" aria-label="Experience categories">{groups.map(group=><Link key={group} className={new URLSearchParams(location.search).get('group')===group?'active':''} to={`/services?group=${group}`}>{labels[group]}</Link>)}</nav>
-    <div className="header-actions">{user?<><span className="nav-user">{user.role}</span><Link className="btn btn-primary btn-sm" to={`/${user.role}`}>Dashboard ↗</Link></>:<>{pagesPreview?<span className="nav-user">Preview only</span>:<Link className="btn btn-outline btn-sm" to="/login">Log in</Link>}<Link className="btn btn-primary btn-sm" to="/contact">About the pilot ↗</Link></>}</div>
+    <div className="header-actions">{user?<><span className="nav-user">{user.role}</span><Link className="btn btn-primary btn-sm" to={`/${user.role}`}>Dashboard <span aria-hidden="true">↗</span></Link></>:<>{!pagesPreview&&<Link className="btn btn-outline btn-sm" to="/login">Log in</Link>}<Link className="btn btn-primary btn-sm" to="/services">Explore <span aria-hidden="true">↗</span></Link></>}</div>
   </div></header>
   {children}
-  <footer className="foot"><div className="container foot-row"><div><Brand/><p>Private-launch access pass for premium daily services, real booking, and hard-to-reach routines.</p></div><div className="footlinks"><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/contact">Contact</Link></div></div></footer>
+  <footer className="foot"><div className="container footer-inner"><div className="footer-brand"><Brand/><p>A flexible everyday through wellness, movement and meaningful experiences.</p></div><div className="footer-right"><span className="footer-eyebrow">DISCOVER YOUR EVERYDAY</span><div className="footlinks"><Link to="/services">Experiences</Link><Link to="/contact">About the pilot</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div><span className="footer-fine">© {new Date().getFullYear()} FlexPass · {pagesPreview?'Concept preview — fictional content':'Everyday experiences'}</span></div></div></footer>
 </>}
-function Home(){return <PublicLayout><main className="container"><section className="hero"><div className="hero-panel"><div className="glow-circle"/><div className="hero-copy"><div className="eyebrow">Your everyday access pass</div><h1>More ways to move.<br/>One FlexPass.</h1><p>Find the experiences that fit your day, from gym sessions and yoga to wellness and family time.</p><div className="hero-actions"><Link className="btn btn-primary" to="/services">Explore experiences →</Link><Link className="btn btn-outline" to="/contact">How it works</Link></div></div><div className="hero-graphic">✦</div></div></section>
-  <div className="section-title-row"><div><h2>Explore by category</h2><p>Discover something new in Tirana.</p></div><Link className="btn btn-outline btn-sm" to="/services">View all →</Link></div>
-  <div className="category-grid">{groups.map(g=><Link key={g} className="category-tile" to={`/services?group=${g}`}><span className="category-emoji">{icons[g]}</span><b>{labels[g]}</b><small>Discover experiences →</small></Link>)}</div>
-  <div className="section-spacer"/><div className="callout-gradient"><div className="eyebrow" style={{color:'#e3d2ff'}}>B2B access</div><h2>Built for your team, designed for everyday life.</h2><p>Employer-funded credits with a flexible network of experiences.</p><Link className="btn btn-outline" to="/contact">Request access →</Link></div>
+const categoryDescriptions:Record<keyof typeof labels,string>={
+  fitness:'Strength for every day',sport:'Find your rhythm',wellness:'A little time to restore',glow:'Your moments of self-care','kids-family':'Make memories together'
+};
+function Home(){return <PublicLayout><main className="home-page">
+  <section className="hero editorial-hero container" aria-labelledby="home-title">
+    <div className="hero-text">
+      <div className="hero-index"><span>THE FLEXPASS WAY OF LIFE</span><span>01 / EVERYDAY WELLBEING</span></div>
+      <div className="hero-copy"><div className="eyebrow">A FLEXIBLE EVERYDAY</div><h1 id="home-title">More experiences.<br/><em>A more flexible everyday.</em></h1><div className="hero-rule"/><p>A flexible everyday through wellness, movement and meaningful experiences. Find room for more of what makes you feel good.</p>
+        <div className="hero-actions"><Link className="btn btn-primary" to="/services">Explore experiences <span aria-hidden="true">→</span></Link><Link className="btn btn-tertiary" to="/contact">Discover FlexPass <span aria-hidden="true">↗</span></Link></div>
+      </div>
+      <div className="hero-footnote"><span className="footnote-line"/> WELLNESS&nbsp; · &nbsp; LIFESTYLE&nbsp; · &nbsp; FREEDOM</div>
+    </div>
+    <div className="hero-art"><img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Warm Mediterranean arch framing a calm blue sea and an inviting seating area"/><div className="hero-art-shade"/><div className="hero-art-caption">A HEALTHIER,<br/><em>HAPPIER EVERYDAY.</em></div><span className="hero-art-index">01 — 05</span></div>
+  </section>
+  <section className="brand-manifesto"><div className="container manifesto-inner"><span className="manifesto-label">AN INVITATION TO LIVE WELL</span><p>Every day holds the possibility of <em>something more.</em></p><div className="manifesto-stars" aria-hidden="true">✳</div></div></section>
+  <section className="collection-section container" aria-labelledby="category-title"><div className="section-header"><div><div className="eyebrow">01 / THE COLLECTION</div><h2 id="category-title">Explore what <em>moves you.</em></h2><p>Small moments, meaningful experiences. Choose your own pace.</p></div><Link className="text-link" to="/services">View all experiences <span aria-hidden="true">↗</span></Link></div>
+    <div className="category-grid">{groups.map((g,i)=><Link key={g} className={`category-tile category-${g}`} to={`/services?group=${g}`}><div className="category-top"><span className="category-number">0{i+1}</span><span className="category-arrow" aria-hidden="true">↗</span></div><span className="category-icon"><BrandIcon group={g}/></span><div><b>{labels[g]}</b><small>{categoryDescriptions[g]}</small></div></Link>)}</div>
+  </section>
+  <section className="brand-story container" aria-labelledby="brand-story-title"><div className="story-graphic"><div className="story-arch"><div className="story-water"/></div><div className="story-note">MORE<br/><em>everyday</em></div></div><div className="story-copy"><div className="eyebrow">02 / THE PHILOSOPHY</div><h2 id="brand-story-title">Wellness is not a destination.<br/><em>It's a way of living.</em></h2><p>Make space for movement, rest, connection and the experiences that make each week feel a little more yours.</p><div className="story-points"><div><span>01</span><p><strong>Find your experience</strong><small>Discover movement, wellness and more.</small></p></div><div><span>02</span><p><strong>Choose what suits you</strong><small>Explore activities at your own pace.</small></p></div><div><span>03</span><p><strong>Make everyday count</strong><small>Discover moments worth making time for.</small></p></div></div><Link className="btn btn-secondary" to="/services">Explore the collection <span aria-hidden="true">→</span></Link></div></section>
+  <section className="closing-section"><div className="container closing-inner"><div><div className="eyebrow">A FLEXIBLE EVERYDAY</div><h2>A healthier, <em>happier everyday.</em></h2><p>More choice. More experiences. More space to be yourself.</p></div><Link className="btn btn-primary closing-btn" to="/services">Find your next experience <span aria-hidden="true">↗</span></Link></div></section>
+  {pagesPreview&&<div className="container preview-disclaimer">This public website is a design preview. All sample partners and experiences are fictional; no booking or payment functions are available.</div>}
 </main></PublicLayout>}
 function Login(){const {signIn,notify,user,info}=useApp();const navigate=useNavigate();const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);
   if(pagesPreview)return <PublicLayout><main className="auth-page"><div className="auth-card"><Brand/><h1>Accounts are not enabled in this preview</h1><p>This GitHub Pages site shows fictional services only. Sign-in and the three dashboards require the separate FastAPI backend and database.</p><Link className="btn btn-primary" to="/services">Explore sample services →</Link></div></main></PublicLayout>;

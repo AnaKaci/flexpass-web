@@ -1,10 +1,11 @@
-export type Role = 'employee' | 'partner' | 'admin';
+export type Role = 'employee' | 'partner' | 'admin' | 'hr';
 export type Group = 'fitness' | 'sport' | 'wellness' | 'glow' | 'kids-family';
 export type Status = 'BOOKED' | 'CHECKED_IN' | 'CANCELLED';
 export type EmployeeSection = 'overview' | 'discover' | 'bookings' | 'wallet';
 export type PartnerSection = 'overview' | 'reservations' | 'services' | 'settlements';
 export type AdminSection = 'overview' | 'companies' | 'employees' | 'plans' | 'invoices' | 'settlements' | 'audit';
-export type Section = EmployeeSection | PartnerSection | AdminSection;
+export type HrSection = 'overview' | 'employees';
+export type Section = EmployeeSection | PartnerSection | AdminSection | HrSection;
 export interface User { id:number; full_name:string; email:string; role:Role; company_id:number|null; partner_id:number|null; plan_id:number|null; status:string; }
 export interface LoginResult { token:string; user:User; }
 export interface AppInfo { app:string; preview:boolean; seeded:boolean; demo_mode:boolean; groups:Group[]; zones:string[]; subcategories:Record<Group,string[]>; tagline:string; }
@@ -15,6 +16,7 @@ export interface EmployeeSummary {company:string; plan:string; monthly_credits:n
 export interface LedgerRow {id:number; kind:string; amount:number; period:string; created_at:string; reason:string; booking_id:number|null; }
 export interface PartnerSummary {partner:string; zone:string; services:number; bookings:number; checkins:number; pending:number; earnings_cents:number; }
 export interface PartnerService {id:number; name:string; group:Group; subcategory:string; credits:number; payout_cents:number; active:boolean; slots:Slot[]; }
+export interface HrSummary {company:string; employees:number; active_employees:number; credits_available:number; monthly_credits:number;}
 export interface AdminSummary {companies:number; employees:number; partners:number; services:number; bookings:number; visits:number; credits_issued:number; partner_payables_cents:number; }
 export interface Company {id:number; name:string; hr_email:string; status:string; employees:number; }
 export interface Employee {id:number; full_name:string; email:string; company:string; company_id:number; plan:string; status:string; balance:number; }

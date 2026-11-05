@@ -598,7 +598,8 @@ def hr_employees(u=Depends(roles('hr'))):
 
 @app.get('/api/hr/plans')
 def hr_plans(u=Depends(roles('hr'))):
-    return plans(u)
+    with Session() as s:
+        return [{'id':p.id,'name':p.name,'credits':p.credits,'monthly_price':p.monthly_price,'currency':p.currency} for p in s.scalars(select(Plan).order_by(Plan.id)).all()]
 
 @app.post('/api/hr/employees')
 def hr_create_employee(body:EmployeeBody,u=Depends(roles('hr'))):

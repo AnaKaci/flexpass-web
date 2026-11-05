@@ -23,16 +23,16 @@ function fieldsFor(dialog:FormDialog,data:Source):{title:string;submit:string;fi
   }
 }
 export function ActionDialog({dialog,data,onClose,onSuccess}:{dialog:FormDialog;data:Source;onClose:()=>void;onSuccess:()=>void}){
-  const {token,notify}=useApp();const [busy,setBusy]=useState(false);const {title,submit,fields}=fieldsFor(dialog,data);
+  const {token,notify,user}=useApp();const [busy,setBusy]=useState(false);const {title,submit,fields}=fieldsFor(dialog,data);
   async function save(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);const f=Object.fromEntries(new FormData(e.currentTarget).entries()) as Record<string,string>;let path='';let body:Record<string,unknown>={...f};
     switch(dialog.kind){
       case 'company':path='/admin/companies';break;
-      case 'employee':path='/admin/employees';body={...f,company_id:Number(f.company_id),plan_id:Number(f.plan_id)};break;
+      case 'employee':path=user?.role==='hr'?'/hr/employees':'/admin/employees';body={...f,company_id:Number(f.company_id),plan_id:Number(f.plan_id)};break;
       case 'invoice':path='/admin/invoices';body={company_id:Number(f.company_id),period:f.period,reference:f.reference,amount_cents:Math.round(Number(f.amount)*100),due_date:f.due_date};break;
       case 'invoice-status':path=`/admin/invoices/${dialog.id}/status`;break;
       case 'service':path='/partner/services';body={name:f.name,group_name:f.group_name,subcategory:f.subcategory,credits:Number(f.credits),payout_cents:Math.round(Number(f.payout)*100),duration_minutes:Number(f.duration_minutes),description:f.description};break;
       case 'slot':path='/partner/slots';body={service_id:dialog.id,start_at:new Date(f.start_at).toISOString(),capacity:Number(f.capacity)};break;
-      case 'adjust':path='/admin/adjust-credits';body={user_id:dialog.id,amount:Number(f.amount),reason:f.reason};break;
+      case 'adjust':path=user?.role==='hr'?'/hr/adjust-credits':'/admin/adjust-credits';body={user_id:dialog.id,amount:Number(f.amount),reason:f.reason};break;
       case 'settlement-status':path=`/admin/settlements/${dialog.id}/status`;break;
     }
     try{await post(path,token,body);onSuccess();}catch(err){notify((err as Error).message,true)}finally{setBusy(false)}

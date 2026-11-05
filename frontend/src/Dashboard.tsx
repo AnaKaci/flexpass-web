@@ -1,7 +1,7 @@
 import {useCallback,useEffect,useState} from 'react';
 import type {ReactNode} from 'react';
 import {Link,useNavigate} from 'react-router-dom';
-import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,HrSummary,AdminSummary,Company,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog} from './types';
+import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,AdminSummary,Company,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog} from './types';
 import {dateTime,icons,labels,money,month,post,request} from './api';
 import {Heading,Panel,Stat,StatusTag,useApp} from './App';
 import {BookingDialog,ServiceCard} from './ServicesPage';
@@ -11,7 +11,6 @@ interface AllData {
   employeeSummary?:EmployeeSummary;
   partnerSummary?:PartnerSummary;
   adminSummary?:AdminSummary;
-  hrSummary?:HrSummary;
   bookings:Booking[];
   ledger:LedgerRow[];
   partnerServices:PartnerService[];
@@ -27,7 +26,6 @@ const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],e
 const menu:Record<Role,Array<[Section,string,string]>>={
   employee:[['overview','Overview','▦'],['discover','Explore services','✦'],['bookings','My bookings','▤'],['wallet','Wallet & credits','◉']],
   partner:[['overview','Overview','▦'],['reservations','Reservations','▤'],['services','My services','✦'],['settlements','Settlements','◉']],
-  hr:[['overview','Overview','▦'],['employees','Employees','♙']],
   admin:[['overview','Overview','▦'],['companies','Companies','▤'],['employees','Employees','♙'],['plans','Credit plans','◇'],['invoices','Company invoices','▣'],['settlements','Partner settlements','◉'],['audit','Audit log','☷']],
 };
 function Table({columns,rows}:{columns:string[];rows:ReactNode[][]}){return <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(col=><th key={col}>{col}</th>)}</tr></thead><tbody>{rows.length?rows.map((row,i)=><tr key={i}>{row.map((cell,k)=><td key={k}>{cell}</td>)}</tr>):<tr><td colSpan={columns.length} className="muted">No records yet.</td></tr>}</tbody></table></div>}
@@ -45,9 +43,6 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify}=
       if(role==='employee'){
         const [summary,bookings,ledger,catalog]=await Promise.all([get<EmployeeSummary>('/employee/summary'),get<Booking[]>('/employee/bookings'),get<LedgerRow[]>('/employee/ledger'),get<Service[]>(`/catalog?group=${category}`)]);
         if(valid)setData({...emptyData,employeeSummary:summary,bookings,ledger,catalog});
-      }else if(role==='hr'){
-        const [summary,employees,companies,plans]=await Promise.all([get<HrSummary>('/hr/summary'),get<Employee[]>('/hr/employees'),Promise.resolve([] as Company[]),get<Plan[]>('/hr/plans')]);
-        if(valid)setData({...emptyData,hrSummary:summary,employees,companies,plans});
       }else if(role==='partner'){
         const [summary,bookings,services,settlements]=await Promise.all([get<PartnerSummary>('/partner/summary'),get<Booking[]>('/partner/bookings'),get<PartnerService[]>('/partner/services'),get<Settlement[]>('/settlements')]);
         if(valid)setData({...emptyData,partnerSummary:summary,bookings,partnerServices:services,settlements});
@@ -71,11 +66,10 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify}=
       <main className="dash-content">{loading?<div className="loading">Loading workspace...</div>:error?<div className="notice warn"><b>{ERROR_MESSAGE}</b><p>{error}</p><button className="btn btn-outline btn-sm" onClick={refresh}>Retry</button></div>:<>
         {role==='employee'&&data.employeeSummary&&<EmployeeView section={section} data={data} onSection={setSection} onBooking={cancelBooking} onService={setSelectedService} category={category} onCategory={setCategory}/>}
         {role==='partner'&&data.partnerSummary&&<PartnerView section={section} data={data} onSection={setSection} onBooking={checkIn} onForm={setForm}/>}
-        {role==='hr'&&data.hrSummary&&<HrView section={section} data={data} onSection={setSection} onForm={setForm}/>}
         {role==='admin'&&data.adminSummary&&<AdminView section={section} data={data} onSection={setSection} onForm={setForm} onGenerate={()=>{void mutate(`/admin/settlements/generate?period=${month()}`)}}/>}
       </>}</main></div>
     {selectedService&&<BookingDialog service={selectedService} onClose={()=>setSelectedService(null)} onBooked={()=>{setSection('bookings');refresh()}}/>}
-    {form&&<ActionDialog dialog={form} data={role==='hr'?{...data,companies:[{id:user.company_id||0,name:data.hrSummary?.company||'',hr_email:'',status:'ACTIVE',employees:data.hrSummary?.employees||0}]}:data} onClose={()=>setForm(null)} onSuccess={()=>{setForm(null);notify('Change saved.');refresh()}}/>}
+    {form&&<ActionDialog dialog={form} data={data} onClose={()=>setForm(null)} onSuccess={()=>{setForm(null);notify('Change saved.');refresh()}}/>}
   </div>;
 }
 function EmployeeView({section,data,onSection,onBooking,onService,category,onCategory}:{section:Section;data:AllData;onSection:(v:Section)=>void;onBooking:(b:Booking)=>void;onService:(s:Service)=>void;category:Group;onCategory:(v:Group)=>void}){const s=data.employeeSummary!;
@@ -93,10 +87,6 @@ function PartnerView({section,data,onSection,onBooking,onForm}:{section:Section;
   if(section==='services')return <><Heading title="My services" subtitle="Manage approved offerings and publish class slots." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'service'})}>+ New service</button>}/><div className="notice notice-gap">Active price changes need Admin approval in production. Publishing new services here is for the pilot.</div><Panel title="Your services"><Table columns={['Service','Category','Credits','Slots','Action']} rows={data.partnerServices.map(s=>[<b>{s.name}</b>,labels[s.group],`${s.credits} credits`,`${s.slots.length} slots`,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'slot',id:s.id})}>Add slot +</button>])}/></Panel></>;
   if(section==='settlements')return <><Heading title="Settlement reports" subtitle="Monthly payouts based on confirmed attendance."/><div className="notice notice-gap">Bank transfers are processed outside the app. Admin maintains settlement statuses.</div><Panel title="Settlement history" action={<button className="btn btn-outline btn-sm" onClick={()=>void exportPayouts()}>Export CSV ↗</button>}><Table columns={['Period','Visits','Amount','Status','Invoice ref.']} rows={data.settlements.map(s=>[s.period,s.bookings,money(s.amount_cents),<StatusTag status={s.status}/>,s.invoice_reference||'—'])}/></Panel></>;
   return null;
-}
-function HrView({section,data,onSection,onForm}:{section:Section;data:AllData;onSection:(v:Section)=>void;onForm:(f:FormDialog)=>void}){const s=data.hrSummary!;
-  if(section==='overview')return <><Heading title="Company overview" subtitle={s.company} action={<button className="btn btn-primary" onClick={()=>onSection('employees')}>Manage employees →</button>}/><SummaryCards items={[['♙','Employees',s.employees],['✓','Active employees',s.active_employees],['✦','Available credits',s.credits_available],['◉','Monthly allocations',s.monthly_credits]]}/><Panel title="Company employees"><Table columns={['Name','Plan','Credits','Status']} rows={data.employees.map(e=>[e.full_name,e.plan,e.balance,<StatusTag status={e.status}/>])}/></Panel></>;
-  return <><Heading title="Company employees" subtitle="Manage employees and credits for your company only." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'employee'})}>+ Invite employee</button>}/><Panel title="Employee register"><Table columns={['Employee','Plan','Wallet','Status','Action']} rows={data.employees.map(e=>[<><b>{e.full_name}</b><br/><small>{e.email}</small></>,e.plan,e.balance,<StatusTag status={e.status}/>,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'adjust',id:e.id})}>Adjust credits</button>])}/></Panel></>;
 }
 function AdminView({section,data,onSection,onForm,onGenerate}:{section:Section;data:AllData;onSection:(v:Section)=>void;onForm:(f:FormDialog)=>void;onGenerate:()=>void}){const s=data.adminSummary!;
   if(section==='overview')return <><Heading title="Business overview" subtitle="An operational view of your FlexPass pilot." action={<button className="btn btn-primary" onClick={()=>onSection('companies')}>Manage companies →</button>}/><SummaryCards items={[["♙","Employees",s.employees,"Across all client companies"],["◈","Partners",s.partners],["▤","Bookings",s.bookings],["✓","Confirmed visits",s.visits]]}/><SummaryCards items={[["▣","Companies",s.companies],["✦","Services",s.services],["◉","Credits allocated",s.credits_issued],["↗","Partner payables",money(s.partner_payables_cents)]]}/><div className="dash-grid"><Panel title="Company snapshot" action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('companies')}>View all →</button>}><Table columns={['Company','HR contact','Employees','Status']} rows={data.companies.map(c=>[<b>{c.name}</b>,c.hr_email,c.employees,<StatusTag status={c.status}/>])}/></Panel><Panel title="Pilot operating principles"><div className="notice">Three workspaces only: Admin, Partner, Employee. HR submits lists outside the app.</div><p>Bookings, credit movements and refunds are validated by the API and recorded in the ledger.</p><p>Company invoices and partner payouts are tracked here but paid outside FlexPass.</p></Panel></div></>;

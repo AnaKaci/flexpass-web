@@ -127,7 +127,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .closing-btn{flex-shrink:0;margin-bottom:8px}
 .preview-disclaimer{padding-top:19px;padding-bottom:19px;font-size:11px;color:#6f7570;text-align:center}
 /* Footer */
-.foot{background:var(--teal-dark);color:#d9e8e4;margin-top:0;padding:58px 0 42px}
+.foot{background:var(--teal-dark);color:#d9e8e4;margin-top:clamp(52px,6vw,88px);padding:clamp(76px,8vw,108px) 0 clamp(52px,5vw,72px)}
 .footer-inner{display:flex;justify-content:space-between;gap:40px;align-items:flex-start}
 .foot .logo,.foot .brand-wordmark small,.foot .brand-wordmark strong{color:#fff}
 .footer-brand p{max-width:335px;color:#c5d6d2;font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;font-style:italic;line-height:1.35;margin:24px 0 0}

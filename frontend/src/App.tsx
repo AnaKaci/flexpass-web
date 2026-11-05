@@ -59,7 +59,7 @@ function Login(){const {signIn,notify,user,info}=useApp();const navigate=useNavi
     <label className="form-field">Password<input className="input" autoComplete="current-password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
     <button className="btn btn-primary" disabled={busy}>{busy?'Signing in...':'Log in →'}</button></form><div className="divider"/>
     {info?.demo_mode && import.meta.env.DEV && <><div className="muted" style={{fontWeight:900,marginBottom:9}}>LOCAL DEMO ACCOUNT SHORTCUTS</div>
-    {(['employee','partner','admin','hr'] as Role[]).map(role=><button key={role} className="demo-account" style={{width:'100%'}} type="button" onClick={()=>{setEmail(`${role}@flexpass.demo`);setPassword('Demo123!')}}><span>{role==='employee'?'🏃':role==='partner'?'🏬':role==='hr'?'▤':'⚙️'} &nbsp; <b>{role[0].toUpperCase()+role.slice(1)}</b><small style={{display:'block',marginLeft:26}}>{role}@flexpass.demo</small></span><span>Use demo →</span></button>)}
+    {(['employee','partner','admin'] as Role[]).map(role=><button key={role} className="demo-account" style={{width:'100%'}} type="button" onClick={()=>{setEmail(`${role}@flexpass.demo`);setPassword('Demo123!')}}><span>{role==='employee'?'🏃':role==='partner'?'🏬':'⚙️'} &nbsp; <b>{role[0].toUpperCase()+role.slice(1)}</b><small style={{display:'block',marginLeft:26}}>{role}@flexpass.demo</small></span><span>Use demo →</span></button>)}
     <p className="muted" style={{marginTop:17}}>Local-only demo password: <b>Demo123!</b> · Fictional accounts only.</p></>}
   </div></main></PublicLayout>;
 }
@@ -79,7 +79,7 @@ export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem
     <Route path="/services" element={<PublicLayout><ServicesPage/></PublicLayout>}/>
     <Route path="/login" element={<Login/>}/>
     <Route path="/contact" element={<StaticPage kind="contact"/>}/><Route path="/privacy" element={<StaticPage kind="privacy"/>}/><Route path="/terms" element={<StaticPage kind="terms"/>}/>
-    <Route path="/employee" element={<Authenticated role="employee"/>}/><Route path="/partner" element={<Authenticated role="partner"/>}/><Route path="/admin" element={<Authenticated role="admin"/>}/><Route path="/hr" element={<Authenticated role="hr"/>}/><Route path="*" element={<Navigate to="/" replace/>}/>
+    <Route path="/employee" element={<Authenticated role="employee"/>}/><Route path="/partner" element={<Authenticated role="partner"/>}/><Route path="/admin" element={<Authenticated role="admin"/>}/><Route path="*" element={<Navigate to="/" replace/>}/>
   </Routes>{message&&<div role="status" className={`toast-fixed ${message.error?'toast-error':''}`}>{message.body}</div>}</AppContext.Provider>;
 }
 export function StatusTag({status}:{status:string}){return <span className={`status status-${status}`}>{status.replace(/_/g,' ')}</span>}

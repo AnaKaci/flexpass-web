@@ -33,7 +33,7 @@ if ENVIRONMENT == 'production':
     if len(SECRET) < 32 or SECRET == 'change-me-demo-only-local-secret':
         raise RuntimeError('FLEXPASS_SECRET must be a secure random value of at least 32 characters in production.')
     if DEMO_MODE:
-        for role in ('ADMIN', 'PARTNER', 'EMPLOYEE', 'HR'):
+        for role in ('ADMIN', 'PARTNER', 'EMPLOYEE'):
             pwd = os.environ.get(f'FLEXPASS_DEMO_{role}_PASSWORD', '')
             if len(pwd) < 12 or pwd == 'Demo123!':
                 raise RuntimeError(f'Set a unique strong FLEXPASS_DEMO_{role}_PASSWORD for publicly hosted demo mode.')
@@ -254,7 +254,7 @@ def get_user(req:Request):
     except Exception: raise HTTPException(401,'Session expired')
     with Session() as s:
         u=s.get(User,uid)
-        if not u or u.membership_status != 'ACTIVE': raise HTTPException(403,'Account inactive')
+        if not u or u.membership_status != 'ACTIVE' or u.role not in ('admin','partner','employee'): raise HTTPException(403,'Account inactive')
         s.expunge(u);return u
 
 def roles(*allowed):
@@ -294,7 +294,7 @@ def info():
 def login(body:LoginBody):
     with Session() as s:
         u=s.scalar(select(User).where(User.email==body.email.strip().lower()))
-        if not u or not match_pass(body.password,u.password_hash) or u.membership_status!='ACTIVE': raise HTTPException(401,'Invalid credentials or inactive account')
+        if not u or not match_pass(body.password,u.password_hash) or u.membership_status!='ACTIVE' or u.role not in ('admin','partner','employee'): raise HTTPException(401,'Invalid credentials or inactive account')
         return {'token':token_for(u),'user':user_view(u)}
 
 @app.get('/api/auth/me')
@@ -575,46 +575,6 @@ def update_settlement(settlement_id:int,body:SettlementUpdate,u=Depends(roles('a
         audit(s,u.id,'SETTLEMENT_UPDATED',f'{st.id}:{st.status}');s.commit();return {'status':st.status}
 
 
-@app.get('/api/hr/summary')
-def hr_summary(u=Depends(roles('hr'))):
-    with Session() as s:
-        company=s.get(Company,u.company_id)
-        if not company: raise HTTPException(403,'HR account has no company')
-        employees=s.scalars(select(User).where(User.company_id==u.company_id,User.role=='employee')).all()
-        return {'company':company.name,'employees':len(employees),
-                'active_employees':sum(e.membership_status=='ACTIVE' for e in employees),
-                'credits_available':sum(balance(s,e.id) for e in employees),
-                'monthly_credits':sum((s.get(Plan,e.plan_id).credits if e.plan_id and s.get(Plan,e.plan_id) else 0) for e in employees)}
-
-@app.get('/api/hr/employees')
-def hr_employees(u=Depends(roles('hr'))):
-    with Session() as s:
-        if not u.company_id: raise HTTPException(403,'HR account has no company')
-        company=s.get(Company,u.company_id)
-        return [{'id':e.id,'full_name':e.full_name,'email':e.email,'company':company.name,
-                 'company_id':u.company_id,'plan':s.get(Plan,e.plan_id).name if e.plan_id else '',
-                 'status':e.membership_status,'balance':balance(s,e.id)}
-                for e in s.scalars(select(User).where(User.role=='employee',User.company_id==u.company_id).order_by(User.id)).all()]
-
-@app.get('/api/hr/plans')
-def hr_plans(u=Depends(roles('hr'))):
-    with Session() as s:
-        return [{'id':p.id,'name':p.name,'credits':p.credits,'monthly_price':p.monthly_price,'currency':p.currency} for p in s.scalars(select(Plan).order_by(Plan.id)).all()]
-
-@app.post('/api/hr/employees')
-def hr_create_employee(body:EmployeeBody,u=Depends(roles('hr'))):
-    if not u.company_id or body.company_id!=u.company_id:
-        raise HTTPException(403,'HR may manage employees only in their own company')
-    return create_employee(body,u)
-
-@app.post('/api/hr/adjust-credits')
-def hr_adjust_credits(body:AdjustBody,u=Depends(roles('hr'))):
-    with Session() as s:
-        target=s.get(User,body.user_id)
-        if not target or target.role!='employee' or target.company_id!=u.company_id:
-            raise HTTPException(403,'Employee is outside your company')
-    return adjust(body,u)
-
 @app.get('/api/admin/audit')
 def audit_log(u=Depends(roles('admin'))):
     with Session() as s:return [{'id':x.id,'action':x.action,'detail':x.detail,'actor_id':x.actor_id,'at':iso(x.created_at)} for x in s.scalars(select(Audit).order_by(Audit.id.desc()).limit(50)).all()]
@@ -643,8 +603,8 @@ def seed():
             for days in (1,2,3,5,7):
                 date=(now()+timedelta(days=days)).replace(hour=9+(sv.id%8),minute=0,second=0,microsecond=0)
                 s.add(Slot(service_id=sv.id,start_at=date,capacity=6+(sv.id%4),reserved=0))
-        demo_passwords = {role: os.environ.get(f'FLEXPASS_DEMO_{role.upper()}_PASSWORD', 'Demo123!') for role in ('admin', 'employee', 'partner', 'hr')}
-        users=[User(email='admin@flexpass.demo',full_name='FlexPass Admin',password_hash=hash_pass(demo_passwords['admin']),role='admin'),User(email='employee@flexpass.demo',full_name='Alex Demo',password_hash=hash_pass(demo_passwords['employee']),role='employee',company_id=c1.id,plan_id=p2.id),User(email='partner@flexpass.demo',full_name='Studio Manager',password_hash=hash_pass(demo_passwords['partner']),role='partner',partner_id=partners[0].id),User(email='hr@flexpass.demo',full_name='Company HR Demo',password_hash=hash_pass(demo_passwords['hr']),role='hr',company_id=c1.id)]
+        demo_passwords = {role: os.environ.get(f'FLEXPASS_DEMO_{role.upper()}_PASSWORD', 'Demo123!') for role in ('admin', 'employee', 'partner')}
+        users=[User(email='admin@flexpass.demo',full_name='FlexPass Admin',password_hash=hash_pass(demo_passwords['admin']),role='admin'),User(email='employee@flexpass.demo',full_name='Alex Demo',password_hash=hash_pass(demo_passwords['employee']),role='employee',company_id=c1.id,plan_id=p2.id),User(email='partner@flexpass.demo',full_name='Studio Manager',password_hash=hash_pass(demo_passwords['partner']),role='partner',partner_id=partners[0].id)]
         s.add_all(users);s.flush()
         s.add(Ledger(user_id=users[1].id,kind='ALLOCATION',amount=30,period=now().strftime('%Y-%m'),actor_id=users[0].id,reason='Pilot monthly allowance'))
         s.add(Invoice(company_id=c1.id,period=now().strftime('%Y-%m'),reference='DEMO-INV-001',amount_cents=0,status='DRAFT'))
@@ -664,7 +624,6 @@ if DIST.is_dir():
 @app.get('/employee')
 @app.get('/partner')
 @app.get('/admin')
-@app.get('/hr')
 def index():
     file = DIST / 'index.html'
     if file.exists():

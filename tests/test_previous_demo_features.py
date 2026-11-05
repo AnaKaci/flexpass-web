@@ -1,7 +1,13 @@
 """Regression coverage for features transferred from the earlier FlexPass pilot."""
 from datetime import timedelta
 from backend.app import Session, User, Company, Plan, Slot, Service, now, hash_pass
-from tests.test_api import client, auth
+from fastapi.testclient import TestClient
+from backend.app import app
+client=TestClient(app)
+def auth(role):
+    response=client.post('/api/auth/login',json={'email':f'{role}@flexpass.demo','password':'Demo123!'})
+    assert response.status_code==200,response.text
+    return {'Authorization':'Bearer '+response.json()['token']}
 from sqlalchemy import select
 
 def test_booking_idempotency_key_replays_once():

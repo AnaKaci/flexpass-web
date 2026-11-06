@@ -1,9 +1,9 @@
-# Preview deployment blueprint. A Render account and GitHub connection are required.
-# This creates billable resources depending on the chosen Render plan; review before deploying.
+# Free preview deployment. Render Free PostgreSQL expires after 30 days.
 services:
   - type: web
     name: flexpass-web
     runtime: docker
+    plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
@@ -25,5 +25,7 @@ services:
 
 databases:
   - name: flexpass-db
+    plan: free
     databaseName: flexpass
     user: flexpass
+    ipAllowList: []

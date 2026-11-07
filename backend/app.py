@@ -11,7 +11,7 @@ from typing import Optional
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, MetaData,
@@ -27,6 +27,7 @@ elif DB_URL.startswith('postgresql://'):
     DB_URL = 'postgresql+psycopg://' + DB_URL[len('postgresql://'):]
 ENVIRONMENT = os.environ.get('FLEXPASS_ENV', 'development').lower()
 DEMO_MODE = os.environ.get('FLEXPASS_DEMO_MODE', 'false' if ENVIRONMENT == 'production' else 'true').lower() in ('true', '1', 'yes')
+CANCELLATION_CUTOFF_HOURS = max(0, int(os.environ.get('FLEXPASS_CANCELLATION_CUTOFF_HOURS', '0')))
 SECRET = os.environ.get('FLEXPASS_SECRET', 'change-me-demo-only-local-secret')
 if ENVIRONMENT == 'production':
     if len(SECRET) < 32 or SECRET == 'change-me-demo-only-local-secret':
@@ -121,6 +122,15 @@ class Booking(Base):
     checked_in_by = Column(Integer, ForeignKey('users.id'))
     cancelled_at = Column(DateTime)
     __table_args__ = (UniqueConstraint('user_id','slot_id',name='uq_user_slot'),)
+
+class BookingRequest(Base):
+    __tablename__ = 'booking_requests'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    idempotency_key = Column(String(128), nullable=False)
+    slot_id = Column(Integer, ForeignKey('slots.id'), nullable=False)
+    booking_id = Column(Integer, ForeignKey('bookings.id'), nullable=False)
+    __table_args__ = (UniqueConstraint('user_id', 'idempotency_key', name='uq_booking_request_key'),)
 
 class Ledger(Base):
     __tablename__ = 'credit_ledger'
@@ -244,7 +254,7 @@ def get_user(req:Request):
     except Exception: raise HTTPException(401,'Session expired')
     with Session() as s:
         u=s.get(User,uid)
-        if not u or u.membership_status != 'ACTIVE': raise HTTPException(403,'Account inactive')
+        if not u or u.membership_status != 'ACTIVE' or u.role not in ('admin','partner','employee'): raise HTTPException(403,'Account inactive')
         s.expunge(u);return u
 
 def roles(*allowed):
@@ -284,7 +294,7 @@ def info():
 def login(body:LoginBody):
     with Session() as s:
         u=s.scalar(select(User).where(User.email==body.email.strip().lower()))
-        if not u or not match_pass(body.password,u.password_hash) or u.membership_status!='ACTIVE': raise HTTPException(401,'Invalid credentials or inactive account')
+        if not u or not match_pass(body.password,u.password_hash) or u.membership_status!='ACTIVE' or u.role not in ('admin','partner','employee'): raise HTTPException(401,'Invalid credentials or inactive account')
         return {'token':token_for(u),'user':user_view(u)}
 
 @app.get('/api/auth/me')
@@ -329,7 +339,9 @@ def employee_ledger(u=Depends(roles('employee'))):
         return [{'id':x.id,'kind':x.kind,'amount':x.amount,'period':x.period,'created_at':iso(x.created_at),'reason':x.reason,'booking_id':x.booking_id} for x in s.scalars(select(Ledger).where(Ledger.user_id==u.id).order_by(Ledger.id.desc())).all()]
 
 @app.post('/api/bookings')
-def make_booking(body:BookBody,u=Depends(roles('employee'))):
+def make_booking(body:BookBody,req:Request,u=Depends(roles('employee'))):
+    key = req.headers.get('Idempotency-Key', '').strip()
+    if len(key) > 128: raise HTTPException(400, 'Idempotency key is too long')
     with Session() as s:
         try:
             lock_transaction(s)
@@ -337,6 +349,11 @@ def make_booking(body:BookBody,u=Depends(roles('employee'))):
             # slots cannot both spend the same last credits on PostgreSQL.
             member=s.scalar(select(User).where(User.id==u.id).with_for_update())
             if not member or member.membership_status!='ACTIVE':raise HTTPException(403,'Membership inactive')
+            if key:
+                previous=s.scalar(select(BookingRequest).where(BookingRequest.user_id==u.id,BookingRequest.idempotency_key==key))
+                if previous:
+                    if previous.slot_id != body.slot_id: raise HTTPException(409,'Idempotency key already used for another slot')
+                    return booking_view(s,s.get(Booking,previous.booking_id))
             sl=s.scalar(select(Slot).where(Slot.id==body.slot_id).with_for_update())
             if not sl: raise HTTPException(404,'Slot not found')
             service=s.get(Service,sl.service_id)
@@ -348,6 +365,7 @@ def make_booking(body:BookBody,u=Depends(roles('employee'))):
             sl.reserved+=1
             b=Booking(reference='FP-'+secrets.token_hex(4).upper(),user_id=u.id,slot_id=sl.id,service_id=service.id,partner_id=service.partner_id,credits_snapshot=service.credits,payout_snapshot_cents=service.payout_cents,status='BOOKED')
             s.add(b);s.flush()
+            if key: s.add(BookingRequest(user_id=u.id,idempotency_key=key,slot_id=sl.id,booking_id=b.id))
             s.add(Ledger(user_id=u.id,booking_id=b.id,kind='DEBIT',amount=-service.credits,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Booking {b.reference}'))
             audit(s,u.id,'BOOKING_CREATED',b.reference)
             s.commit(); return booking_view(s,b)
@@ -357,16 +375,16 @@ def make_booking(body:BookBody,u=Depends(roles('employee'))):
             s.rollback();raise
 
 @app.post('/api/bookings/{booking_id}/cancel')
-def cancel_booking(booking_id:int,u=Depends(roles('employee','admin'))):
+def cancel_booking(booking_id:int,u=Depends(roles('employee'))):
     with Session() as s:
         try:
             lock_transaction(s)
             b=s.scalar(select(Booking).where(Booking.id==booking_id).with_for_update())
             if not b:raise HTTPException(404,'Booking not found')
-            if u.role=='employee' and b.user_id!=u.id:raise HTTPException(403,'Not your booking')
+            if b.user_id!=u.id:raise HTTPException(403,'Not your booking')
             if b.status!='BOOKED':raise HTTPException(409,'Only active bookings may be cancelled')
             sl=s.scalar(select(Slot).where(Slot.id==b.slot_id).with_for_update())
-            if sl.start_at<=now():raise HTTPException(409,'Cancellation window closed for this pilot')
+            if sl.start_at<=now()+timedelta(hours=CANCELLATION_CUTOFF_HOURS):raise HTTPException(409,'Cancellation window closed for this pilot')
             b.status='CANCELLED';b.cancelled_at=now();sl.reserved-=1
             s.add(Ledger(user_id=b.user_id,booking_id=b.id,kind='REFUND',amount=b.credits_snapshot,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Cancellation {b.reference}'))
             audit(s,u.id,'BOOKING_CANCELLED',b.reference)
@@ -418,6 +436,30 @@ def create_slot(body:SlotBody,u=Depends(roles('partner'))):
         if body.start_at.replace(tzinfo=None)<=now():raise HTTPException(400,'Slot must be in future')
         sl=Slot(service_id=body.service_id,start_at=body.start_at.replace(tzinfo=None),capacity=body.capacity,reserved=0)
         s.add(sl);s.flush();audit(s,u.id,'SLOT_CREATED',str(sl.id));s.commit();return {'id':sl.id}
+
+
+@app.get('/api/partner/payouts/export')
+def partner_payout_export(start:Optional[str]=None,end:Optional[str]=None,u=Depends(roles('partner'))):
+    def parse_date(value):
+        if not value: return None
+        try: return datetime.strptime(value,'%Y-%m-%d').date()
+        except ValueError: raise HTTPException(400,'Dates must use YYYY-MM-DD')
+    from_date,to_date=parse_date(start),parse_date(end)
+    if from_date and to_date and from_date>to_date: raise HTTPException(400,'Start must not exceed end')
+    with Session() as s:
+        bookings=s.scalars(select(Booking).where(Booking.partner_id==u.partner_id,Booking.status=='CHECKED_IN').order_by(Booking.id)).all()
+        out=io.StringIO()
+        writer=csv.writer(out)
+        writer.writerow(['Booking reference','Service','Completed at (UTC)','Credits','Partner payout (ALL)','Status'])
+        for b in bookings:
+            completed=b.checked_in_at.date() if b.checked_in_at else None
+            if (from_date and (not completed or completed<from_date)) or (to_date and (not completed or completed>to_date)):continue
+            sv=s.get(Service,b.service_id)
+            writer.writerow([b.reference,sv.name if sv else '',iso(b.checked_in_at),b.credits_snapshot,
+                             f'{b.payout_snapshot_cents/100:.2f}',b.status])
+        return Response(content=out.getvalue(),media_type='text/csv; charset=utf-8',
+                        headers={'Content-Disposition':'attachment; filename="flexpass-partner-payouts.csv"',
+                                 'Cache-Control':'no-store'})
 
 @app.get('/api/admin/summary')
 def admin_summary(u=Depends(roles('admin'))):
@@ -531,6 +573,7 @@ def update_settlement(settlement_id:int,body:SettlementUpdate,u=Depends(roles('a
         if not st:raise HTTPException(404,'Settlement not found')
         st.status=body.status;st.invoice_reference=body.invoice_reference;st.payment_reference=body.payment_reference
         audit(s,u.id,'SETTLEMENT_UPDATED',f'{st.id}:{st.status}');s.commit();return {'status':st.status}
+
 
 @app.get('/api/admin/audit')
 def audit_log(u=Depends(roles('admin'))):

@@ -24,8 +24,8 @@ export async function request<T>(path:string, token = '', options:RequestInit = 
   }
   return payload as T;
 }
-export function post<T>(path:string, token:string, body:Record<string,unknown> = {}):Promise<T> {
-  return request<T>(path, token, {method:'POST', body:JSON.stringify(body)});
+export function post<T>(path:string, token:string, body:Record<string,unknown> = {}, headers:Record<string,string> = {}):Promise<T> {
+  return request<T>(path, token, {method:'POST', headers, body:JSON.stringify(body)});
 }
 export function login(email:string, password:string):Promise<LoginResult> { return post<LoginResult>('/auth/login','',{email,password}); }
 export const month = () => new Date().toISOString().slice(0,7);

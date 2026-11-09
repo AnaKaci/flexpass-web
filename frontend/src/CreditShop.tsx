@@ -1,6 +1,7 @@
 import type {CreditProduct} from './types';
 import {money} from './api';
 import {UIIcon} from './UIIcon';
+import {BrandLogo} from './BrandLogo';
 
 type BankInfo={demo_enabled:boolean;configured:boolean;bank_name:string;beneficiary:string;iban:string};
 
@@ -41,7 +42,7 @@ export function CreditShop({
       {products.map((product,index)=><article key={product.id} className={`credit-package ${index===Math.floor(products.length/2)&&products.length>1?'credit-package-emphasis':''}`}>
         <div className="credit-package-top">
           <span className="credit-package-index">PACKAGE {String(index+1).padStart(2,'0')}</span>
-          <span className="credit-package-monogram" aria-hidden="true">FP</span>
+          <BrandLogo variant="monogram" tone={index===Math.floor(products.length/2)&&products.length>1?"ivory":"teal"} className="credit-package-monogram" decorative/>
         </div>
         <h3>{product.name}</h3>
         <div className="credit-package-credits">

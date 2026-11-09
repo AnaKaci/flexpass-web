@@ -13,6 +13,7 @@ function fieldsFor(dialog:FormDialog,data:Source):{title:string;submit:string;fi
   const st=data.settlements.find(x=>x.id===dialog.id);
   switch(dialog.kind){
     case 'company':return {title:'Add company',submit:'Create company',fields:[{name:'name',label:'Company name'},{name:'hr_email',label:'HR contact email',type:'email'}]};
+    case 'partner-invite':return {title:'Invite business partner',submit:'Send activation invitation',fields:[{name:'name',label:'Business name'},{name:'zone',label:'Location / zone'},{name:'contact_name',label:'Business contact name'},{name:'contact_email',label:'Business contact email',type:'email'}]};
     case 'employee':return {title:'Invite an employee',submit:'Record invitation',fields:[{name:'full_name',label:'Full name'},{name:'email',label:'Email address',type:'email'},{name:'company_id',label:'Company',type:'select',options:data.companies.map(c=>({value:String(c.id),label:c.name}))},{name:'plan_id',label:'Credit plan',type:'select',options:data.plans.map(p=>({value:String(p.id),label:`${p.name} · ${p.credits} credits`}))}]};
     case 'invoice':return {title:'New company invoice',submit:'Record invoice',fields:[{name:'company_id',label:'Company',type:'select',options:data.companies.map(c=>({value:String(c.id),label:c.name}))},{name:'period',label:'Billing period',type:'month',defaultValue:month()},{name:'reference',label:'Invoice reference'},{name:'amount',label:'Total amount (ALL)',type:'number',min:'0',step:'0.01'},{name:'due_date',label:'Due date',type:'date'}]};
     case 'service':return {title:'New partner service',submit:'Publish service',fields:[{name:'name',label:'Service name'},{name:'group_name',label:'Category',type:'select',options:Object.entries(labels).map(([value,label])=>({value,label}))},{name:'subcategory',label:'Subcategory'},{name:'credits',label:'Credits per visit',type:'number',min:'1'},{name:'payout',label:'Partner payout (ALL)',type:'number',min:'0',step:'0.01'},{name:'duration_minutes',label:'Duration (minutes)',type:'number',min:'1',defaultValue:60},{name:'description',label:'Description',type:'textarea'}]};
@@ -27,6 +28,7 @@ export function ActionDialog({dialog,data,onClose,onSuccess}:{dialog:FormDialog;
   async function save(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);const f=Object.fromEntries(new FormData(e.currentTarget).entries()) as Record<string,string>;let path='';let body:Record<string,unknown>={...f};
     switch(dialog.kind){
       case 'company':path='/admin/companies';break;
+      case 'partner-invite':path='/admin/partners';break;
       case 'employee':path='/admin/employees';body={...f,company_id:Number(f.company_id),plan_id:Number(f.plan_id)};break;
       case 'invoice':path='/admin/invoices';body={company_id:Number(f.company_id),period:f.period,reference:f.reference,amount_cents:Math.round(Number(f.amount)*100),due_date:f.due_date};break;
       case 'invoice-status':path=`/admin/invoices/${dialog.id}/status`;break;

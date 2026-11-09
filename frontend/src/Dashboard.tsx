@@ -97,7 +97,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
   if(!user)return null;
   return <div className={`app-shell dashboard-app-shell ${sidebarOpen?'sidebar-expanded':'sidebar-collapsed'}`}>
     {isNarrowScreen&&sidebarOpen&&<button type="button" className="dashboard-sidebar-backdrop" aria-label="Close navigation menu" onClick={()=>setSidebarOpen(false)}/>}
-    {sidebarOpen&&<aside id="dashboard-sidebar" className="sidebar dashboard-sidebar" aria-label={`${role} navigation`}>
+    {sidebarOpen&&<aside id="dashboard-sidebar" className={`sidebar dashboard-sidebar ${role==='client'?'dashboard-client-sidebar':''}`} aria-label={`${role} navigation`}>
       <div className="dashboard-sidebar-heading">
         <Link className="logo dashboard-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone="ivory" decorative/></Link>
         <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(false)} aria-label="Collapse sidebar" title="Collapse sidebar"><UIIcon name="close" size={18}/></button>

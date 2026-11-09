@@ -239,6 +239,10 @@ class ClientOrderBody(BaseModel):
     product_id: int
     request_key: str = Field(min_length=8, max_length=100)
 
+class DemoAccountsSetupBody(BaseModel):
+    client_password: str = Field(min_length=20, max_length=256)
+    business_password: str = Field(min_length=20, max_length=256)
+
 class ConfirmOrderBody(BaseModel):
     payment_reference: str = Field(min_length=3, max_length=120)
 
@@ -1059,13 +1063,13 @@ def seed_showcase_catalog(s):
     audit(s,None,'SHOWCASE_CATALOG_SEEDED',str(created))
     return created
 
-def bootstrap_temporary_test_logins(s):
+def bootstrap_temporary_test_logins(s, client_password=None, business_password=None):
     """One-time, operator-approved test account setup. No credentials in repository/logs."""
     # Requires the independently enabled, explicitly fictional showcase catalog.
     if os.environ.get('FLEXPASS_SEED_SHOWCASE_CATALOG','').lower() not in ('true','1','yes'):
         raise RuntimeError('Test account bootstrap requires the showcase catalog enabled')
-    client_password=os.environ.get('FLEXPASS_TEMP_CLIENT_PASSWORD','')
-    business_password=os.environ.get('FLEXPASS_TEMP_BUSINESS_PASSWORD','')
+    client_password=client_password if client_password is not None else os.environ.get('FLEXPASS_TEMP_CLIENT_PASSWORD','')
+    business_password=business_password if business_password is not None else os.environ.get('FLEXPASS_TEMP_BUSINESS_PASSWORD','')
     if len(client_password)<20 or len(business_password)<20 or client_password==business_password:
         raise RuntimeError('Provide two different temporary account passwords of at least 20 characters')
     if client_password in ('Demo123!', business_password):
@@ -1109,6 +1113,30 @@ def bootstrap_temporary_test_logins(s):
     audit(s,None,'TEMP_TEST_ACCOUNTS_BOOTSTRAPPED',
           f"client={result['created_client']},business={result['activated_business']}")
     return result
+
+@app.post('/api/admin/demo/accounts/setup')
+def admin_setup_demo_accounts(body:DemoAccountsSetupBody,u=Depends(roles('admin'))):
+    """Admin-only setup for two explicitly named test accounts, no email dependency."""
+    if os.environ.get('FLEXPASS_SEED_SHOWCASE_CATALOG','').lower() not in ('true','1','yes'):
+        raise HTTPException(403,'Demo catalog is not enabled')
+    if body.client_password == body.business_password or 'Demo123!' in (body.client_password,body.business_password):
+        raise HTTPException(422,'Choose two different strong passwords')
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            changes=bootstrap_temporary_test_logins(s,body.client_password,body.business_password)
+            audit(s,u.id,'ADMIN_DEMO_ACCOUNTS_SETUP',
+                  f"client={changes['created_client']},business={changes['activated_business']}")
+            s.commit()
+            return {'client_email':'demo.client@flexpass.test',
+                    'business_email':'akaci@ccs.al',**changes}
+        except RuntimeError as exc:
+            s.rollback()
+            # Avoid exposing account details or secrets in errors.
+            raise HTTPException(409,'Demo accounts could not be created; check existing account assignments') from exc
+        except Exception:
+            s.rollback()
+            raise
 
 def seed():
     Base.metadata.create_all(engine)

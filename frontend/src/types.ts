@@ -4,7 +4,7 @@ export type Status = 'BOOKED' | 'CHECKED_IN' | 'CANCELLED';
 export type ClientSection = 'overview' | 'discover' | 'bookings' | 'wallet' | 'shop' | 'orders';
 export type EmployeeSection = ClientSection;
 export type PartnerSection = 'overview' | 'reservations' | 'services' | 'settlements';
-export type AdminSection = 'overview' | 'companies' | 'partners' | 'employees' | 'plans' | 'products' | 'orders' | 'invoices' | 'settlements' | 'audit';
+export type AdminSection = 'clients' | 'overview' | 'companies' | 'partners' | 'employees' | 'plans' | 'products' | 'orders' | 'invoices' | 'settlements' | 'audit';
 export type Section = EmployeeSection | PartnerSection | AdminSection;
 export interface User { id:number; full_name:string; email:string; role:Role; company_id:number|null; partner_id:number|null; plan_id:number|null; status:string; }
 export interface LoginResult { token:string; user:User; }
@@ -20,6 +20,7 @@ export interface AdminSummary {companies:number; employees:number; clients:numbe
 export interface Company {id:number; name:string; hr_email:string; status:string; employees:number; }
 export interface CreditProduct {id:number;name:string;credits:number;price_cents:number;currency:string;active:boolean;}
 export interface ClientOrder {id:number;product:string;product_id:number;client_id:number;email?:string;credits:number;amount_cents:number;currency:string;status:string;created_at:string;payment_reference:string;}
+export interface ClientRecord {id:number;name:string;email:string;status:string;balance:number;orders:number;legacy:boolean;}
 export interface PartnerAccount {email:string;status:string;}
 export interface AdminPartner {id:number;name:string;zone:string;status:string;accounts:PartnerAccount[];}
 export interface Employee {id:number; full_name:string; email:string; company:string; company_id:number; plan:string; status:string; balance:number; }

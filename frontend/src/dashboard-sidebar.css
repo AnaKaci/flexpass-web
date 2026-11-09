@@ -1,0 +1,158 @@
+/* FlexPass dashboards: full-width content and a collapsible, accessible navigation. */
+.dashboard-app-shell{
+  display:flex;
+  min-height:100vh;
+  width:100%;
+  align-items:stretch;
+}
+.dashboard-app-shell .dashboard-sidebar{
+  width:250px;
+  min-width:250px;
+  flex:none;
+  position:sticky;
+  align-self:flex-start;
+  top:0;
+  height:100vh;
+  height:100dvh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  z-index:31;
+  display:flex;
+  flex-direction:column;
+  padding:21px 13px 20px;
+  gap:12px;
+  animation:dashboard-sidebar-enter .16s ease-out;
+}
+.dashboard-sidebar-heading{display:flex;gap:4px;align-items:center;justify-content:space-between;min-height:48px}
+.dashboard-app-shell .dashboard-sidebar .logo{
+  margin:0;
+  padding:0 6px;
+  font-size:22px;
+  flex:1;
+  min-width:0;
+}
+.dashboard-sidebar-close{
+  width:34px;
+  height:34px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  background:transparent;
+  border:1px solid #ffffff42;
+  border-radius:9px;
+  color:white;
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+}
+.dashboard-sidebar-close:hover{background:#ffffff20;border-color:#ffffff90}
+.dashboard-app-shell .dashboard-sidebar .side-label{margin:0 0 5px;padding:13px 11px 5px}
+.dashboard-app-shell .dashboard-sidebar .side-nav{
+  display:flex;
+  flex-direction:column;
+  flex:0 0 auto;
+  gap:3px;
+  overflow:visible;
+}
+.dashboard-app-shell .dashboard-sidebar .side-link{
+  width:100%;
+  min-height:43px;
+  white-space:normal;
+  text-align:left;
+}
+.dashboard-app-shell .dashboard-sidebar .sidebar-bottom{
+  display:block;
+  margin-top:auto;
+  padding-top:14px;
+}
+.dashboard-app-shell .dashboard-sidebar .profile-pill{min-width:0;padding:9px 8px}
+.dashboard-app-shell .dashboard-sidebar .profile-pill div:last-child{min-width:0;overflow-wrap:anywhere}
+.dashboard-main{
+  flex:1 1 0;
+  width:100%;
+  min-width:0;
+  max-width:none;
+}
+.dashboard-main .dash-content{
+  max-width:none;
+  width:100%;
+}
+.dashboard-topbar{gap:16px}
+.dashboard-topbar-left{display:flex;align-items:center;gap:16px;min-width:0}
+.dashboard-topbar-left>div{min-width:0}
+.dashboard-menu-toggle{
+  display:inline-flex;
+  gap:9px;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+  min-height:38px;
+  padding:7px 12px;
+  border:1px solid #b8c9c2;
+  border-radius:9px;
+  color:var(--teal,#10565c);
+  background:#fffdf8;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.dashboard-menu-toggle:hover{background:var(--ivory,#f5efe4);border-color:var(--teal,#10565c)}
+.dashboard-menu-toggle [aria-hidden]{font-size:19px;line-height:1}
+.dashboard-menu-toggle-label{white-space:nowrap}
+.dashboard-sidebar-backdrop{display:none}
+@keyframes dashboard-sidebar-enter{from{opacity:.7;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:1050px){
+  .dashboard-app-shell .dashboard-sidebar{width:225px;min-width:225px}
+}
+@media(max-width:760px){
+  .dashboard-app-shell{display:block;position:relative}
+  .dashboard-app-shell .dashboard-sidebar{
+    width:min(288px,88vw);
+    min-width:0;
+    position:fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    height:100vh;
+    height:100dvh;
+    box-shadow:15px 0 35px #032a2d50;
+    z-index:61;
+    padding:22px 14px 18px;
+    display:flex;
+  }
+  .dashboard-sidebar-backdrop{
+    display:block;
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:#052a2ba6;
+    cursor:pointer;
+    z-index:60;
+  }
+  .dashboard-main{width:100%;max-width:none}
+  .dashboard-app-shell .dashboard-main .dash-content{max-width:none;width:100%;padding:20px}
+  .dashboard-topbar{min-height:66px;height:auto;flex-wrap:wrap;padding:12px 20px}
+  .dashboard-topbar-left{gap:11px}
+  .dashboard-menu-toggle{min-height:39px;padding:7px 11px}
+  .dashboard-app-shell .dashboard-sidebar .side-nav{
+    display:flex;
+    flex-direction:column;
+    overflow:visible;
+    gap:4px;
+  }
+  .dashboard-app-shell .dashboard-sidebar .sidebar-bottom{display:block}
+  .dashboard-app-shell .dashboard-sidebar .side-label{display:block}
+}
+@media(max-width:480px){
+  .dashboard-topbar{padding:10px 16px}
+  .dashboard-menu-toggle-label{display:none}
+  .dashboard-topbar .status{padding:6px 9px;font-size:9px}
+  .dashboard-app-shell .dashboard-main .dash-content{padding:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  .dashboard-app-shell .dashboard-sidebar{animation:none}
+}

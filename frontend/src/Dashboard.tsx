@@ -8,6 +8,7 @@ import {BookingDialog} from './ServicesPage';
 import {ActionDialog} from './Forms';
 import {PartnerCalendar} from './PartnerCalendar';
 import {ClientExplore} from './ClientExplore';
+import {ProfileMenu} from './ProfileMenu';
 import {UIIcon} from './UIIcon';
 import type {IconName} from './UIIcon';
 
@@ -103,8 +104,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
         {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} aria-current={name===section?'page':undefined} onClick={()=>changeSection(name)}><span className="side-ico"><UIIcon name={icon} size={19}/></span><span className="side-text">{label}</span></button>)}
       </nav>
       <div className="sidebar-bottom">
-        <div className="profile-pill"><div className="avatar">{user.full_name.slice(0,1)}</div><div><b>{user.full_name}</b><small>{user.email}</small></div></div>
-        <button className="side-link" onClick={()=>{signOut();navigate('/')}}>↪ &nbsp; Sign out</button>
+        <ProfileMenu user={user} onSignOut={()=>{signOut();navigate('/')}}/>
       </div>
     </aside>}
     <div className="dash-main dashboard-main"><header className={`dash-topbar dashboard-topbar ${role==='client'&&section==='discover'?'dashboard-topbar-client-explore':''}`}>

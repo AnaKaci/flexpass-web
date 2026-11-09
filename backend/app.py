@@ -831,7 +831,7 @@ def create_company(body:CompanyBody,u=Depends(roles('admin'))):
 def admin_partners(u=Depends(roles('admin'))):
     with Session() as s:
         return [{'id':p.id,'name':p.name,'zone':p.zone,'status':p.status,
-                 'accounts':[{'email':x.email,'status':x.membership_status}
+                 'accounts':[{'id':x.id,'email':x.email,'status':x.membership_status}
                              for x in s.scalars(select(User).where(User.partner_id==p.id,User.role=='partner')).all()]}
                 for p in s.scalars(select(Partner).order_by(Partner.id)).all()]
 

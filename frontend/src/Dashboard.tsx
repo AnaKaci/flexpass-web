@@ -1,7 +1,7 @@
 import {useCallback,useEffect,useState} from 'react';
 import type {ReactNode} from 'react';
 import {Link,useNavigate} from 'react-router-dom';
-import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,AdminSummary,Company,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog} from './types';
+import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,AdminSummary,Company,AdminPartner,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog} from './types';
 import {dateTime,icons,labels,money,month,post,request} from './api';
 import {Heading,Panel,Stat,StatusTag,useApp} from './App';
 import {BookingDialog,ServiceCard} from './ServicesPage';
@@ -15,6 +15,7 @@ interface AllData {
   ledger:LedgerRow[];
   partnerServices:PartnerService[];
   companies:Company[];
+  partners:AdminPartner[];
   employees:Employee[];
   plans:Plan[];
   invoices:Invoice[];
@@ -22,11 +23,11 @@ interface AllData {
   audit:AuditRow[];
   catalog:Service[];
 }
-const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[]};
+const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],partners:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[]};
 const menu:Record<Role,Array<[Section,string,string]>>={
   employee:[['overview','Overview','▦'],['discover','Explore services','✦'],['bookings','My bookings','▤'],['wallet','Wallet & credits','◉']],
   partner:[['overview','Overview','▦'],['reservations','Reservations','▤'],['services','My services','✦'],['settlements','Settlements','◉']],
-  admin:[['overview','Overview','▦'],['companies','Companies','▤'],['employees','Employees','♙'],['plans','Credit plans','◇'],['invoices','Company invoices','▣'],['settlements','Partner settlements','◉'],['audit','Audit log','☷']],
+  admin:[['overview','Overview','▦'],['companies','Companies','▤'],['partners','Business partners','⌂'],['employees','Employees','♙'],['plans','Credit plans','◇'],['invoices','Company invoices','▣'],['settlements','Partner settlements','◉'],['audit','Audit log','☷']],
 };
 function Table({columns,rows}:{columns:string[];rows:ReactNode[][]}){return <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(col=><th key={col}>{col}</th>)}</tr></thead><tbody>{rows.length?rows.map((row,i)=><tr key={i}>{row.map((cell,k)=><td key={k}>{cell}</td>)}</tr>):<tr><td colSpan={columns.length} className="muted">No records yet.</td></tr>}</tbody></table></div>}
 function BookingTable({bookings,role,action}:{bookings:Booking[];role:'employee'|'partner';action:(book:Booking)=>void}){
@@ -47,8 +48,8 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify}=
         const [summary,bookings,services,settlements]=await Promise.all([get<PartnerSummary>('/partner/summary'),get<Booking[]>('/partner/bookings'),get<PartnerService[]>('/partner/services'),get<Settlement[]>('/settlements')]);
         if(valid)setData({...emptyData,partnerSummary:summary,bookings,partnerServices:services,settlements});
       }else{
-        const [summary,companies,employees,plans,invoices,settlements,audit]=await Promise.all([get<AdminSummary>('/admin/summary'),get<Company[]>('/admin/companies'),get<Employee[]>('/admin/employees'),get<Plan[]>('/admin/plans'),get<Invoice[]>('/admin/invoices'),get<Settlement[]>('/settlements'),get<AuditRow[]>('/admin/audit')]);
-        if(valid)setData({...emptyData,adminSummary:summary,companies,employees,plans,invoices,settlements,audit});
+        const [summary,companies,partners,employees,plans,invoices,settlements,audit]=await Promise.all([get<AdminSummary>('/admin/summary'),get<Company[]>('/admin/companies'),get<AdminPartner[]>('/admin/partners'),get<Employee[]>('/admin/employees'),get<Plan[]>('/admin/plans'),get<Invoice[]>('/admin/invoices'),get<Settlement[]>('/settlements'),get<AuditRow[]>('/admin/audit')]);
+        if(valid)setData({...emptyData,adminSummary:summary,companies,partners,employees,plans,invoices,settlements,audit});
       }
     }
     load().catch((e:Error)=>{if(valid)setError(e.message)}).finally(()=>{if(valid)setLoading(false)});
@@ -91,7 +92,8 @@ function PartnerView({section,data,onSection,onBooking,onForm}:{section:Section;
 function AdminView({section,data,onSection,onForm,onGenerate}:{section:Section;data:AllData;onSection:(v:Section)=>void;onForm:(f:FormDialog)=>void;onGenerate:()=>void}){const s=data.adminSummary!;
   if(section==='overview')return <><Heading title="Business overview" subtitle="An operational view of your FlexPass pilot." action={<button className="btn btn-primary" onClick={()=>onSection('companies')}>Manage companies →</button>}/><SummaryCards items={[["♙","Employees",s.employees,"Across all client companies"],["◈","Partners",s.partners],["▤","Bookings",s.bookings],["✓","Confirmed visits",s.visits]]}/><SummaryCards items={[["▣","Companies",s.companies],["✦","Services",s.services],["◉","Credits allocated",s.credits_issued],["↗","Partner payables",money(s.partner_payables_cents)]]}/><div className="dash-grid"><Panel title="Company snapshot" action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('companies')}>View all →</button>}><Table columns={['Company','HR contact','Employees','Status']} rows={data.companies.map(c=>[<b>{c.name}</b>,c.hr_email,c.employees,<StatusTag status={c.status}/>])}/></Panel><Panel title="Pilot operating principles"><div className="notice">Three workspaces only: Admin, Partner, Employee. HR submits lists outside the app.</div><p>Bookings, credit movements and refunds are validated by the API and recorded in the ledger.</p><p>Company invoices and partner payouts are tracked here but paid outside FlexPass.</p></Panel></div></>;
   if(section==='companies')return <><Heading title="Companies" subtitle="Track employer accounts and HR contacts." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'company'})}>+ Add company</button>}/><Panel title="Registered companies"><Table columns={['Company','HR email','Employees','Status']} rows={data.companies.map(c=>[<b>{c.name}</b>,c.hr_email,c.employees,<StatusTag status={c.status}/>])}/></Panel></>;
-  if(section==='employees')return <><Heading title="Employees" subtitle="Invite and administer employer-funded members." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'employee'})}>+ Invite employee</button>}/><div className="notice notice-gap">Invitations are recorded; email delivery and self-activation require Supabase Auth integration. Newly invited accounts cannot log in yet.</div><Panel title="Employees"><Table columns={['Name','Company','Plan','Wallet','Status','Action']} rows={data.employees.map(e=>[<><b>{e.full_name}</b><br/><small>{e.email}</small></>,e.company,e.plan,`${e.balance} credits`,<StatusTag status={e.status}/>,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'adjust',id:e.id})}>Adjust credits</button>])}/></Panel></>;
+  if(section==='partners')return <><Heading title="Business partners" subtitle="Register businesses and invite their managers by email." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'partner-invite'})}>+ Register business</button>}/><Panel title="Registered partners"><Table columns={['Business','Location','Contact accounts','Status']} rows={data.partners.map(p=>[<b>{p.name}</b>,p.zone,p.accounts.map(a=>`${a.email} (${a.status})`).join(', ')||'No contact',<StatusTag status={p.status}/>])}/></Panel></>;
+  if(section==='employees')return <><Heading title="Employees" subtitle="Invite and administer employer-funded members." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'employee'})}>+ Invite employee</button>}/><div className="notice notice-gap">Invited employees activate their own accounts through a 24-hour email link. Email delivery must be configured for hosted deployment.</div><Panel title="Employees"><Table columns={['Name','Company','Plan','Wallet','Status','Action']} rows={data.employees.map(e=>[<><b>{e.full_name}</b><br/><small>{e.email}</small></>,e.company,e.plan,`${e.balance} credits`,<StatusTag status={e.status}/>,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'adjust',id:e.id})}>Adjust credits</button>])}/></Panel></>;
   if(section==='plans')return <><Heading title="Credit plans" subtitle="Three employer packages configured for the pilot."/><div className="stats three-cols">{data.plans.map((p,i)=><Stat key={p.id} icon={['✧','✦','◈'][i]||'✦'} label={p.name} value={`${p.credits} credits`} small="Monthly allowance · price unapproved"/>)}</div><div className="notice">Plan prices, rollover, expiration and change dates require FlexPass approval.</div></>;
   if(section==='invoices')return <><Heading title="Company invoices" subtitle="Track invoice references and manual payment confirmation." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'invoice'})}>+ New invoice</button>}/><Panel title="Invoice register"><Table columns={['Reference','Company','Period','Amount','Status','Action']} rows={data.invoices.map(i=>[<b>{i.reference}</b>,i.company,i.period,money(i.amount_cents),<StatusTag status={i.status}/>,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'invoice-status',id:i.id})}>Update status</button>])}/></Panel></>;
   if(section==='settlements')return <><Heading title="Partner settlements" subtitle="Create and review monthly partner payout reports." action={<button className="btn btn-primary" onClick={onGenerate}>Generate {month()} ↗</button>}/><div className="notice notice-gap">Settlement amounts use the original booking payout snapshot and confirmed attendance; payments occur outside the app.</div><Panel title="Settlement register"><Table columns={['Partner','Period','Visits','Payable','Status','Action']} rows={data.settlements.map(st=>[<b>{st.partner}</b>,st.period,st.bookings,money(st.amount_cents),<StatusTag status={st.status}/>,<button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'settlement-status',id:st.id})}>Update status</button>])}/></Panel></>;

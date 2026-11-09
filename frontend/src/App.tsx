@@ -8,6 +8,7 @@ import { Dashboard } from './Dashboard';
 import { UIIcon } from './UIIcon';
 import { BrandLogo } from './BrandLogo';
 import { LuminaHero } from './LuminaHero';
+import { HomeStory } from './HomeStory';
 import type {IconName} from './UIIcon';
 
 interface AppContextValue {
@@ -79,6 +80,7 @@ function Home(){
         <p>Make space for what matters. A flexible way to experience more of what you enjoy.</p>
       </div>
     </section>
+    <HomeStory/>
     <div className="quiet-pilot-note" role="note">
       <span>PILOT INFORMATION</span>
       <p>Some experiences may be fictional demo listings. Credit-package requests do not charge a card; bank transfers are verified separately before credits are issued.</p>

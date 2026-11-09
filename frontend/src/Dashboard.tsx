@@ -4,7 +4,7 @@ import {Link,useNavigate} from 'react-router-dom';
 import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,AdminSummary,Company,AdminPartner,CreditProduct,ClientOrder,ClientRecord,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog} from './types';
 import {dateTime,icons,labels,money,month,post,request} from './api';
 import {Heading,Panel,Stat,StatusTag,useApp} from './App';
-import {BookingDialog,ServiceCard} from './ServicesPage';
+import {BookingDialog} from './ServicesPage';
 import {ActionDialog} from './Forms';
 import {PartnerCalendar} from './PartnerCalendar';
 import {ClientExplore} from './ClientExplore';

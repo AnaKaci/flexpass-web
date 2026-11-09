@@ -21,7 +21,7 @@ export interface Company {id:number; name:string; hr_email:string; status:string
 export interface CreditProduct {id:number;name:string;credits:number;price_cents:number;currency:string;active:boolean;}
 export interface ClientOrder {id:number;product:string;product_id:number;client_id:number;email?:string;credits:number;amount_cents:number;currency:string;status:string;created_at:string;payment_reference:string;bank_reference?:string;payment_method?:string;simulated?:boolean;}
 export interface ClientRecord {id:number;name:string;email:string;status:string;balance:number;orders:number;legacy:boolean;}
-export interface PartnerAccount {email:string;status:string;}
+export interface PartnerAccount {id:number;email:string;status:string;}
 export interface AdminPartner {id:number;name:string;zone:string;status:string;accounts:PartnerAccount[];}
 export interface Employee {id:number; full_name:string; email:string; company:string; company_id:number; plan:string; status:string; balance:number; }
 export interface Plan {id:number; name:string; credits:number; monthly_price:number; currency:string; }

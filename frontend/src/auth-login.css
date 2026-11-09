@@ -1,0 +1,134 @@
+/* Sign-in pages only: role-aware credentials and an image-led FlexPass
+   composition. Registration and activation screens retain their layout. */
+.auth-page.auth-login-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.06fr);
+  align-items:stretch;
+  gap:clamp(18px,3vw,54px);
+  width:min(calc(100% - 72px),1480px);
+  max-width:1480px;
+  min-height:clamp(630px,76svh,860px);
+  margin:clamp(26px,3.2vw,56px) auto clamp(40px,5vw,76px);
+  padding:0;
+  background:transparent;
+}
+.auth-page.auth-login-layout .auth-card-refined{
+  width:100%;
+  max-width:570px;
+  align-self:center;
+  justify-self:center;
+  margin:0;
+  padding:clamp(31px,3.7vw,64px);
+  border:1px solid rgba(16,86,92,.16);
+  background:#FFFCF7;
+  border-radius:12px;
+  box-shadow:none;
+}
+.auth-page.auth-login-layout .auth-editorial-aside{
+  display:block;
+  position:relative;
+  align-self:stretch;
+  min-width:0;
+  min-height:620px;
+  height:auto;
+  border-radius:150px 10px 10px 10px;
+  overflow:hidden;
+  isolation:isolate;
+  background:#10565C;
+}
+.auth-page.auth-login-layout .auth-editorial-aside img{
+  position:absolute;
+  inset:0;
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 53%;
+  filter:blur(3.5px);
+  transform:scale(1.035);
+}
+.auth-page.auth-login-layout .auth-editorial-aside::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:rgba(7,60,65,.28);
+  pointer-events:none;
+}
+.auth-page.auth-login-layout .auth-visual-caption{
+  position:absolute;
+  z-index:2;
+  left:clamp(26px,3vw,52px);
+  right:24px;
+  bottom:clamp(26px,4vw,56px);
+  color:#F5EFE4;
+}
+.auth-page.auth-login-layout .auth-visual-caption span{color:#F5EFE4}
+.auth-page.auth-login-layout .auth-visual-caption p{
+  color:#F5EFE4;
+  max-width:410px;
+  text-wrap:balance;
+}
+/* Restore the brand paper appearance when a browser autofills a saved login. */
+.auth-page.auth-login-layout input:-webkit-autofill,
+.auth-page.auth-login-layout input:-webkit-autofill:hover,
+.auth-page.auth-login-layout input:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 1000px #FFFCF7 inset;
+  -webkit-text-fill-color:#143F42;
+  caret-color:#143F42;
+  transition:background-color 9999s ease-out 0s;
+}
+@media(max-width:1050px){
+  .auth-page.auth-login-layout{
+    grid-template-columns:minmax(0,1fr) minmax(0,.9fr);
+    gap:22px;
+    width:calc(100% - 42px);
+    min-height:630px;
+  }
+  .auth-page.auth-login-layout .auth-card-refined{padding:clamp(29px,3vw,42px)}
+  .auth-page.auth-login-layout .auth-editorial-aside{min-height:620px}
+}
+@media(max-width:700px){
+  .auth-page.auth-login-layout{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    align-items:stretch;
+    width:calc(100% - 32px);
+    margin:24px auto 44px;
+    min-height:0;
+  }
+  .auth-page.auth-login-layout .auth-editorial-aside{
+    display:block;
+    order:-1;
+    height:clamp(160px,27svh,215px);
+    min-height:160px;
+    flex:none;
+    border-radius:12px 12px 0 0;
+  }
+  .auth-page.auth-login-layout .auth-editorial-aside img{
+    object-position:center 48%;
+    filter:blur(3px);
+  }
+  .auth-page.auth-login-layout .auth-visual-caption{
+    bottom:16px;
+    left:22px;
+    right:20px;
+  }
+  .auth-page.auth-login-layout .auth-visual-caption span{font-size:9px}
+  .auth-page.auth-login-layout .auth-visual-caption p{
+    margin-top:6px;
+    font-size:clamp(24px,7.5vw,32px);
+  }
+  .auth-page.auth-login-layout .auth-card-refined{
+    width:100%;
+    max-width:none;
+    border-radius:0 0 12px 12px;
+    border-top:0;
+    margin:0;
+    padding:clamp(27px,6vw,38px) clamp(22px,5.5vw,34px);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .auth-page.auth-login-layout input:-webkit-autofill{transition:none}
+}

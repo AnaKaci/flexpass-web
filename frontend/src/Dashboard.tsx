@@ -1,13 +1,14 @@
 import {useCallback,useEffect,useState} from 'react';
 import type {ReactNode} from 'react';
 import {Link,useNavigate} from 'react-router-dom';
-import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,AdminSummary,Company,AdminPartner,CreditProduct,ClientOrder,ClientRecord,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog} from './types';
+import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,AdminSummary,Company,AdminPartner,CreditProduct,ClientOrder,ClientRecord,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog,User} from './types';
 import {dateTime,icons,labels,money,month,post,request} from './api';
 import {Heading,Panel,Stat,StatusTag,useApp} from './App';
 import {BookingDialog} from './ServicesPage';
 import {ActionDialog} from './Forms';
 import {PartnerCalendar} from './PartnerCalendar';
 import {ClientExplore} from './ClientExplore';
+import {ClientOverview} from './ClientOverview';
 import {ProfileMenu} from './ProfileMenu';
 import {UIIcon} from './UIIcon';
 import {BrandLogo} from './BrandLogo';
@@ -28,11 +29,12 @@ interface AllData {
   settlements:Settlement[];
   audit:AuditRow[];
   catalog:Service[];
+  featuredCatalog:Service[];
   clients:ClientRecord[];
   products:CreditProduct[];
   orders:ClientOrder[];
 }
-const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],partners:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[],products:[],orders:[],clients:[]};
+const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],partners:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[],featuredCatalog:[],products:[],orders:[],clients:[]};
 const menu:Record<Role,Array<[Section,string,IconName]>>={
   client:[['overview','Overview','overview'],['shop','Credit shop','credit'],['discover','Explore experiences','compass'],['orders','My orders','receipt'],['bookings','My bookings','calendar'],['wallet','My wallet','wallet']],
   partner:[['overview','Overview','overview'],['calendar','Booking calendar','calendar'],['reservations','Reservations','list'],['services','My services','layers'],['settlements','Settlements','wallet']],
@@ -70,8 +72,8 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     const get=<T,>(path:string)=>request<T>(path,token);
     async function load(){
       if(role==='client'){
-        const [summary,bookings,ledger,catalog,products,orders]=await Promise.all([get<EmployeeSummary>('/client/summary'),get<Booking[]>('/client/bookings'),get<LedgerRow[]>('/client/ledger'),get<Service[]>(`/catalog?group=${category}`),get<CreditProduct[]>('/client/products'),get<ClientOrder[]>('/client/orders')]);
-        if(valid)setData({...emptyData,employeeSummary:summary,bookings,ledger,catalog,products,orders});
+        const [summary,bookings,ledger,catalog,products,orders,featuredCatalog]=await Promise.all([get<EmployeeSummary>('/client/summary'),get<Booking[]>('/client/bookings'),get<LedgerRow[]>('/client/ledger'),get<Service[]>(`/catalog?group=${category}`),get<CreditProduct[]>('/client/products'),get<ClientOrder[]>('/client/orders'),get<Service[]>('/catalog')]);
+        if(valid)setData({...emptyData,employeeSummary:summary,bookings,ledger,catalog,products,orders,featuredCatalog});
       }else if(role==='partner'){
         const [summary,bookings,services,settlements]=await Promise.all([get<PartnerSummary>('/partner/summary'),get<Booking[]>('/partner/bookings'),get<PartnerService[]>('/partner/services'),get<Settlement[]>('/settlements')]);
         if(valid)setData({...emptyData,partnerSummary:summary,bookings,partnerServices:services,settlements});
@@ -95,15 +97,16 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
   if(!user)return null;
   return <div className={`app-shell dashboard-app-shell ${sidebarOpen?'sidebar-expanded':'sidebar-collapsed'}`}>
     {isNarrowScreen&&sidebarOpen&&<button type="button" className="dashboard-sidebar-backdrop" aria-label="Close navigation menu" onClick={()=>setSidebarOpen(false)}/>}
-    {sidebarOpen&&<aside id="dashboard-sidebar" className="sidebar dashboard-sidebar" aria-label={`${role} navigation`}>
+    {sidebarOpen&&<aside id="dashboard-sidebar" className={`sidebar dashboard-sidebar ${role==='client'?'dashboard-client-sidebar':''}`} aria-label={`${role} navigation`}>
       <div className="dashboard-sidebar-heading">
         <Link className="logo dashboard-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone="ivory" decorative/></Link>
         <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(false)} aria-label="Collapse sidebar" title="Collapse sidebar"><UIIcon name="close" size={18}/></button>
       </div>
-      <div className="side-label">{role[0].toUpperCase()+role.slice(1)} workspace</div>
+      <div className="side-label">{role==='client'?'YOUR MEMBERSHIP':role[0].toUpperCase()+role.slice(1)+' workspace'}</div>
       <nav className="side-nav" aria-label={`${role} workspace`}>
         {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} aria-current={name===section?'page':undefined} onClick={()=>changeSection(name)}><span className="side-ico"><UIIcon name={icon} size={19}/></span><span className="side-text">{label}</span></button>)}
       </nav>
+      {role==='client'&&<div className="sidebar-client-quote"><span>MORE EXPERIENCES.<br/>MORE YOU.</span><p>Your everyday,<br/>beautifully reimagined.</p></div>}
       <div className="sidebar-bottom">
         <ProfileMenu user={user} onSignOut={()=>{signOut();navigate('/')}}/>
       </div>
@@ -122,7 +125,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
       <div className="flex-between"><span className="status">● &nbsp; Pilot environment</span></div>
     </header>
       <main className="dash-content">{loading?<div className="loading">Loading workspace...</div>:error?<div className="notice warn"><b>{ERROR_MESSAGE}</b><p>{error}</p><button className="btn btn-outline btn-sm" onClick={refresh}>Retry</button></div>:<>
-        {role==='client'&&data.employeeSummary&&<EmployeeView section={section} data={data} onSection={setSection} onBooking={cancelBooking} onService={setSelectedService} onPurchase={requestPurchase} onDemoTransfer={demoBankTransfer} bank={info?.bank_transfer} category={category} onCategory={setCategory}/>}
+        {role==='client'&&data.employeeSummary&&<EmployeeView user={user} section={section} data={data} onSection={setSection} onBooking={cancelBooking} onService={setSelectedService} onPurchase={requestPurchase} onDemoTransfer={demoBankTransfer} bank={info?.bank_transfer} category={category} onCategory={setCategory}/>}
         {role==='partner'&&data.partnerSummary&&(section==='calendar'?<PartnerCalendar initialBookings={data.bookings}/>:<PartnerView section={section} data={data} onSection={setSection} onBooking={checkIn} onForm={setForm}/>)}
         {role==='admin'&&showDemoSetup&&<div className="panel" style={{marginBottom:24,maxWidth:680}}><h2>Set up demo test accounts</h2><p>Creates an active Client (<b>demo.client@flexpass.test</b>) and activates the invited demo business (<b>akaci@ccs.al</b>). Assigns 25 fictional credits to the Client. Existing accounts and passwords are never reset.</p><div className="notice">Use different passwords of at least 20 characters. The passwords are submitted securely to the authenticated API, not stored in browser code. Save them privately: they are not shown again.</div><form className="stack" onSubmit={e=>{e.preventDefault();void setupDemoAccounts()}}><label className="form-field">Temporary Client password<input className="input" type="password" autoComplete="new-password" minLength={20} value={clientDemoPassword} onChange={e=>setClientDemoPassword(e.target.value)} required/></label><label className="form-field">Temporary Business password<input className="input" type="password" autoComplete="new-password" minLength={20} value={businessDemoPassword} onChange={e=>setBusinessDemoPassword(e.target.value)} required/></label><div className="flex-between"><button className="btn btn-primary" type="submit" disabled={demoSetupBusy}>{demoSetupBusy?'Setting up…':'Create / activate demo accounts'}</button><button className="btn btn-outline" type="button" onClick={()=>{setShowDemoSetup(false);setClientDemoPassword('');setBusinessDemoPassword('')}}>Cancel</button></div></form></div>}
         {role==='admin'&&data.adminSummary&&<AdminView section={section} data={data} onSection={setSection} onForm={setForm} onGenerate={()=>{void mutate(`/admin/settlements/generate?period=${month()}`)}} onConfirmOrder={confirmPurchase} onResendInvitation={resendInvitation} onOpenDemoSetup={()=>setShowDemoSetup(v=>!v)}/>}
@@ -131,8 +134,8 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     {form&&<ActionDialog dialog={form} data={data} onClose={()=>setForm(null)} onSuccess={()=>{setForm(null);notify('Change saved.');refresh()}}/>}
   </div>;
 }
-function EmployeeView({section,data,onSection,onBooking,onService,onPurchase,onDemoTransfer,bank,category,onCategory}:{section:Section;data:AllData;onSection:(v:Section)=>void;onBooking:(b:Booking)=>void;onService:(s:Service)=>void;onPurchase:(p:CreditProduct)=>void;onDemoTransfer:(o:ClientOrder)=>void;bank?:{demo_enabled:boolean;configured:boolean;bank_name:string;beneficiary:string;iban:string};category:Group;onCategory:(v:Group)=>void}){const s=data.employeeSummary!;
-  if(section==='overview')return <><Heading title="Your FlexPass" subtitle="Discover experiences and manage your personal credit purchases." action={<button className="btn btn-primary" onClick={()=>onSection('shop')}>Shop credit packages →</button>}/><SummaryCards items={[["✦","Available credits",s.balance,"Personal and previously issued credits"],["▤","Upcoming bookings",s.active_bookings,"Confirmed reservations"],["✓","Visits completed",s.visits,"Confirmed attendance"],["◇","Purchase requests",data.orders.length,"Track progress in My orders"]]}/><div className="dash-grid"><Panel title="Your recent bookings" action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('bookings')}>View all →</button>}><BookingTable bookings={data.bookings.slice(0,5)} role="employee" action={onBooking}/></Panel><Panel title="Your personal account"><p>Buy credit packages through a purchase request, then book experiences after your payment has been verified by FlexPass.</p><p className="notice">No payment gateway is connected. Demo bank transfers are simulated and do not move money.</p><button className="btn btn-primary btn-sm" onClick={()=>onSection('shop')}>Browse credit packages →</button></Panel></div></>;
+function EmployeeView({user,section,data,onSection,onBooking,onService,onPurchase,onDemoTransfer,bank,category,onCategory}:{user:User;section:Section;data:AllData;onSection:(v:Section)=>void;onBooking:(b:Booking)=>void;onService:(s:Service)=>void;onPurchase:(p:CreditProduct)=>void;onDemoTransfer:(o:ClientOrder)=>void;bank?:{demo_enabled:boolean;configured:boolean;bank_name:string;beneficiary:string;iban:string};category:Group;onCategory:(v:Group)=>void}){const s=data.employeeSummary!;
+  if(section==='overview')return <ClientOverview user={user} summary={s} bookings={data.bookings} services={data.featuredCatalog} onSection={onSection} onService={onService}/>;
   if(section==='wallet')return <><Heading title="My wallet" subtitle="A history of credits, purchases and refunds."/><SummaryCards items={[["✦","Available credits",s.balance,"Updated after confirmed purchases and bookings"]]}/><Panel title="Credit transactions"><Table columns={['Date','Type','Credits','Details']} rows={data.ledger.map(l=>[dateTime(l.created_at),<StatusTag status={l.kind}/>,<b className={l.amount>=0?'positive':'negative'}>{l.amount>0?'+':''}{l.amount}</b>,l.reason])}/></Panel></>;
   if(section==='shop')return <><Heading title="Credit packages" subtitle="Choose credits for your FlexPass experiences."/><div className="notice notice-gap">Checkout is not connected. Requesting a package creates a pending bank transfer order. In demo mode, you can simulate payment with no actual funds. Live transfers require independent bank verification.</div><div className="stats three-cols">{data.products.map(p=><div className="panel" key={p.id}><h3>{p.name}</h3><div className="wallet-big"><strong>{p.credits}</strong><span>credits</span></div><p><b>{money(p.price_cents)}</b> · {p.currency}</p><button className="btn btn-primary" onClick={()=>onPurchase(p)}>Request package →</button></div>)}{data.products.length===0&&<div className="notice">No credit packages have been published yet.</div>}</div></>;
   if(section==='orders')return <><Heading title="My purchases" subtitle="Review bank-transfer instructions and payment status."/><div className="notice notice-gap">{bank?.demo_enabled?'DEMO BANK ONLY — no real banking information, transfers or funds. Simulated credits are for testing.':bank?.configured?'Bank transfer instructions are provided for review. Sending money does not automatically credit your wallet.':'Bank transfer instructions are not configured. Do not send money. Contact FlexPass.'}</div><Panel title="Order history"><Table columns={['Package','Amount','Transfer instructions','Status / action']} rows={data.orders.map(o=>[<><b>{o.product}</b><small style={{display:'block'}}>{o.credits} credits</small></>,money(o.amount_cents),<div><b>{bank?.bank_name||'Bank unavailable'}</b><small style={{display:'block'}}>Beneficiary: {bank?.beneficiary||'Not configured'}</small><small style={{display:'block'}}>IBAN: {bank?.iban||'Not configured'}</small><small style={{display:'block'}}>Reference: {o.bank_reference||`FP-ORDER-${String(o.id).padStart(6,'0')}`}</small></div>,<div><StatusTag status={o.status}/>{o.status==='PENDING' && bank?.demo_enabled &&<button className="btn btn-primary btn-sm" onClick={()=>onDemoTransfer(o)} style={{marginTop:12}}>Simulate bank payment →</button>}</div>])}/></Panel><div className="notice notice-gap">DEMO_PAID records a fictional bank payment and demo credits only. PENDING means no confirmed payment. CONFIRMED requires Admin verification of a real external transfer.</div></>;

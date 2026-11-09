@@ -1,0 +1,424 @@
+/* Figma-inspired FlexPass Client Overview only — brand palette and fonts retained.
+   Other Client sections and all Partner/Admin views are intentionally untouched. */
+.dashboard-app-shell .dashboard-client-sidebar .sidebar-client-quote{
+  margin-top:auto;
+  padding:29px 14px 28px;
+  color:#F5EFE4;
+  flex:none;
+}
+.dashboard-client-sidebar .sidebar-client-quote>span{
+  display:block;
+  color:#C9DDE2;
+  font:600 10px/1.6 'Inter',sans-serif;
+  letter-spacing:.14em;
+}
+.dashboard-client-sidebar .sidebar-client-quote>p{
+  margin:22px 0 0;
+  font:italic 400 27px/1.38 'Cormorant Garamond',Georgia,serif;
+  color:#F5EFE4;
+  letter-spacing:-.025em;
+}
+.dashboard-app-shell .dashboard-client-sidebar .sidebar-bottom{margin-top:0}
+.member-overview{
+  width:100%;
+  max-width:1480px;
+  margin:0 auto;
+  color:#10565C;
+  padding-bottom:20px;
+}
+.member-overview .member-welcome{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin:7px 0 28px;
+}
+.member-overview .member-kicker{
+  display:block;
+  color:#AA1350;
+  font:600 10px/1.5 'Inter',sans-serif;
+  letter-spacing:.13em;
+}
+.member-overview .member-welcome h1{
+  margin:12px 0 7px;
+  color:#10565C;
+  font:400 clamp(36px,3.35vw,51px)/1.13 'Bodoni Moda',Georgia,serif;
+  letter-spacing:-.045em;
+}
+.member-overview .member-welcome h1 em{
+  font-style:normal;
+  color:#10565C;
+}
+.member-overview .member-welcome p{
+  margin:0;
+  color:#536C68;
+  font:400 14px/1.75 'Inter',sans-serif;
+}
+.member-overview .member-action{
+  display:inline-flex;
+  flex:none;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+  min-height:43px;
+  border-radius:999px;
+  padding:12px 24px;
+  border:1px solid transparent;
+  font:500 12px/1.4 'Inter',sans-serif;
+  white-space:nowrap;
+  transition:background-color 180ms ease,border-color 180ms ease;
+}
+.member-overview .member-action-teal{background:#10565C;color:#FFFCF7}
+.member-overview .member-action-teal:hover{background:#073C41}
+.member-overview .member-action-burgundy{background:#AA1350;color:#FFFCF7}
+.member-overview .member-action-burgundy:hover{background:#861039}
+.member-overview .member-metrics{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  margin:0 0 27px;
+}
+.member-overview .member-metric{
+  display:flex;
+  min-width:0;
+  min-height:131px;
+  flex-direction:column;
+  align-items:stretch;
+  gap:11px;
+  text-align:left;
+  padding:18px 21px 16px;
+  background:#FFFCF7;
+  color:#10565C;
+  border:1px solid #CED5CB;
+  border-radius:5px;
+  box-shadow:none;
+  transition:border-color 160ms ease,background-color 160ms ease;
+}
+.member-overview .member-metric:hover{
+  border-color:#10565C;
+  background:#F9F7F0;
+}
+.member-overview .member-metric-primary,
+.member-overview .member-metric-primary:hover{
+  background:#10565C;
+  border-color:#10565C;
+  color:#FFFCF7;
+}
+.member-overview .member-metric-label{
+  font:600 10px/1.4 'Inter',sans-serif;
+  letter-spacing:.105em;
+  color:#536C68;
+}
+.member-overview .member-metric-primary .member-metric-label{color:#C9DDE2}
+.member-overview .member-metric-middle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:9px;
+  width:100%;
+  min-width:0;
+  margin-top:auto;
+}
+.member-overview .member-metric-middle strong{
+  font:500 clamp(28px,2.55vw,37px)/1.05 'Inter',sans-serif;
+  letter-spacing:-.035em;
+  font-variant-numeric:tabular-nums;
+  min-width:0;
+}
+.member-overview .member-metric-middle .member-metric-next{white-space:nowrap}
+.member-overview .member-metric-middle>span{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  flex:none;
+  font:500 11px/1.4 'Inter',sans-serif;
+  white-space:nowrap;
+}
+.member-overview .member-metric>small{
+  display:block;
+  margin:0;
+  font:400 12px/1.4 'Inter',sans-serif;
+  color:#536C68;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.member-overview .member-metric-primary>small{color:#F5EFE4}
+.member-overview .member-highlights{
+  display:grid;
+  grid-template-columns:minmax(0,1.84fr) minmax(275px,1fr);
+  gap:23px;
+  margin-bottom:33px;
+}
+.member-overview .member-bookings-panel,
+.member-overview .member-credit-invitation{
+  min-width:0;
+  min-height:294px;
+  border-radius:5px;
+  padding:22px 24px;
+}
+.member-overview .member-bookings-panel{background:#FFFCF7;border:1px solid #CED5CB}
+.member-overview .member-panel-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.member-overview .member-panel-heading h2{
+  margin:0;
+  color:#10565C;
+  font:400 clamp(25px,2.2vw,32px)/1.2 'Bodoni Moda',Georgia,serif;
+  letter-spacing:-.04em;
+}
+.member-overview .member-inline-link{
+  display:inline-flex;
+  gap:9px;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:0;
+  padding:4px 0;
+  background:transparent;
+  color:#10565C;
+  text-decoration:none;
+  font:500 11px/1.5 'Inter',sans-serif;
+  white-space:nowrap;
+}
+.member-overview .member-inline-link:hover{text-decoration:underline;text-underline-offset:4px}
+.member-overview .member-booking-list{
+  border-top:1px solid #CED5CB;
+  margin-top:20px;
+}
+.member-overview .member-booking-row{
+  display:grid;
+  grid-template-columns:78px minmax(0,1fr) auto;
+  align-items:center;
+  gap:18px;
+  padding:15px 0 14px;
+  border-bottom:1px solid #CED5CB;
+}
+.member-overview .member-booking-row:last-child{border-bottom:0}
+.member-overview .member-booking-date{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:72px;
+  width:78px;
+  background:#E4EDE5;
+  border-radius:3px;
+  color:#10565C;
+}
+.member-overview .member-booking-date strong{
+  font:400 30px/1.15 'Bodoni Moda',Georgia,serif;
+}
+.member-overview .member-booking-date span{
+  font:600 10px/1.5 'Inter',sans-serif;
+  letter-spacing:.15em;
+}
+.member-overview .member-booking-time{
+  display:block;
+  font:600 10px/1.4 'Inter',sans-serif;
+  letter-spacing:.11em;
+  color:#536C68;
+}
+.member-overview .member-booking-summary{min-width:0}
+.member-overview .member-booking-summary h3{
+  margin:7px 0 3px;
+  font:500 16px/1.25 'Inter',sans-serif;
+  letter-spacing:0;
+  color:#10565C;
+  overflow-wrap:anywhere;
+}
+.member-overview .member-booking-summary p{
+  margin:0;
+  color:#536C68;
+  font:400 11px/1.5 'Inter',sans-serif;
+}
+.member-overview .member-booking-state{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  width:102px;
+  color:#10565C;
+}
+.member-overview .member-booking-state span{
+  width:100%;
+  border-radius:100px;
+  background:#E4EDE5;
+  padding:7px 8px;
+  font:500 10px/1.1 'Inter',sans-serif;
+  text-align:center;
+}
+.member-overview .member-booking-state small{
+  font:400 11px/1.4 'Inter',sans-serif;
+}
+.member-overview .member-empty-bookings{
+  display:grid;
+  gap:8px;
+  padding:31px 0;
+}
+.member-overview .member-empty-bookings p{margin:0;font-size:13px;color:#536C68}
+.member-overview .member-empty-bookings .member-inline-link{justify-self:start}
+.member-overview .member-credit-invitation{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  padding:23px 25px;
+  background:#F3DEDF;
+}
+.member-overview .member-credit-invitation h2{
+  margin:24px 0 8px;
+  color:#10565C;
+  font:italic 400 clamp(29px,2.55vw,38px)/1.05 'Cormorant Garamond',Georgia,serif;
+  letter-spacing:-.025em;
+}
+.member-overview .member-credit-invitation h2 em{font-style:italic}
+.member-overview .member-credit-invitation p{
+  margin:0 0 21px;
+  max-width:295px;
+  font:400 13px/1.6 'Inter',sans-serif;
+  color:#536C68;
+}
+.member-overview .member-credit-invitation .member-action{margin-top:auto;padding-inline:21px}
+.member-overview .member-recommendations{margin-top:32px}
+.member-overview .member-recommendations .member-panel-heading{align-items:end;margin-bottom:20px}
+.member-overview .member-recommendations .member-panel-heading h2{font-size:clamp(29px,2.8vw,37px)}
+.member-overview .member-recommendations .member-panel-heading p{
+  margin:9px 0 0;
+  font:400 13px/1.5 'Inter',sans-serif;
+  color:#536C68;
+}
+.member-overview .member-recommendations-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+}
+.member-overview .member-recommendation-card{
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  min-width:0;
+  text-align:left;
+  overflow:hidden;
+  background:#FFFCF7;
+  border:1px solid #CED5CB;
+  border-radius:4px;
+  box-shadow:none;
+  color:#10565C;
+  transition:border-color 180ms ease;
+}
+.member-overview .member-recommendation-card:hover{border-color:#10565C}
+.member-overview .member-recommendation-art{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  padding:17px 18px;
+  min-height:119px;
+  width:100%;
+  background:#C9DDE2;
+  color:#073C41;
+}
+.member-overview .member-recommendation-art-2{background:#E4EDE5}
+.member-overview .member-recommendation-art-3{background:#F3DEDF}
+.member-overview .member-recommendation-art-label{
+  font:500 24px/1.15 'Cormorant Garamond',Georgia,serif;
+  color:#10565C;
+}
+.member-overview .member-recommendation-art-letter{
+  font:400 54px/.8 'Bodoni Moda',Georgia,serif;
+  opacity:.26;
+}
+.member-overview .member-recommendation-body{
+  display:flex;
+  flex-direction:column;
+  gap:13px;
+  flex:1;
+  padding:14px 17px 13px;
+}
+.member-overview .member-recommendation-body h3{
+  margin:0;
+  color:#10565C;
+  font:400 clamp(20px,1.7vw,25px)/1.15 'Bodoni Moda',Georgia,serif;
+  letter-spacing:-.03em;
+  overflow-wrap:anywhere;
+}
+.member-overview .member-recommendation-details{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  width:100%;
+  margin-top:auto;
+}
+.member-overview .member-recommendation-details small{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#536C68;
+  font:400 11px/1.45 'Inter',sans-serif;
+}
+.member-overview .member-recommendation-details small:last-child{
+  color:#10565C;
+  white-space:nowrap;
+  font-weight:500;
+}
+.member-overview .member-recommendations-empty{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  padding:28px;
+  background:#FFFCF7;
+  border:1px solid #CED5CB;
+  border-radius:5px;
+}
+.member-overview .member-recommendations-empty p{margin:0;font-size:13px;color:#536C68}
+.member-overview .member-overview-legal{
+  font:400 10px/1.7 'Inter',sans-serif;
+  color:#687C75;
+  margin:24px 0 0;
+}
+@media(max-width:1160px){
+  .member-overview .member-metrics{gap:11px}
+  .member-overview .member-metric{padding:16px}
+  .member-overview .member-metric-middle>span{font-size:10px}
+  .member-overview .member-highlights{grid-template-columns:minmax(0,1.5fr) minmax(250px,1fr);gap:14px}
+  .member-overview .member-booking-row{gap:11px;grid-template-columns:65px minmax(0,1fr) auto}
+  .member-overview .member-booking-date{width:65px}
+}
+@media(max-width:950px){
+  .member-overview .member-welcome{align-items:flex-start;flex-direction:column;gap:18px}
+  .member-overview .member-highlights{grid-template-columns:minmax(0,1fr)}
+  .member-overview .member-credit-invitation{min-height:225px}
+  .member-overview .member-credit-invitation h2{margin:16px 0 8px}
+}
+@media(max-width:760px){
+  .member-overview .member-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .member-overview .member-metric-primary{grid-column:span 2}
+  .member-overview .member-recommendations-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dashboard-app-shell .dashboard-client-sidebar .sidebar-client-quote{padding-top:20px;padding-bottom:22px}
+}
+@media(max-width:540px){
+  .member-overview .member-welcome h1{font-size:clamp(33px,9vw,44px)}
+  .member-overview .member-metrics{grid-template-columns:1fr}
+  .member-overview .member-metric-primary{grid-column:auto}
+  .member-overview .member-metric{min-height:121px}
+  .member-overview .member-highlights{gap:16px}
+  .member-overview .member-bookings-panel,.member-overview .member-credit-invitation{padding:18px}
+  .member-overview .member-panel-heading h2{font-size:25px}
+  .member-overview .member-booking-row{grid-template-columns:52px minmax(0,1fr) auto;gap:10px}
+  .member-overview .member-booking-date{width:52px;height:65px}
+  .member-overview .member-booking-date strong{font-size:24px}
+  .member-overview .member-booking-state{width:66px}
+  .member-overview .member-booking-state small{font-size:10px}
+  .member-overview .member-recommendations-grid{grid-template-columns:1fr}
+  .member-overview .member-recommendations .member-panel-heading{align-items:flex-start;flex-direction:column}
+  .member-overview .member-recommendations-empty{flex-direction:column;align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+  .member-overview .member-action,.member-overview .member-metric,.member-overview .member-recommendation-card{transition:none}
+}

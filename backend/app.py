@@ -1186,6 +1186,10 @@ seed()
 DIST = ROOT / 'frontend' / 'dist'
 if DIST.is_dir():
     app.mount('/assets', StaticFiles(directory=DIST / 'assets'), name='assets')
+    # Vite copies frontend/public/brand/* to dist/brand/*.
+    # Render previously mounted only /assets, causing brand photography to 404.
+    if (DIST / 'brand').is_dir():
+        app.mount('/brand', StaticFiles(directory=DIST / 'brand'), name='brand')
 
 @app.get('/')
 @app.get('/services')

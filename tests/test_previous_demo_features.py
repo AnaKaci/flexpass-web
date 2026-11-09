@@ -3,13 +3,13 @@ from fastapi.testclient import TestClient
 from backend.app import app
 client=TestClient(app)
 def auth(role):
-    response=client.post('/api/auth/login',json={'email':f'{role}@flexpass.demo','password':'Demo123!'})
+    response=client.post('/api/auth/admin/login' if role=='admin' else '/api/auth/login',json={'email':f'{role}@flexpass.demo','password':'Demo123!','portal':role})
     assert response.status_code==200,response.text
     return {'Authorization':'Bearer '+response.json()['token']}
 
 def test_booking_idempotency_key_replays_once():
     employee = auth('employee')
-    service = client.get('/api/catalog?group=wellness').json()[0]
+    service = client.get('/api/catalog?group=wellness',headers=employee).json()[0]
     slot_id = service['slots'][-1]['id']
     headers = {**employee, 'Idempotency-Key': 'test-previous-demo-key'}
     first = client.post('/api/bookings', headers=headers, json={'slot_id': slot_id})

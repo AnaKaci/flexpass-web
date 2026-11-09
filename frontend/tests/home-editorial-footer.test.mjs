@@ -37,3 +37,16 @@ test('footer rows stretch to full width so navigation reaches the right edge',()
   assert.match(footerStyles,/\.flexpass-footer \.flexpass-footer-bottom\{[^}]*width:100%/s);
   assert.match(footerStyles,/\.flexpass-footer \.footer-right\{[^}]*justify-self:end/s);
 });
+
+test('collection cards form a descending staircase on desktop and tablet',()=>{
+  assert.match(storyStyles,/\.home-collection-grid\{[^}]*align-items:start/s);
+  assert.match(storyStyles,/\.home-collection-grid \.home-collection:nth-child\(2\)\{\s*margin-top:clamp\(65px,7vw,112px\)/);
+  assert.match(storyStyles,/\.home-collection-grid \.home-collection:nth-child\(3\)\{\s*margin-top:clamp\(130px,14vw,224px\)/);
+  assert.match(storyStyles,/@media\(max-width:900px\)/);
+});
+test('mobile collection keeps swipeable cards aligned without vertical clipping',()=>{
+  assert.match(storyStyles,/@media\(max-width:700px\)/);
+  assert.match(storyStyles,/\.home-collection-grid \.home-collection:nth-child\(2\),\s*\.home-collection-grid \.home-collection:nth-child\(3\)\{margin-top:0\}/);
+  assert.match(storyStyles,/scroll-snap-type:x mandatory/);
+  assert.match(storyStyles,/object-fit:cover/);
+});

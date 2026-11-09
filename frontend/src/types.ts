@@ -24,5 +24,5 @@ export interface Plan {id:number; name:string; credits:number; monthly_price:num
 export interface Invoice {id:number; company:string; company_id:number; period:string; reference:string; amount_cents:number; currency:string; status:string; due_date:string; payment_reference:string; }
 export interface Settlement {id:number; partner:string; partner_id:number; period:string; status:string; bookings:number; amount_cents:number; invoice_reference:string; payment_reference:string; }
 export interface AuditRow {id:number; action:string; detail:string; actor_id:number|null; at:string; }
-export type FormAction = 'company'|'partner-invite'|'employee'|'invoice'|'invoice-status'|'service'|'slot'|'adjust'|'settlement-status';
+export type FormAction = 'company'|'partner-invite'|'plan-create'|'employee'|'invoice'|'invoice-status'|'service'|'slot'|'adjust'|'settlement-status';
 export interface FormDialog {kind:FormAction; id?:number; }

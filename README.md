@@ -2,7 +2,7 @@
 
 **React 18 + TypeScript + Vite**, with a **FastAPI + SQLAlchemy** API. The web interface and API can be served together from **one HTTPS origin** using the supplied Dockerfile. It is a browser application, not a native Windows/macOS/mobile application.
 
-This is an **MVP/pilot codebase**, not a finished commercial service. The frontend is responsive and includes three roles, and the API includes reservation, credit ledger and financial tracking logic. It **does not** include real invitation emails, complete user and partner onboarding, live invoicing, payment processing, approved credit expiry policies, or a production security/privacy review. Do not store real employee/customer financial or personal information in it before those tasks are completed.
+This is an **MVP/pilot codebase**, not a finished commercial service. The frontend supports three roles (Client, Partner and Admin), and the API includes reservations, a credit ledger, personal purchase requests and financial tracking logic. It **does not** include online card payment processing, automated payment verification, complete financial compliance, production database migrations, or an independent security/privacy review. Do not store real employee/customer financial or personal information in it before those tasks are completed.
 
 ## Live application
 
@@ -10,15 +10,19 @@ This is an **MVP/pilot codebase**, not a finished commercial service. The fronte
 
 The main application is hosted on Render.
 
-## Functional scope
+## Functional scope — revised personal Client model
 
-| Role | Included in demo |
+| Role | Features |
 |---|---|
-| Employee | Browse catalog and available slots, reserve/cancel, see wallet and history |
-| Partner | View its own reservations, check in attendance, create services/slots, view settlements |
-| Admin | Company records, invitation records, credit corrections, invoices and reconciliation |
+| Client | Self-registration with email activation, personal credit packages, purchase requests, wallet, reservations, cancellations and purchase history |
+| Partner (Business) | Admin invitation/activation, manage services/slots, review reservations, confirm attendance and review settlements |
+| Admin | Register partner businesses, configure credit products, view personal clients and orders, manually confirm externally verified payment, settlement/audit |
 
-The document's **HR dashboard is intentionally not implemented**. HR coordination is outside the MVP. The sample partners, prices and plans are illustrative, not real FlexPass offerings.
+**Credit purchase limitations:** This MVP does **not** charge cards, collect funds, or confirm payment automatically. Selecting a package creates a `PENDING` order and **does not issue credits**. Only an authorized Admin can confirm a payment reference after verifying an external payment, which creates one ledger allocation and marks the order `CONFIRMED`. Do not mark test orders paid on live financial records. Product prices shown in local fictional demo data are illustrative.
+
+The previous employer-funded Employee model remains in the database for compatibility with existing records and transactions. New customer accounts have `role='client'`, without company or employer plan associations. Legacy records render in the new Client interface but retain their historical ledger/company references. Public B2C registration differs from the earlier supplied corporate-benefits MVP requirements and is implemented here on the user's explicit revised instructions.
+
+**Email delivery:** Production registration requires `FLEXPASS_APP_URL`, `FLEXPASS_RESEND_API_KEY`, and `FLEXPASS_EMAIL_FROM` configured on Render with a verified sender. Account activation uses one-time expiring links. The hosted GitHub Pages frontend is informational only; working registration requires the full-stack Render deployment.
 
 ## Local development
 

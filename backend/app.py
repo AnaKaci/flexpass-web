@@ -33,6 +33,8 @@ elif DB_URL.startswith('postgresql://'):
     DB_URL = 'postgresql+psycopg://' + DB_URL[len('postgresql://'):]
 ENVIRONMENT = os.environ.get('FLEXPASS_ENV', 'development').lower()
 DEMO_MODE = os.environ.get('FLEXPASS_DEMO_MODE', 'false' if ENVIRONMENT == 'production' else 'true').lower() in ('true', '1', 'yes')
+# Simulated bank transfer can never run in production, even if demo data is enabled there.
+SIMULATED_BANK_TRANSFERS = DEMO_MODE and ENVIRONMENT in ('development', 'test', 'staging')
 CANCELLATION_CUTOFF_HOURS = max(0, int(os.environ.get('FLEXPASS_CANCELLATION_CUTOFF_HOURS', '0')))
 SECRET = os.environ.get('FLEXPASS_SECRET', 'change-me-demo-only-local-secret')
 if ENVIRONMENT == 'production':
@@ -70,6 +72,31 @@ class Plan(Base):
     credits = Column(Integer, nullable=False)
     monthly_price = Column(Integer, default=0) # cents, illustrative; not a live offer
     currency = Column(String(10), default='ALL')
+
+class CreditProduct(Base):
+    __tablename__ = 'credit_products'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False, unique=True)
+    credits = Column(Integer, nullable=False)
+    price_cents = Column(Integer, nullable=False)
+    currency = Column(String(10), default='ALL')
+    active = Column(Boolean, default=True)
+
+class ClientOrder(Base):
+    __tablename__ = 'client_orders'
+    id = Column(Integer, primary_key=True)
+    client_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('credit_products.id'), nullable=False)
+    request_key = Column(String(100), nullable=False)
+    credits_snapshot = Column(Integer, nullable=False)
+    amount_cents = Column(Integer, nullable=False)
+    currency = Column(String(10), default='ALL')
+    status = Column(String(25), nullable=False, default='PENDING')
+    created_at = Column(DateTime, default=now)
+    confirmed_at = Column(DateTime)
+    confirmed_by = Column(Integer, ForeignKey('users.id'))
+    payment_reference = Column(String(120), default='')
+    __table_args__ = (UniqueConstraint('client_id','request_key',name='uq_client_order_key'),)
 
 class User(Base):
     __tablename__ = 'users'
@@ -198,6 +225,22 @@ class Audit(Base):
     action = Column(String(70), nullable=False)
     detail = Column(Text, default='')
     created_at = Column(DateTime, default=now)
+
+class ClientRegistrationBody(BaseModel):
+    full_name: str = Field(min_length=2, max_length=160)
+    email: str = Field(min_length=5, max_length=200)
+
+class CreditProductBody(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    credits: int = Field(gt=0, le=10000)
+    price_cents: int = Field(gt=0, le=100000000)
+
+class ClientOrderBody(BaseModel):
+    product_id: int
+    request_key: str = Field(min_length=8, max_length=100)
+
+class ConfirmOrderBody(BaseModel):
+    payment_reference: str = Field(min_length=3, max_length=120)
 
 class LoginBody(BaseModel):
     email: str
@@ -348,7 +391,7 @@ def get_user(req:Request):
     except Exception: raise HTTPException(401,'Session expired')
     with Session() as s:
         u=s.get(User,uid)
-        if not u or u.membership_status != 'ACTIVE' or u.role not in ('admin','partner','employee'): raise HTTPException(403,'Account inactive')
+        if not u or u.membership_status != 'ACTIVE' or u.role not in ('admin','partner','employee','client'): raise HTTPException(403,'Account inactive')
         s.expunge(u);return u
 
 def roles(*allowed):
@@ -368,7 +411,9 @@ def lock_transaction(s):
         s.connection().exec_driver_sql('BEGIN IMMEDIATE')
 
 def user_view(u):
-    return {'id':u.id,'full_name':u.full_name,'email':u.email,'role':u.role,'company_id':u.company_id,'partner_id':u.partner_id,'plan_id':u.plan_id,'status':u.membership_status}
+    # Older employer-funded employee records remain untouched for historical ledger integrity.
+    public_role='client' if u.role=='employee' else u.role
+    return {'id':u.id,'full_name':u.full_name,'email':u.email,'role':public_role,'company_id':u.company_id,'partner_id':u.partner_id,'plan_id':u.plan_id,'status':u.membership_status}
 
 GROUPS = ['fitness','sport','wellness','glow','kids-family']
 ZONES = ['Blloku','Komuna e Parisit','Arena','Liqeni i Thate','Myslym Shyri','Pazari i Ri','21 Dhjetori','ABA Center','Farka','Air Albania']
@@ -382,7 +427,18 @@ def health():
 
 @app.get('/api/info')
 def info():
-    return {'app':'FlexPass','preview':True,'seeded':DEMO_MODE,'demo_mode':DEMO_MODE,'groups':GROUPS,'zones':ZONES,'subcategories':SUBCATS,'tagline':'Private-launch access pass for premium daily services, real booking, and hard-to-reach routines.'}
+    # Bank instructions are public operational details, never credentials.
+    # No real beneficiary details are implied by demo placeholders.
+    configured=all(os.environ.get(key,'').strip() for key in
+                   ('FLEXPASS_BANK_NAME','FLEXPASS_BANK_BENEFICIARY','FLEXPASS_BANK_IBAN'))
+    bank={'demo_enabled':SIMULATED_BANK_TRANSFERS,
+          'configured':SIMULATED_BANK_TRANSFERS or configured,
+          'bank_name':'DEMO BANK — NO REAL TRANSFERS' if SIMULATED_BANK_TRANSFERS else os.environ.get('FLEXPASS_BANK_NAME',''),
+          'beneficiary':'FLEXPASS DEMO ONLY' if SIMULATED_BANK_TRANSFERS else os.environ.get('FLEXPASS_BANK_BENEFICIARY',''),
+          'iban':'DEMO-ONLY-NOT-A-REAL-IBAN' if SIMULATED_BANK_TRANSFERS else os.environ.get('FLEXPASS_BANK_IBAN','')}
+    return {'app':'FlexPass','preview':True,'seeded':DEMO_MODE,'demo_mode':DEMO_MODE,
+            'bank_transfer':bank,'groups':GROUPS,'zones':ZONES,'subcategories':SUBCATS,
+            'tagline':'Private-launch access pass for premium daily services, real booking, and hard-to-reach routines.'}
 
 def authenticate_portal(body:LoginBody, allowed_roles):
     # The selected portal is verified on the server. The admin portal is isolated
@@ -391,13 +447,13 @@ def authenticate_portal(body:LoginBody, allowed_roles):
         u=s.scalar(select(User).where(User.email==body.email.strip().lower()))
         if (not u or not match_pass(body.password,u.password_hash)
             or u.membership_status!='ACTIVE' or u.role not in allowed_roles
-            or (body.portal and body.portal != u.role)):
+            or (body.portal and body.portal != ('client' if u.role=='employee' else u.role) and not (u.role=='employee' and body.portal=='employee'))):
             raise HTTPException(401,'Invalid credentials for this portal')
         return {'token':token_for(u),'user':user_view(u)}
 
 @app.post('/api/auth/login')
 def login(body:LoginBody):
-    return authenticate_portal(body, ('employee','partner'))
+    return authenticate_portal(body, ('employee','client','partner'))
 
 @app.post('/api/auth/admin/login')
 def admin_login(body:LoginBody):
@@ -413,17 +469,35 @@ def activate_account(body:ActivateBody):
             if not invitation or invitation.used_at or invitation.expires_at<=now():
                 raise HTTPException(400,'Activation link is invalid or expired')
             user=s.scalar(select(User).where(User.id==invitation.user_id).with_for_update())
-            if not user or user.membership_status!='INVITED' or user.role not in ('employee','partner'):
+            if not user or user.membership_status!='INVITED' or user.role not in ('employee','client','partner'):
                 raise HTTPException(400,'Invitation is no longer valid')
             user.password_hash=hash_pass(body.password)
             user.membership_status='ACTIVE'
             invitation.used_at=now()
             audit(s,user.id,'ACCOUNT_ACTIVATED',user.role)
             s.commit()
-            return {'status':'ACTIVE','role':user.role}
+            return {'status':'ACTIVE','role':'client' if user.role=='employee' else user.role}
         except HTTPException:
             s.rollback()
             raise
+
+@app.post('/api/auth/register')
+def register_client(body:ClientRegistrationBody):
+    email=body.email.strip().lower()
+    if len(email)>200 or email.count('@')!=1 or '.' not in email.rsplit('@',1)[1]:
+        raise HTTPException(422,'Enter a valid email address')
+    with Session() as s:
+        if s.scalar(select(User.id).where(User.email==email)):
+            raise HTTPException(409,'An account already exists with this email')
+        user=User(email=email,full_name=body.full_name.strip(),role='client',
+                  password_hash=hash_pass(secrets.token_urlsafe(48)),
+                  membership_status='INVITED',company_id=None,plan_id=None)
+        s.add(user);s.flush()
+        token=create_invitation(s,user)
+        link=send_invite(email,user.full_name,token,'personal client')
+        audit(s,user.id,'CLIENT_REGISTERED',email)
+        s.commit()
+        return invite_response(user.id,link)
 
 @app.get('/api/auth/me')
 def me(u=Depends(get_user)):return user_view(u)
@@ -446,28 +520,35 @@ def catalog(group:Optional[str]=None,subcategory:Optional[str]=None,search:str='
             out.append({'id':service.id,'name':service.name,'group':service.group_name,'subcategory':service.subcategory,'description':service.description,'credits':service.credits,'duration_minutes':service.duration_minutes,'partner':partner.name,'partner_id':partner.id,'zone':partner.zone,'slots':[{'id':x.id,'start_at':iso(x.start_at),'capacity':x.capacity,'available':max(0,x.capacity-x.reserved)} for x in slots]})
         return out
 
+@app.get('/api/client/summary')
 @app.get('/api/employee/summary')
-def employee_summary(u=Depends(roles('employee'))):
+def employee_summary(u=Depends(roles('employee','client'))):
     with Session() as s:
         c=s.get(Company,u.company_id);p=s.get(Plan,u.plan_id)
         rows=s.scalars(select(Booking).where(Booking.user_id==u.id)).all()
-        return {'user':user_view(u),'company':c.name if c else '', 'plan':p.name if p else '', 'monthly_credits':p.credits if p else 0,'balance':balance(s,u.id), 'active_bookings':sum(x.status=='BOOKED' for x in rows), 'visits':sum(x.status=='CHECKED_IN' for x in rows)}
+        return {'user':user_view(u),'company':c.name if c else '', 'plan':p.name if p else '',
+                'monthly_credits':p.credits if p else 0,'balance':balance(s,u.id),
+                'active_bookings':sum(x.status=='BOOKED' for x in rows),
+                'visits':sum(x.status=='CHECKED_IN' for x in rows),
+                'personal_account':u.role=='client'}
 
 def booking_view(s,b):
     sv=s.get(Service,b.service_id);p=s.get(Partner,b.partner_id);sl=s.get(Slot,b.slot_id);u=s.get(User,b.user_id)
     return {'id':b.id,'reference':b.reference,'service':sv.name,'partner':p.name,'partner_id':b.partner_id,'user':u.full_name,'email':u.email,'start_at':iso(sl.start_at),'credits':b.credits_snapshot,'payout_cents':b.payout_snapshot_cents,'status':b.status,'created_at':iso(b.created_at),'checked_in_at':iso(b.checked_in_at),'zone':p.zone}
 
+@app.get('/api/client/bookings')
 @app.get('/api/employee/bookings')
-def employee_bookings(u=Depends(roles('employee'))):
+def employee_bookings(u=Depends(roles('employee','client'))):
     with Session() as s:return [booking_view(s,b) for b in s.scalars(select(Booking).where(Booking.user_id==u.id).order_by(Booking.id.desc())).all()]
 
+@app.get('/api/client/ledger')
 @app.get('/api/employee/ledger')
-def employee_ledger(u=Depends(roles('employee'))):
+def employee_ledger(u=Depends(roles('employee','client'))):
     with Session() as s:
         return [{'id':x.id,'kind':x.kind,'amount':x.amount,'period':x.period,'created_at':iso(x.created_at),'reason':x.reason,'booking_id':x.booking_id} for x in s.scalars(select(Ledger).where(Ledger.user_id==u.id).order_by(Ledger.id.desc())).all()]
 
 @app.post('/api/bookings')
-def make_booking(body:BookBody,req:Request,u=Depends(roles('employee'))):
+def make_booking(body:BookBody,req:Request,u=Depends(roles('employee','client'))):
     key = req.headers.get('Idempotency-Key', '').strip()
     if len(key) > 128: raise HTTPException(400, 'Idempotency key is too long')
     with Session() as s:
@@ -503,7 +584,7 @@ def make_booking(body:BookBody,req:Request,u=Depends(roles('employee'))):
             s.rollback();raise
 
 @app.post('/api/bookings/{booking_id}/cancel')
-def cancel_booking(booking_id:int,u=Depends(roles('employee'))):
+def cancel_booking(booking_id:int,u=Depends(roles('employee','client'))):
     with Session() as s:
         try:
             lock_transaction(s)
@@ -517,6 +598,137 @@ def cancel_booking(booking_id:int,u=Depends(roles('employee'))):
             s.add(Ledger(user_id=b.user_id,booking_id=b.id,kind='REFUND',amount=b.credits_snapshot,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Cancellation {b.reference}'))
             audit(s,u.id,'BOOKING_CANCELLED',b.reference)
             s.commit();return {'status':'CANCELLED','refunded':b.credits_snapshot}
+        except HTTPException:s.rollback();raise
+        except Exception:s.rollback();raise
+
+def product_view(item):
+    return {'id':item.id,'name':item.name,'credits':item.credits,'price_cents':item.price_cents,'currency':item.currency,'active':item.active}
+
+def client_order_view(s,order):
+    item=s.get(CreditProduct,order.product_id)
+    return {'id':order.id,'product':item.name if item else 'Credit package','product_id':order.product_id,
+            'client_id':order.client_id,'credits':order.credits_snapshot,'amount_cents':order.amount_cents,
+            'currency':order.currency,'status':order.status,'created_at':iso(order.created_at),
+            'payment_reference':order.payment_reference or '',
+            'bank_reference':f'FP-ORDER-{order.id:06d}',
+            'payment_method':'BANK_TRANSFER',
+            'simulated':order.status=='DEMO_PAID'}
+
+@app.get('/api/client/products')
+def client_products(u=Depends(roles('employee','client'))):
+    with Session() as s:
+        return [product_view(p) for p in s.scalars(select(CreditProduct).where(CreditProduct.active==True).order_by(CreditProduct.id)).all()]
+
+@app.get('/api/client/orders')
+def client_orders(u=Depends(roles('employee','client'))):
+    with Session() as s:
+        orders=s.scalars(select(ClientOrder).where(ClientOrder.client_id==u.id).order_by(ClientOrder.id.desc())).all()
+        return [client_order_view(s,o) for o in orders]
+
+@app.post('/api/client/orders')
+def request_client_order(body:ClientOrderBody,u=Depends(roles('employee','client'))):
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            account=s.scalar(select(User).where(User.id==u.id).with_for_update())
+            if not account or account.membership_status!='ACTIVE':
+                raise HTTPException(403,'Account inactive')
+            previous=s.scalar(select(ClientOrder).where(ClientOrder.client_id==u.id,ClientOrder.request_key==body.request_key))
+            if previous:
+                if previous.product_id!=body.product_id:
+                    raise HTTPException(409,'Order key already used for another product')
+                return client_order_view(s,previous)
+            item=s.get(CreditProduct,body.product_id)
+            if not item or not item.active or item.price_cents<=0:
+                raise HTTPException(404,'Product not available for ordering')
+            order=ClientOrder(client_id=u.id,product_id=item.id,request_key=body.request_key,
+                              credits_snapshot=item.credits,amount_cents=item.price_cents,
+                              currency=item.currency,status='PENDING')
+            s.add(order);s.flush()
+            audit(s,u.id,'CLIENT_ORDER_REQUESTED',f'Order {order.id}: {item.name}')
+            s.commit()
+            return client_order_view(s,order)
+        except HTTPException:s.rollback();raise
+        except Exception:s.rollback();raise
+
+@app.post('/api/client/orders/{order_id}/demo-bank-transfer')
+def simulate_bank_transfer(order_id:int,u=Depends(roles('client','employee'))):
+    # Strict sandbox endpoint. Real production cannot simulate a paid bank transaction.
+    if not SIMULATED_BANK_TRANSFERS:
+        raise HTTPException(403,'Simulated bank transfer is disabled outside test environments')
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            order=s.scalar(select(ClientOrder).where(ClientOrder.id==order_id).with_for_update())
+            if not order:
+                raise HTTPException(404,'Order not found')
+            if order.client_id != u.id:
+                raise HTTPException(403,'Not your order')
+            if order.status=='DEMO_PAID':
+                return client_order_view(s,order)  # replay without a second allocation
+            if order.status!='PENDING':
+                raise HTTPException(409,'Order was already processed')
+            account=s.scalar(select(User).where(User.id==u.id).with_for_update())
+            if not account or account.membership_status!='ACTIVE':
+                raise HTTPException(403,'Account inactive')
+            order.status='DEMO_PAID'
+            order.confirmed_at=now()
+            order.payment_reference=f'DEMO-BANK-{order.id:06d}'
+            s.add(Ledger(user_id=u.id,kind='ALLOCATION',amount=order.credits_snapshot,
+                         source='DEMO_BANK',period=now().strftime('%Y-%m'),
+                         actor_id=u.id,reason=f'SIMULATED bank transfer for order {order.id} (no funds transferred)'))
+            audit(s,u.id,'DEMO_BANK_TRANSFER_SIMULATED',f'Order {order.id}; no real funds')
+            s.commit()
+            return client_order_view(s,order)
+        except HTTPException:
+            s.rollback()
+            raise
+        except Exception:
+            s.rollback()
+            raise
+
+@app.get('/api/admin/client-products')
+def admin_client_products(u=Depends(roles('admin'))):
+    with Session() as s:return [product_view(p) for p in s.scalars(select(CreditProduct).order_by(CreditProduct.id)).all()]
+
+@app.post('/api/admin/client-products')
+def admin_create_client_product(body:CreditProductBody,u=Depends(roles('admin'))):
+    with Session() as s:
+        if s.scalar(select(CreditProduct.id).where(func.lower(CreditProduct.name)==body.name.strip().lower())):
+            raise HTTPException(409,'Product name already exists')
+        item=CreditProduct(name=body.name.strip(),credits=body.credits,price_cents=body.price_cents,
+                           currency='ALL',active=True)
+        s.add(item);s.flush()
+        audit(s,u.id,'CREDIT_PRODUCT_CREATED',f'{item.id}:{item.name}')
+        s.commit()
+        return product_view(item)
+
+@app.get('/api/admin/client-orders')
+def admin_client_orders(u=Depends(roles('admin'))):
+    with Session() as s:
+        rows=s.scalars(select(ClientOrder).order_by(ClientOrder.id.desc())).all()
+        return [{**client_order_view(s,o),'email':s.get(User,o.client_id).email} for o in rows]
+
+@app.post('/api/admin/client-orders/{order_id}/confirm')
+def admin_confirm_client_order(order_id:int,body:ConfirmOrderBody,u=Depends(roles('admin'))):
+    ref=body.payment_reference.strip()
+    if not ref:raise HTTPException(422,'A payment confirmation reference is required')
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            order=s.scalar(select(ClientOrder).where(ClientOrder.id==order_id).with_for_update())
+            if not order:raise HTTPException(404,'Order not found')
+            if order.status!='PENDING':raise HTTPException(409,'Order already processed')
+            account=s.scalar(select(User).where(User.id==order.client_id).with_for_update())
+            if not account or account.membership_status!='ACTIVE':raise HTTPException(409,'Client account inactive')
+            order.status='CONFIRMED';order.confirmed_at=now();order.confirmed_by=u.id
+            order.payment_reference=ref
+            s.add(Ledger(user_id=account.id,kind='ALLOCATION',amount=order.credits_snapshot,
+                         source='PERSONAL',period=now().strftime('%Y-%m'),actor_id=u.id,
+                         reason=f'Credit product order {order.id}: {ref}'))
+            audit(s,u.id,'CLIENT_ORDER_CONFIRMED',f'Order {order.id}; ref={ref}')
+            s.commit()
+            return client_order_view(s,order)
         except HTTPException:s.rollback();raise
         except Exception:s.rollback();raise
 
@@ -594,7 +806,16 @@ def admin_summary(u=Depends(roles('admin'))):
     with Session() as s:
         count=lambda model:s.scalar(select(func.count(model.id)))
         bookings=s.scalars(select(Booking)).all()
-        return {'companies':count(Company),'employees':s.scalar(select(func.count(User.id)).where(User.role=='employee')),'partners':count(Partner),'services':count(Service),'bookings':len(bookings),'visits':sum(x.status=='CHECKED_IN' for x in bookings),'credits_issued':s.scalar(select(func.coalesce(func.sum(Ledger.amount),0)).where(Ledger.kind=='ALLOCATION')),'partner_payables_cents':sum(x.payout_snapshot_cents for x in bookings if x.status=='CHECKED_IN')}
+        return {'companies':count(Company),'employees':s.scalar(select(func.count(User.id)).where(User.role=='employee')),'partners':count(Partner),'services':count(Service),'bookings':len(bookings),'visits':sum(x.status=='CHECKED_IN' for x in bookings),'clients':s.scalar(select(func.count(User.id)).where(User.role.in_(['client','employee']))),'orders_pending':s.scalar(select(func.count(ClientOrder.id)).where(ClientOrder.status=='PENDING')),'credits_issued':s.scalar(select(func.coalesce(func.sum(Ledger.amount),0)).where(Ledger.kind=='ALLOCATION')),'partner_payables_cents':sum(x.payout_snapshot_cents for x in bookings if x.status=='CHECKED_IN')}
+
+@app.get('/api/admin/clients')
+def admin_clients(u=Depends(roles('admin'))):
+    with Session() as s:
+        rows=s.scalars(select(User).where(User.role.in_(['client','employee'])).order_by(User.id.desc())).all()
+        return [{'id':client.id,'name':client.full_name,'email':client.email,
+                 'status':client.membership_status,'balance':balance(s,client.id),
+                 'orders':s.scalar(select(func.count(ClientOrder.id)).where(ClientOrder.client_id==client.id)),
+                 'legacy':client.role=='employee'} for client in rows]
 
 @app.get('/api/admin/companies')
 def companies(u=Depends(roles('admin'))):
@@ -636,7 +857,7 @@ def admin_invite_partner(body:PartnerInviteBody,u=Depends(roles('admin'))):
 def resend_invitation(user_id:int,u=Depends(roles('admin'))):
     with Session() as s:
         account=s.get(User,user_id)
-        if not account or account.membership_status!='INVITED' or account.role not in ('employee','partner'):
+        if not account or account.membership_status!='INVITED' or account.role not in ('employee','client','partner'):
             raise HTTPException(404,'Pending invitation not found')
         token=create_invitation(s,account)
         link=send_invite(account.email,account.full_name,token,account.role)
@@ -783,6 +1004,10 @@ def seed():
                 date=(now()+timedelta(days=days)).replace(hour=9+(sv.id%8),minute=0,second=0,microsecond=0)
                 s.add(Slot(service_id=sv.id,start_at=date,capacity=6+(sv.id%4),reserved=0))
         demo_passwords = {role: os.environ.get(f'FLEXPASS_DEMO_{role.upper()}_PASSWORD', 'Demo123!') for role in ('admin', 'employee', 'partner')}
+        products=[CreditProduct(name='Trial Pack',credits=10,price_cents=150000),
+                  CreditProduct(name='Everyday Pack',credits=25,price_cents=320000),
+                  CreditProduct(name='Flex Pack',credits=50,price_cents=550000)]
+        s.add_all(products)
         users=[User(email='admin@flexpass.demo',full_name='FlexPass Admin',password_hash=hash_pass(demo_passwords['admin']),role='admin'),User(email='employee@flexpass.demo',full_name='Alex Demo',password_hash=hash_pass(demo_passwords['employee']),role='employee',company_id=c1.id,plan_id=p2.id),User(email='partner@flexpass.demo',full_name='Studio Manager',password_hash=hash_pass(demo_passwords['partner']),role='partner',partner_id=partners[0].id)]
         s.add_all(users);s.flush()
         s.add(Ledger(user_id=users[1].id,kind='ALLOCATION',amount=30,period=now().strftime('%Y-%m'),actor_id=users[0].id,reason='Pilot monthly allowance'))
@@ -800,10 +1025,12 @@ if DIST.is_dir():
 @app.get('/login/client')
 @app.get('/login/business')
 @app.get('/register')
+@app.get('/register/client')
 @app.get('/admin/login')
 @app.get('/contact')
 @app.get('/privacy')
 @app.get('/terms')
+@app.get('/client')
 @app.get('/employee')
 @app.get('/partner')
 @app.get('/admin')

@@ -1,0 +1,233 @@
+/* Carousel image-framing and height correction.
+   Original generated source photographs are 1122 × 1402 (portrait, approx 4:5).
+   The previous full-bleed background cropped them with object-fit: cover.
+   The photo pane now displays each full image without zoom or distortion,
+   while keeping the interactive Lumina navigation and FlexPass typography. */
+
+.quiet-home .lumina-hero{
+  display:grid;
+  grid-template-columns:minmax(0,60%) minmax(0,40%);
+  grid-template-rows:minmax(0,1fr) auto;
+  min-height:clamp(640px,calc(100svh - 108px),960px);
+  height:auto;
+  isolation:isolate;
+  overflow:hidden;
+  background:#073C41;
+}
+
+/* The monogram and copy form one editorial group. The logo is no longer
+   pinned to the opposite end of a tall viewport. */
+.quiet-home .lumina-hero-copy{
+  grid-column:1;
+  grid-row:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  gap:clamp(20px,3.2svh,35px);
+  min-width:0;
+  padding:clamp(35px,5vw,80px) clamp(26px,3.4vw,64px)
+          clamp(29px,4vw,59px) clamp(34px,6.2vw,115px);
+  position:relative;
+  z-index:1;
+}
+.quiet-home .lumina-hero-top{
+  width:100%;
+  flex:none;
+  padding:0;
+  margin:0;
+}
+.quiet-home .lumina-hero-identity{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:0;
+}
+.quiet-home .lumina-hero-identity .official-brand-logo-monogram{
+  width:43px;
+  height:43px;
+}
+.quiet-home .lumina-hero-main{
+  width:100%;
+  max-width:none;
+  padding:0;
+  margin:0;
+}
+.quiet-home .lumina-hero-overline{
+  margin-bottom:clamp(14px,2svh,20px);
+}
+.quiet-home .lumina-hero-main h1{
+  font-size:clamp(49px,5.5vw,91px);
+  max-width:710px;
+  margin-bottom:20px;
+  line-height:1.055;
+}
+.quiet-home .lumina-hero-main p{
+  font-size:clamp(13px,1.04vw,15px);
+  line-height:1.75;
+}
+.quiet-home .lumina-hero-main .lumina-hero-actions{
+  margin-top:clamp(22px,3vw,31px);
+}
+.quiet-home .lumina-hero-main .lumina-hero-caption{
+  margin-top:clamp(14px,2.2svh,21px);
+}
+
+/* Contained portrait photography is a separate column, not a cropped
+   page-wide background. The dark frame is intentional negative space. */
+.quiet-home .lumina-hero-media{
+  grid-column:2;
+  grid-row:1;
+  position:relative;
+  inset:auto;
+  z-index:0;
+  width:100%;
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+  background:#103d41;
+}
+.quiet-home .lumina-hero-photo{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+  object-position:center;
+  transform:none;
+  transition:opacity 900ms cubic-bezier(.22,.61,.36,1);
+  will-change:opacity;
+}
+.quiet-home .lumina-hero-photo.is-active{transform:none}
+.quiet-home .lumina-hero-scrim{
+  background:rgba(5,35,39,.035);
+  pointer-events:none;
+}
+.quiet-home .lumina-hero-image-disclosure{
+  z-index:2;
+  right:14px;
+  bottom:12px;
+  padding:5px 8px;
+  background:rgba(7,60,65,.83);
+  color:#F5EFE4;
+  font-size:9px;
+  letter-spacing:.02em;
+}
+
+/* Navigation gets its own row. It cannot obscure the bottom of the photos. */
+.quiet-home .lumina-hero-navigation{
+  grid-column:1 / -1;
+  grid-row:2;
+  position:relative;
+  z-index:2;
+  width:100%;
+  margin:0;
+  padding:18px clamp(34px,6.2vw,115px) 22px;
+  gap:clamp(10px,2vw,30px);
+  border-top:1px solid rgba(245,239,228,.35);
+  background:#073C41;
+}
+.quiet-home .lumina-hero-nav-item{
+  min-height:77px;
+  padding:0;
+  gap:13px;
+}
+
+/* In-between tablet widths: preserve the side-by-side portrait composition
+   without squeezing headline or account actions. */
+@media(max-width:1180px){
+  .quiet-home .lumina-hero{
+    grid-template-columns:minmax(0,58%) minmax(0,42%);
+    min-height:clamp(625px,calc(100svh - 98px),900px);
+  }
+  .quiet-home .lumina-hero-copy{
+    padding-inline:clamp(32px,4.5vw,65px) clamp(24px,3vw,43px);
+    gap:clamp(17px,2.5svh,28px);
+  }
+  .quiet-home .lumina-hero-main h1{font-size:clamp(44px,5.4vw,69px)}
+  .quiet-home .lumina-hero-navigation{padding-inline:clamp(32px,4.5vw,65px)}
+}
+
+/* Portrait images need a portrait-shaped frame on smaller devices.
+   On tablet and mobile, media, copy and controls stack in their own rows,
+   so every image remains visible and none of the interface covers it. */
+@media(max-width:880px){
+  .quiet-home .lumina-hero{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+    min-height:0;
+    height:auto;
+  }
+  .quiet-home .lumina-hero-media{
+    grid-column:1;
+    grid-row:1;
+    width:100%;
+    height:clamp(350px,56svh,610px);
+    min-height:0;
+  }
+  .quiet-home .lumina-hero-copy{
+    grid-column:1;
+    grid-row:2;
+    padding:clamp(27px,4vw,44px) clamp(28px,5.5vw,58px) 32px;
+    gap:clamp(17px,2.4svh,26px);
+  }
+  .quiet-home .lumina-hero-main h1{
+    font-size:clamp(50px,7.4vw,77px);
+    max-width:740px;
+  }
+  .quiet-home .lumina-hero-main p{max-width:590px}
+  .quiet-home .lumina-hero-navigation{
+    grid-column:1;
+    grid-row:3;
+    padding:18px clamp(28px,5.5vw,58px) 23px;
+  }
+  .quiet-home .lumina-hero-image-disclosure{right:15px;bottom:12px}
+}
+@media(max-width:650px){
+  .quiet-home .lumina-hero-media{
+    height:clamp(315px,55svh,510px);
+    background:#103d41;
+  }
+  .quiet-home .lumina-hero-copy{
+    padding:23px 24px 27px;
+    gap:18px;
+  }
+  .quiet-home .lumina-hero-identity .official-brand-logo-monogram{
+    width:33px;
+    height:33px;
+  }
+  .quiet-home .lumina-hero-overline{margin-bottom:13px}
+  .quiet-home .lumina-hero-main h1{
+    font-size:clamp(43px,10.8vw,65px);
+    line-height:1.05;
+    margin-bottom:15px;
+  }
+  .quiet-home .lumina-hero-main p{font-size:13px;line-height:1.65}
+  .quiet-home .lumina-hero-main .lumina-hero-actions{margin-top:19px}
+  .quiet-home .lumina-hero-main .lumina-hero-caption{margin-top:15px}
+  .quiet-home .lumina-hero-navigation{
+    width:100%;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px 18px;
+    margin:0;
+    padding:15px 24px 24px;
+  }
+  .quiet-home .lumina-hero-nav-item{min-height:62px;gap:10px}
+  .quiet-home .lumina-hero-image-disclosure{font-size:8px;right:10px;bottom:9px}
+}
+@media(max-width:390px){
+  .quiet-home .lumina-hero-media{height:clamp(300px,53svh,440px)}
+  .quiet-home .lumina-hero-main h1{font-size:clamp(41px,10.9vw,50px)}
+  .quiet-home .lumina-hero-nav-item{min-height:59px}
+}
+
+/* If the viewport is exceptionally short, the hero may expand vertically
+   instead of clipping text or stretching/cropping any image. */
+@media(max-height:640px) and (min-width:881px){
+  .quiet-home .lumina-hero{min-height:650px}
+}
+@media(prefers-reduced-motion:reduce){
+  .quiet-home .lumina-hero-photo{transition:none;transform:none}
+  .quiet-home .lumina-hero-photo.is-active{transform:none}
+}

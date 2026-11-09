@@ -251,62 +251,6 @@
   font:400 10px/1.5 'Inter',sans-serif;
 }
 .credit-package-emphasis .credit-package-bottom>p{color:#D8E3DE}
-.credit-shop-payment-note{
-  display:grid;
-  grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);
-  gap:20px clamp(30px,5vw,76px);
-  align-items:start;
-  width:100%;
-  padding:30px clamp(23px,3vw,41px);
-  margin-top:34px;
-  border:1px solid rgba(16,86,92,.16);
-  border-radius:6px;
-  background:#F3DEDF;
-}
-.credit-shop-payment-heading{
-  display:flex;
-  align-items:flex-start;
-  gap:15px;
-}
-.credit-shop-payment-heading>svg{color:#AA1350;flex:none;margin-top:3px}
-.credit-shop-payment-heading h2{
-  color:#10565C;
-  margin:8px 0 0;
-  font:400 clamp(26px,2.45vw,34px)/1.15 'Bodoni Moda',Georgia,serif;
-  letter-spacing:-.035em;
-}
-.credit-shop-payment-note>p{
-  margin:0;
-  color:#3E6057;
-  font:400 12px/1.75 'Inter',sans-serif;
-  max-width:750px;
-}
-.credit-shop-payment-steps{
-  grid-column:2;
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:14px;
-  padding-top:12px;
-  border-top:1px solid rgba(16,86,92,.22);
-}
-.credit-shop-payment-steps>span{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  color:#10565C;
-  font:550 11px/1.55 'Inter',sans-serif;
-}
-.credit-shop-payment-steps b{
-  color:#AA1350;
-  font:700 10px/1.5 'Inter',sans-serif;
-  letter-spacing:.1em;
-}
-.credit-shop-demo-label{
-  grid-column:2;
-  margin-top:0;
-  color:#8C294D;
-  font:600 11px/1.5 'Inter',sans-serif;
-}
 .credit-shop-empty{
   display:flex;
   flex-direction:column;
@@ -332,8 +276,6 @@
 @media(max-width:980px){
   .credit-shop-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .credit-shop-card-grid .credit-package:last-child:nth-child(odd){grid-column:1/-1;min-height:0}
-  .credit-shop-payment-note{grid-template-columns:1fr;gap:20px}
-  .credit-shop-payment-steps,.credit-shop-demo-label{grid-column:auto}
 }
 @media(max-width:700px){
   .credit-shop-intro{align-items:flex-start;flex-direction:column;gap:17px;padding-bottom:25px}
@@ -344,9 +286,6 @@
   .credit-shop-card-grid .credit-package{grid-column:auto!important;min-height:440px;padding:25px}
   .credit-package h3{font-size:30px}
   .credit-package-credits strong{font-size:68px}
-  .credit-shop-payment-note{padding:25px 21px}
-  .credit-shop-payment-steps{grid-template-columns:1fr;gap:12px}
-  .credit-shop-payment-steps>span{flex-direction:row;align-items:baseline;gap:13px}
 }
 @media(prefers-reduced-motion:reduce){
   .credit-shop-card-grid .credit-package,

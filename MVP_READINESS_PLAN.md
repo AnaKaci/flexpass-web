@@ -1,56 +1,41 @@
-# FlexPass — MVP hardening and controlled-pilot plan
+# FlexPass revised pilot — personal Clients, Business Partners and Admin
 
-Source of requirements: `FlexPass_Pergjigje_Teknike_dhe_MVP(1).docx` (supplied privately for review) and `FlexPass_Brand_Guide(1).pdf`. These source files are not committed to the repository.
+## Requirement change (2026-11-09)
 
-## Delivery rules
+The previous supplied technical document describes employer-funded employees, company plans, and a later B2C rollout. The project owner now clarifies that Client is an **independent customer who purchases FlexPass products**, not an employee assigned an employer plan. This overrides the old *role and sales model* for the current prototype. The existing company-funded tables and historical transactions remain in the database for compatibility; they are no longer promoted in the primary Admin or Client navigation.
 
-- **Exactly three roles:** Employee (Client), Partner (Business), Admin. No HR portal.
-- **No public application data:** the home page offers entry to Client and Business sign-ins only; admin sign-in is at `/admin/login` and not advertised publicly.
-- **Authority remains on the server:** React route guards improve UX, but FastAPI must enforce role and tenant authorization for every protected endpoint.
-- **No unsanctioned payments or B2C:** credit top-ups, public registration, automated bank payouts, and card processing stay disabled for the MVP.
-- **Brand fidelity:** Deep Teal #10565C, Warm Ivory #F5EFE4, Burgundy #AA1350, Soft Blush #F3DEDF, Mist Blue #C9DDE2; Bodoni Moda headings, Cormorant Garamond accents, Inter copy.
-- **Two isolated deployments:** staging/demo with fictional data and production with independent credentials, database and migrations.
+### Three role-specific flows
 
-## Already in the codebase (verify end to end on Render)
+- **Client:** create a personal account, receive an email activation link, sign in, browse credit products and experiences, request a credit package, track the pending order, receive credits after a **verified** payment is manually recorded, and book/cancel experiences against confirmed balance.
+- **Business/Partner:** accounts are created only by Admin; the partner uses a one-time email activation link to choose a password; partner can create services and slots, manage bookings/check-ins and review settlements.
+- **Admin:** has a separate login and controls partner invitations, credit-product pricing, client/order overview, external payment verification and settlement/audit workflows.
 
-| Domain | Existing functionality | Acceptance check |
-|---|---|---|
-| Workspaces | Admin, Employee, Partner dashboards | Roles cannot navigate into each other's workspace |
-| Catalog | Categories, filters, subcategories, zones, credits and sessions | Only authenticated members access catalog data |
-| Wallet | Ledger and employee credit history | Debits/refunds match bookings |
-| Bookings | Capacity, credit validation, cancellation/refund and idempotency key | Last seat and double-click tests |
-| Partner | Partner-scoped bookings, check-in, service/slot entry | Partner cannot see another partner's reservations |
-| Finance | Invoice and settlement records, manual status changes, CSV payout export | Period totals equal confirmed visits and frozen payout amounts |
-| UI | Brandbook design and role-specific gateway | Mobile, keyboard and desktop QA |
+### Deliberately not implemented yet
 
-## P0 — Complete before inviting any real pilot users
+- Live card checkout, payment gateway integrations or webhooks, refunds to payment instruments, automatic payments to partners, fiscal invoice generation, formal credit rollover/expiry.
+- Public admin or business self-registration, HR portal, migration of historical employer-funded records, SMS OTP and production-grade self-service password reset.
+- Real inventory or physical product shipping; current catalog is experiences/services redeemed with credits. If "products" includes tangible goods, their inventory/tax/shipping models still require separate requirements.
 
-1. **Account invitation and activation** — Admin CSV import with validation/deduplication, email invite or approved external Auth provider, expiring activation link, verified company and plan assignment, resending/revocation; no shared demo passwords. Acceptance: uninvited users cannot activate or acquire company credits, and only Admin can assign plans.
-2. **Tenant and permission isolation** — Test all employee/company and partner boundaries against direct API requests, URLs and manipulated IDs. Admin access must be audited; use HTTPS and rate limits on authentication.
-3. **Database and deployment reliability** — Alembic migrations, secrets management, separate staging/prod PostgreSQL, backup/restore exercise, health and error logs, no auto-seeded fictional data in production.
-4. **Financial rules approval** — Confirm plan credits and prices, monthly funding trigger, expiry/rollover, cancellation/no-show windows, payout amounts, settlement disputes, currencies and fiscal workflows; reject launches until business policy is settled.
-5. **Invoice reconciliation and partner invoice submission** — Securely upload or reference invoices, access-controlled download, file size/type limits, malware scanning, settlement dispute workflow, and audit entries.
-6. **End-to-end tests** — Run integration suite against PostgreSQL, including concurrent last-seat booking, repeated cancel/refund, repeated check-in, historical payout snapshots, and manual invoice status transitions.
+### Existing code in this change
 
-## P1 — Before broader rollout
+- New `role='client'` account without `company_id`/`plan_id`.
+- Email-activated self-registration with existing single-use expiring activation token.
+- `credit_products` and `client_orders` tables with price/credit snapshots, a unique request key, and pending/confirmed status.
+- `/api/client/products`, `/api/client/orders`, `/api/admin/client-products`, `/api/admin/client-orders`, and an Admin-only confirmation endpoint.
+- A pending request **never issues credits**. A single Admin confirmation with a payment reference allocates credits **once** through the ledger. Double confirmation returns a conflict.
+- Branded Client storefront, account registration, purchase history, wallet and booking pages; Admin personal Client list, credit products and orders.
+- Existing business partner login and Admin-managed partner invitation flow remain.
+- Legacy `employee` users continue authenticating through Client UI with the unchanged underlying role, historical company/plan fields and ledger.
 
-- Effective-dated membership and plan changes; employee suspension/exit with retained accounting history.
-- Partner service approval and versioned credit/payout prices rather than unrestricted live publication.
-- Partner daily/weekly reservations filters, optional CSV exports with a date range.
-- Admin correction approvals for sensitive financial actions and complete append-only audit records.
-- Accessibility, responsive QA, empty states, input validation, privacy/terms review and retention policies.
-- Monitoring, structured logs and privacy-safe support diagnostics.
+## Before merging into main or deploying to real users
 
-## Later (not this MVP)
+1. Review the change request: decide whether sellable products are **credit bundles**, **individual experiences**, **physical products** or a combination. Current branch assumes **credit bundles + experience booking**, because this is closest to the existing booking/ledger API.
+2. Review/approve package names, credits, prices, currencies and sales terms; fictional local packages are not offers.
+3. Add an actual payment provider with verified webhooks before letting clients claim to purchase online; Admin confirmation must only follow independently verified payment, not an arbitrary reference typed into a prompt.
+4. Add rate limits and anti-abuse to public registration, customer email verification, notification monitoring, expired-link resend/recovery and CSRF review.
+5. Add Alembic migrations and staging PostgreSQL test database; `create_all` is not a substitute for versioned migrations.
+6. Run concurrency and idempotency tests under PostgreSQL, role/tenant authorization and end-to-end booking/settlement tests; test new users cannot reserve until funds are confirmed.
+7. Review legal/commercial requirements, consumer privacy, invoices, order cancellation/refunds and partner payouts.
+8. Verify deployment environment variables and backups, test in staging with fictional clients and businesses.
 
-Public B2C signup, card purchases/top-ups, automated bank payouts, QR check-in, mobile apps, payroll integrations, and advanced personalization.
-
-## Immediate rollout sequence
-
-1. Review and merge the feature branch after its CI is green; do not deploy to live without checking current Render branch/auto-deploy settings.
-2. Deploy to staging Render with isolated PostgreSQL and fictional accounts; verify `/api/health`, `/admin/login`, `/login/client`, `/login/business` and the three dashboards.
-3. Verify anonymous `GET /api/catalog` is rejected and wrong-portal credentials cannot log in.
-4. Perform a complete employee booking → credit debit → partner check-in → settlement report walkthrough, including cancellation.
-5. Resolve P0 items before treating the application as ready for a real operational pilot.
-
-**Status:** The branded gateway, route guards, role-scoped authentication and private catalog are implemented in the feature branch. This does not mean invitation onboarding, full production security, or real-pilot financial policies have been implemented. GitHub Pages remains an unauthenticated static visual entry preview; use the Render full-stack deployment for functional login.
+**Deployment status:** This branch is for review. Do not treat it as a verified production checkout. Do not auto-deploy by merging until integration/security tests are complete.

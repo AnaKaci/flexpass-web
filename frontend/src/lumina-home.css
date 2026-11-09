@@ -1,0 +1,298 @@
+/* FlexPass cinematic lifestyle hero — inspired by Lumina's interactive showcase.
+   Brand-owned design: real FlexPass palette, typography and original generated
+   editorial concept photography. No external JS, CSS kits, or stock image URLs. */
+.quiet-home .lumina-hero{
+  position:relative;
+  isolation:isolate;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  width:100%;
+  min-height:clamp(690px,calc(100svh - 108px),1030px);
+  overflow:hidden;
+  background:#073C41;
+  color:#F5EFE4;
+}
+.lumina-hero-media{
+  position:absolute;
+  z-index:-2;
+  inset:0;
+  overflow:hidden;
+  background:#073C41;
+}
+.lumina-hero-photo{
+  position:absolute;
+  display:block;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 46%;
+  opacity:0;
+  transform:scale(1.06);
+  transition:opacity 1050ms cubic-bezier(.22,.61,.36,1),transform 6500ms cubic-bezier(.2,.7,.25,1);
+  will-change:opacity;
+}
+.lumina-hero-photo.is-active{opacity:1;transform:scale(1)}
+.lumina-hero-scrim{
+  position:absolute;
+  inset:0;
+  background:rgba(5,35,39,.49);
+  pointer-events:none;
+}
+.lumina-hero-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  padding:clamp(29px,3.8vw,56px) clamp(26px,6vw,103px) 10px;
+}
+.lumina-hero-identity{
+  display:flex;
+  align-items:center;
+  gap:17px;
+  color:#F5EFE4;
+  font:600 10px/1.5 'Inter',sans-serif;
+  letter-spacing:.18em;
+}
+.lumina-hero-identity .official-brand-logo-monogram{width:39px;height:39px}
+.lumina-hero-index{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  color:rgba(245,239,228,.82);
+  font:500 12px/1 'Inter',sans-serif;
+  letter-spacing:.16em;
+  font-variant-numeric:tabular-nums;
+}
+.lumina-hero-index strong{font-weight:650;color:#F5EFE4}
+.lumina-hero-index-divider{width:37px;height:1px;background:rgba(245,239,228,.55)}
+.lumina-hero-main{
+  width:min(100%,1000px);
+  margin:auto 0 auto;
+  padding:clamp(50px,6vw,84px) clamp(26px,8.4vw,148px) clamp(38px,5vw,65px);
+  color:#F5EFE4;
+}
+.lumina-hero-overline{
+  display:inline-block;
+  margin-bottom:22px;
+  font:600 11px/1.5 'Inter',sans-serif;
+  letter-spacing:.17em;
+  color:#F3DEDF;
+  animation:lumina-copy-in 630ms ease both;
+}
+.lumina-hero-main h1{
+  color:#F5EFE4;
+  font-family:'Bodoni Moda',Georgia,serif;
+  font-weight:400;
+  font-size:clamp(62px,7.4vw,117px);
+  line-height:1.02;
+  letter-spacing:-.057em;
+  margin:0 0 24px;
+  max-width:1050px;
+  text-wrap:balance;
+}
+.lumina-hero-main h1 em{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-weight:400;
+  font-size:1.12em;
+  letter-spacing:-.04em;
+  line-height:1;
+  color:#F5EFE4;
+}
+.lumina-hero-main .lumina-hero-text{
+  animation:lumina-copy-in 660ms cubic-bezier(.22,.61,.36,1) both;
+}
+.lumina-hero-main p{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(13px,1.1vw,16px);
+  line-height:1.85;
+  color:#F5EFE4;
+  max-width:540px;
+  margin:0;
+}
+.lumina-hero-main .lumina-hero-actions{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:35px;
+}
+.lumina-hero-entry{
+  display:inline-flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:24px;
+  padding:12px 17px;
+  min-width:159px;
+  min-height:47px;
+  border:1px solid rgba(245,239,228,.82);
+  border-radius:2px;
+  color:#F5EFE4;
+  font:600 12px/1.4 'Inter',sans-serif;
+  background:transparent;
+  text-decoration:none;
+  transition:background-color 260ms ease,color 260ms ease,border-color 260ms ease;
+}
+.lumina-hero-entry-primary{background:#F5EFE4;color:#10565C;border-color:#F5EFE4}
+.lumina-hero-entry-primary:hover{background:#FFFCF7;color:#073C41}
+.lumina-hero-entry-secondary:hover{background:rgba(245,239,228,.16);color:#FFFDF8}
+.lumina-hero-entry:focus-visible{outline:2px solid #F3DEDF;outline-offset:3px}
+.lumina-hero-entry svg{flex:none}
+.lumina-hero-main .lumina-hero-caption{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  color:#F5EFE4;
+  font-size:19px;
+  font-style:italic;
+  letter-spacing:.005em;
+  margin-top:24px;
+}
+.lumina-hero-navigation{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  width:calc(100% - clamp(52px,12vw,206px));
+  margin:0 auto 43px;
+  border-top:1px solid rgba(245,239,228,.35);
+  padding-top:14px;
+  gap:0;
+}
+.lumina-hero-nav-item{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:stretch;
+  gap:17px;
+  width:100%;
+  min-height:95px;
+  padding:0 clamp(11px,2.3vw,32px) 0 0;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  text-align:left;
+  color:#F5EFE4;
+  cursor:pointer;
+  opacity:.66;
+  transition:opacity 250ms ease;
+}
+.lumina-hero-nav-item:hover,.lumina-hero-nav-item:focus-visible,
+.lumina-hero-nav-item.is-active{opacity:1}
+.lumina-hero-nav-item:focus-visible{outline:2px solid #F3DEDF;outline-offset:3px}
+.lumina-nav-progress-track{
+  display:block;
+  width:100%;
+  height:2px;
+  background:rgba(245,239,228,.42);
+  position:relative;
+  overflow:hidden;
+}
+.lumina-nav-progress-fill{
+  display:block;
+  height:100%;
+  width:0;
+  background:#F5EFE4;
+  animation:lumina-progress linear both;
+}
+.lumina-hero-navigation.is-paused .lumina-nav-progress-fill{animation-play-state:paused}
+.lumina-nav-progress-fill.no-motion{width:100%;animation:none}
+.lumina-nav-row{
+  display:grid;
+  grid-template-columns:25px minmax(0,1fr) 15px;
+  gap:11px;
+  align-items:start;
+}
+.lumina-nav-number{
+  padding-top:2px;
+  color:#E5E4DA;
+  font:600 10px/1.4 'Inter',sans-serif;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.11em;
+}
+.lumina-nav-text{display:flex;flex-direction:column;gap:5px;min-width:0}
+.lumina-nav-text strong{
+  color:#F5EFE4;
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:clamp(19px,1.72vw,29px);
+  font-weight:500;
+  letter-spacing:-.02em;
+  line-height:1.08;
+}
+.lumina-nav-text small{
+  font-family:'Inter',sans-serif;
+  color:#E4EDE7;
+  font-size:11px;
+  font-weight:400;
+  line-height:1.4;
+}
+.lumina-nav-row svg{color:#F3DEDF}
+.lumina-hero-image-disclosure{
+  position:absolute;
+  right:clamp(26px,6vw,103px);
+  bottom:11px;
+  color:rgba(245,239,228,.75);
+  font:400 10px/1.4 'Inter',sans-serif;
+  letter-spacing:.035em;
+  pointer-events:none;
+}
+@keyframes lumina-copy-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lumina-progress{from{width:0}to{width:100%}}
+@media(max-width:1180px){
+  .lumina-hero-main{padding-left:clamp(35px,6vw,88px);padding-right:35px}
+  .lumina-hero-main h1{font-size:clamp(61px,8vw,104px)}
+  .lumina-hero-navigation{width:calc(100% - 90px)}
+  .lumina-hero-top{padding-inline:45px}
+  .lumina-hero-image-disclosure{right:45px}
+}
+@media(max-width:900px){
+  .quiet-home .lumina-hero{min-height:clamp(730px,95svh,980px)}
+  .lumina-hero-main{padding:60px 38px 40px;max-width:850px}
+  .lumina-hero-main h1{font-size:clamp(64px,9vw,98px)}
+  .lumina-hero-navigation{width:calc(100% - 76px)}
+  .lumina-nav-text strong{font-size:22px}
+  .lumina-nav-text small{font-size:10px}
+  .lumina-nav-row{gap:7px;grid-template-columns:23px minmax(0,1fr) 15px}
+  .lumina-hero-top{padding:39px 38px 10px}
+  .lumina-hero-image-disclosure{right:38px}
+}
+@media(max-width:650px){
+  .quiet-home .lumina-hero{min-height:780px}
+  .lumina-hero-photo{object-position:50% 43%}
+  .lumina-hero-scrim{background:rgba(5,35,39,.57)}
+  .lumina-hero-top{padding:25px 22px 0}
+  .lumina-hero-identity{font-size:9px;letter-spacing:.09em;gap:11px}
+  .lumina-hero-identity .official-brand-logo-monogram{width:32px;height:32px}
+  .lumina-hero-index{font-size:11px;gap:9px}
+  .lumina-hero-index-divider{width:19px}
+  .lumina-hero-main{padding:50px 24px 35px}
+  .lumina-hero-overline{font-size:9px;margin-bottom:17px}
+  .lumina-hero-main h1{font-size:clamp(49px,12.3vw,73px);margin-bottom:18px}
+  .lumina-hero-main p{font-size:13px;line-height:1.72;max-width:360px}
+  .lumina-hero-main .lumina-hero-actions{margin-top:25px;gap:8px}
+  .lumina-hero-entry{min-width:0;flex:1 1 140px;padding:10px 12px;gap:9px;font-size:11px}
+  .lumina-hero-main .lumina-hero-caption{font-size:17px;margin-top:17px}
+  .lumina-hero-navigation{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px 14px;
+    width:calc(100% - 44px);
+    margin-bottom:40px;
+    padding-top:13px;
+  }
+  .lumina-hero-nav-item{gap:10px;min-height:64px;padding:0}
+  .lumina-nav-text strong{font-size:23px}
+  .lumina-nav-text small{font-size:10px}
+  .lumina-hero-image-disclosure{right:22px;bottom:11px;font-size:9px}
+}
+@media(max-width:390px){
+  .lumina-hero-main h1{font-size:clamp(44px,11.5vw,54px)}
+  .lumina-hero-entry{font-size:10px}
+  .lumina-nav-row{grid-template-columns:17px minmax(0,1fr) 12px;gap:6px}
+  .lumina-nav-text strong{font-size:19px}
+  .lumina-nav-text small{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .lumina-hero-photo{transition:none;transform:none}
+  .lumina-hero-photo.is-active{transform:none}
+  .lumina-hero-main .lumina-hero-text,.lumina-hero-overline{animation:none}
+  .lumina-nav-progress-fill{animation:none;width:100%}
+  .lumina-hero-entry,.lumina-hero-nav-item{transition:none}
+}

@@ -30,3 +30,11 @@ jobs:
         run: |
           test -s dist/brand/arch-view.jpg
           file --mime-type dist/brand/arch-view.jpg | grep -q 'image/jpeg'
+      - name: Verify official logo assets and favicon
+        run: |
+          for asset in flexpass-full.svg flexpass-monogram.svg flexpass-full-ivory.svg flexpass-monogram-ivory.svg; do
+            test -s "dist/brand/$asset"
+            grep -q '<svg' "dist/brand/$asset"
+          done
+          grep -q 'brand/flexpass-monogram.svg' dist/index.html
+          if grep -q '%BASE_URL%' dist/index.html; then exit 1; fi

@@ -43,7 +43,6 @@ export function ProfileMenu({user,onSignOut}:{user:User;onSignOut:()=>void}){
     <button ref={trigger} type="button" className="sidebar-profile-trigger"
       aria-label={`Account: ${user.full_name}. Show profile and sign out`}
       aria-expanded={open} aria-controls={open?'sidebar-account-menu':undefined}
-      onFocus={()=>setOpen(true)}
       onClick={()=>setOpen(value=>!value)}>
       <span className="sidebar-profile-menu-avatar" aria-hidden="true">{user.full_name.slice(0,1).toUpperCase()}</span>
       <span className="sidebar-profile-trigger-text">

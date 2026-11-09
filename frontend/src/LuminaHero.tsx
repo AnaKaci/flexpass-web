@@ -111,7 +111,7 @@ export function LuminaHero(){
         <p className="lumina-hero-caption">More experiences. A more flexible everyday.</p>
       </div>
     </div>
-    <div className="lumina-hero-media" aria-hidden="true">
+    <div className="lumina-hero-media">
       {EXPERIENCES.map((item,index)=><img
         key={item.image}
         className={`lumina-hero-photo ${active===index?'is-active':''}`}
@@ -123,6 +123,7 @@ export function LuminaHero(){
         onError={photoFallback}
       />)}
       <div className="lumina-hero-scrim"/>
+      <span className="lumina-hero-image-disclosure">Concept imagery · Illustrative experiences</span>
     </div>
 
     <nav ref={navRef} className={`lumina-hero-navigation ${paused?'is-paused':''}`}
@@ -149,6 +150,5 @@ export function LuminaHero(){
         </span>
       </button>)}
     </nav>
-    <span className="lumina-hero-image-disclosure">Concept imagery · Illustrative experiences</span>
   </section>;
 }

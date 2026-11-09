@@ -28,7 +28,7 @@ def test_booking_ledger_and_idempotent_cancel():
     emp=auth('employee')
     initial=client.get('/api/employee/summary',headers=emp).json()['balance']
     assert initial==30
-    rows=client.get('/api/catalog?group=fitness&maxCredits=5').json()
+    rows=client.get('/api/catalog?group=fitness&maxCredits=5',headers=emp).json()
     sv=rows[0]
     b=client.post('/api/bookings',json={'slot_id':sv['slots'][0]['id']},headers=emp)
     assert b.status_code==200,b.text

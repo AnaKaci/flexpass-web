@@ -1,134 +1,158 @@
-/* Sign-in pages only: role-aware credentials and an image-led FlexPass
-   composition. Registration and activation screens retain their layout. */
-.auth-page.auth-login-layout{
+/* Authentication pages only. The homepage and other public screens are untouched.
+   Isolated from the older .auth-editorial-layout rules which hide their image
+   column at narrow breakpoints. Shared by login, client signup and activation. */
+.auth-page.auth-photo-stage{
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1.06fr);
+  grid-template-columns:minmax(0, .96fr) minmax(0, 1.04fr);
+  grid-template-rows:minmax(0, 1fr);
+  place-items:stretch;
   align-items:stretch;
-  gap:clamp(18px,3vw,54px);
-  width:min(calc(100% - 72px),1480px);
-  max-width:1480px;
-  min-height:clamp(630px,76svh,860px);
-  margin:clamp(26px,3.2vw,56px) auto clamp(40px,5vw,76px);
+  gap:clamp(22px, 3vw, 48px);
+  width:min(calc(100% - 64px), 1440px);
+  max-width:1440px;
+  min-height:clamp(670px, calc(100svh - 110px), 900px);
+  margin:28px auto 52px;
   padding:0;
   background:transparent;
 }
-.auth-page.auth-login-layout .auth-card-refined{
-  width:100%;
-  max-width:570px;
+.auth-page.auth-photo-stage > .auth-card-refined{
+  grid-column:1;
+  grid-row:1;
   align-self:center;
   justify-self:center;
+  width:100%;
+  max-width:570px;
+  min-width:0;
   margin:0;
-  padding:clamp(31px,3.7vw,64px);
-  border:1px solid rgba(16,86,92,.16);
-  background:#FFFCF7;
+  padding:clamp(34px, 3.8vw, 62px);
+  border:1px solid rgba(16,86,92,.18);
   border-radius:12px;
+  background:#FFFCF7;
   box-shadow:none;
 }
-.auth-page.auth-login-layout .auth-editorial-aside{
+.auth-page.auth-photo-stage .auth-official-monogram{
+  display:block;
+  width:52px;
+  height:52px;
+  margin:0 0 28px;
+}
+.auth-page.auth-photo-stage > .auth-photo-panel{
   display:block;
   position:relative;
+  grid-column:2;
+  grid-row:1;
   align-self:stretch;
+  justify-self:stretch;
+  width:100%;
   min-width:0;
-  min-height:620px;
-  height:auto;
-  border-radius:150px 10px 10px 10px;
+  min-height:670px;
+  height:100%;
   overflow:hidden;
   isolation:isolate;
-  background:#10565C;
+  border-radius:148px 12px 12px 12px;
+  background-color:#10565C;
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-position:center 52%;
 }
-.auth-page.auth-login-layout .auth-editorial-aside img{
+.auth-page.auth-photo-stage .auth-photo-panel img{
   position:absolute;
-  inset:0;
+  inset:-12px;
   display:block;
-  width:100%;
-  height:100%;
+  width:calc(100% + 24px);
+  height:calc(100% + 24px);
+  max-width:none;
   object-fit:cover;
-  object-position:center 53%;
-  filter:blur(3.5px);
+  object-position:center 52%;
+  filter:blur(5px);
   transform:scale(1.035);
 }
-.auth-page.auth-login-layout .auth-editorial-aside::after{
+.auth-page.auth-photo-stage .auth-photo-panel::after{
   content:"";
   position:absolute;
   inset:0;
   z-index:1;
-  background:rgba(7,60,65,.28);
+  background:rgba(7,60,65,.2);
   pointer-events:none;
 }
-.auth-page.auth-login-layout .auth-visual-caption{
+.auth-page.auth-photo-stage .auth-visual-caption{
   position:absolute;
   z-index:2;
-  left:clamp(26px,3vw,52px);
-  right:24px;
-  bottom:clamp(26px,4vw,56px);
+  left:clamp(24px, 3.5vw, 54px);
+  right:26px;
+  bottom:clamp(26px, 4vw, 55px);
   color:#F5EFE4;
 }
-.auth-page.auth-login-layout .auth-visual-caption span{color:#F5EFE4}
-.auth-page.auth-login-layout .auth-visual-caption p{
-  color:#F5EFE4;
-  max-width:410px;
+.auth-page.auth-photo-stage .auth-visual-caption span,
+.auth-page.auth-photo-stage .auth-visual-caption p{color:#F5EFE4}
+.auth-page.auth-photo-stage .auth-visual-caption p{
+  max-width:430px;
   text-wrap:balance;
 }
-/* Restore the brand paper appearance when a browser autofills a saved login. */
-.auth-page.auth-login-layout input:-webkit-autofill,
-.auth-page.auth-login-layout input:-webkit-autofill:hover,
-.auth-page.auth-login-layout input:-webkit-autofill:focus{
+.auth-page.auth-photo-stage input:-webkit-autofill,
+.auth-page.auth-photo-stage input:-webkit-autofill:hover,
+.auth-page.auth-photo-stage input:-webkit-autofill:focus{
   -webkit-box-shadow:0 0 0 1000px #FFFCF7 inset;
   -webkit-text-fill-color:#143F42;
   caret-color:#143F42;
-  transition:background-color 9999s ease-out 0s;
 }
 @media(max-width:1050px){
-  .auth-page.auth-login-layout{
-    grid-template-columns:minmax(0,1fr) minmax(0,.9fr);
+  .auth-page.auth-photo-stage{
+    grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
     gap:22px;
-    width:calc(100% - 42px);
-    min-height:630px;
+    width:calc(100% - 44px);
+    min-height:620px;
   }
-  .auth-page.auth-login-layout .auth-card-refined{padding:clamp(29px,3vw,42px)}
-  .auth-page.auth-login-layout .auth-editorial-aside{min-height:620px}
+  .auth-page.auth-photo-stage > .auth-card-refined{
+    padding:clamp(28px,3.5vw,42px);
+  }
+  .auth-page.auth-photo-stage > .auth-photo-panel{min-height:620px}
 }
-@media(max-width:700px){
-  .auth-page.auth-login-layout{
+@media(max-width:760px){
+  .auth-page.auth-photo-stage{
     display:flex;
     flex-direction:column;
     gap:0;
-    align-items:stretch;
+    place-items:stretch;
     width:calc(100% - 32px);
-    margin:24px auto 44px;
+    max-width:580px;
     min-height:0;
+    margin:22px auto 40px;
   }
-  .auth-page.auth-login-layout .auth-editorial-aside{
-    display:block;
+  .auth-page.auth-photo-stage > .auth-photo-panel{
     order:-1;
-    height:clamp(160px,27svh,215px);
-    min-height:160px;
-    flex:none;
+    flex:0 0 auto;
+    width:100%;
+    height:clamp(175px,26svh,225px);
+    min-height:175px;
     border-radius:12px 12px 0 0;
   }
-  .auth-page.auth-login-layout .auth-editorial-aside img{
-    object-position:center 48%;
-    filter:blur(3px);
+  .auth-page.auth-photo-stage .auth-photo-panel img{
+    object-position:center 47%;
+    filter:blur(4px);
   }
-  .auth-page.auth-login-layout .auth-visual-caption{
-    bottom:16px;
-    left:22px;
-    right:20px;
-  }
-  .auth-page.auth-login-layout .auth-visual-caption span{font-size:9px}
-  .auth-page.auth-login-layout .auth-visual-caption p{
-    margin-top:6px;
-    font-size:clamp(24px,7.5vw,32px);
-  }
-  .auth-page.auth-login-layout .auth-card-refined{
+  .auth-page.auth-photo-stage > .auth-card-refined{
     width:100%;
     max-width:none;
-    border-radius:0 0 12px 12px;
-    border-top:0;
+    align-self:stretch;
     margin:0;
-    padding:clamp(27px,6vw,38px) clamp(22px,5.5vw,34px);
+    padding:clamp(28px,6vw,38px) clamp(22px,5.5vw,36px);
+    border-top:0;
+    border-radius:0 0 12px 12px;
   }
-}
-@media(prefers-reduced-motion:reduce){
-  .auth-page.auth-login-layout input:-webkit-autofill{transition:none}
+  .auth-page.auth-photo-stage .auth-official-monogram{
+    width:45px;
+    height:45px;
+    margin-bottom:22px;
+  }
+  .auth-page.auth-photo-stage .auth-visual-caption{
+    left:22px;
+    right:20px;
+    bottom:15px;
+  }
+  .auth-page.auth-photo-stage .auth-visual-caption span{font-size:9px}
+  .auth-page.auth-photo-stage .auth-visual-caption p{
+    margin-top:5px;
+    font-size:clamp(25px,7vw,31px);
+  }
 }

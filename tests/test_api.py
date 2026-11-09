@@ -10,16 +10,19 @@ from backend.app import app
 client = TestClient(app)
 
 def auth(role):
-    r=client.post('/api/auth/login',json={'email':f'{role}@flexpass.demo','password':'Demo123!'})
+    r=client.post('/api/auth/admin/login' if role=='admin' else '/api/auth/login',json={'email':f'{role}@flexpass.demo','password':'Demo123!','portal':role})
     assert r.status_code==200,r.text
     return {'Authorization':'Bearer '+r.json()['token']}
 
 def test_catalog_filters_and_authorization():
-    rows=client.get('/api/catalog?group=fitness&maxCredits=5').json()
+    rows=client.get('/api/catalog?group=fitness&maxCredits=5',headers=auth('employee')).json()
     assert rows and all(x['credits']<=5 and x['group']=='fitness' for x in rows)
     assert client.get('/api/admin/companies',headers=auth('employee')).status_code==403
     assert client.get('/api/employee/summary',headers=auth('partner')).status_code==403
     assert client.get('/api/employee/summary').status_code==401
+    assert client.get('/api/catalog').status_code==401
+    assert client.post('/api/auth/admin/login',json={'email':'employee@flexpass.demo','password':'Demo123!','portal':'admin'}).status_code==401
+    assert client.post('/api/auth/login',json={'email':'admin@flexpass.demo','password':'Demo123!','portal':'employee'}).status_code==401
 
 def test_booking_ledger_and_idempotent_cancel():
     emp=auth('employee')
@@ -41,7 +44,7 @@ def test_booking_ledger_and_idempotent_cancel():
 
 def test_partner_checkin_and_settlement_once():
     emp=auth('employee');partner=auth('partner');admin=auth('admin')
-    sv=next(s for s in client.get('/api/catalog?group=fitness').json() if s['partner_id']==1)
+    sv=next(s for s in client.get('/api/catalog?group=fitness',headers=emp).json() if s['partner_id']==1)
     r=client.post('/api/bookings',json={'slot_id':sv['slots'][1]['id']},headers=emp)
     assert r.status_code==200,r.text
     b=r.json()

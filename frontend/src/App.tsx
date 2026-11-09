@@ -19,13 +19,20 @@ interface AppContextValue {
 const AppContext=createContext<AppContextValue|null>(null);
 export function useApp(){const value=useContext(AppContext);if(!value)throw new Error('Missing app context');return value;}
 function Brand(){return <Link className="logo" to="/" aria-label="FlexPass home"><span className="brand-monogram" aria-hidden="true">FP</span><span className="brand-wordmark"><strong>FLEXPASS</strong><small>A FLEXIBLE EVERYDAY</small></span></Link>;}
-function PublicLayout({children}:PropsWithChildren){const {user,info}=useApp();return <>
-  <div className="top-strip"><span>{pagesPreview?'FRONTEND PREVIEW · ACCOUNTS UNAVAILABLE':info?.demo_mode?'PRIVATE DEMO ENVIRONMENT · FICTIONAL DATA':'A FLEXIBLE EVERYDAY · MEMBERS ONLY'}</span></div>
-  <header className="site-header"><div className="container header-row"><Brand/>
-    <nav className="gateway-header-links" aria-label="Account navigation">{user?<><span className="nav-user">{user.role}</span><Link className="btn btn-primary btn-sm" to={`/${user.role}`}>My workspace ↗</Link></>:<Link className="btn btn-outline btn-sm" to="/">Member access</Link>}</nav>
-  </div></header>
+function PublicLayout({children,home=false}:PropsWithChildren<{home?:boolean}>){const {user,info}=useApp();return <>
+  {!home&&<div className="top-strip"><span>{pagesPreview?'FRONTEND PREVIEW · ACCOUNTS UNAVAILABLE':info?.demo_mode?'PRIVATE DEMO ENVIRONMENT · FICTIONAL DATA':'A FLEXIBLE EVERYDAY · MEMBERS ONLY'}</span></div>}
+  <header className={`site-header ${home?'quiet-public-header':''}`}>
+    <div className="container header-row">
+      <Brand/>
+      <nav className={`gateway-header-links ${home?'quiet-header-links':''}`} aria-label="Account navigation">
+        {user?<><span className="nav-user">{user.role}</span><Link className="btn btn-primary btn-sm" to={`/${user.role}`}>My workspace</Link></>:
+        home?<><Link to="/login/client">Client login</Link><Link to="/login/business">Business login</Link></>:
+        <Link className="btn btn-outline btn-sm" to="/">Member access</Link>}
+      </nav>
+    </div>
+  </header>
   {children}
-  <footer className="foot"><div className="container footer-inner"><div className="footer-brand"><Brand/><p>A flexible everyday through wellness, movement and meaningful experiences.</p></div><div className="footer-right"><span className="footer-eyebrow">FLEXPASS · PRIVATE PILOT</span><div className="footlinks"><Link to="/">Home</Link><Link to="/contact">About</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div><span className="footer-fine">© {new Date().getFullYear()} FlexPass · {pagesPreview?'Frontend preview':'Members only'}</span></div></div></footer>
+  <footer className={`foot ${home?'quiet-home-footer':''}`}><div className="container footer-inner"><div className="footer-brand"><Brand/><p>A flexible everyday through wellness, movement and meaningful experiences.</p></div><div className="footer-right"><span className="footer-eyebrow">FLEXPASS · PRIVATE PILOT</span><div className="footlinks"><Link to="/">Home</Link><Link to="/contact">About</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div><span className="footer-fine">© {new Date().getFullYear()} FlexPass · {pagesPreview?'Frontend preview':'Members only'}</span></div></div></footer>
 </>}
 function AuthFrame({children}:{children:ReactNode}){
   return <main className="auth-page gateway-auth auth-editorial-layout">
@@ -36,24 +43,50 @@ function AuthFrame({children}:{children:ReactNode}){
     </aside>
   </main>;
 }
-function Home(){const {user}=useApp();if(user)return <Navigate to={`/${user.role}`} replace/>;return <PublicLayout><main className="home-page gateway-home">
-  <section className="hero editorial-hero container" aria-labelledby="home-title">
-    <div className="hero-text">
-      <div className="hero-index"><span>THE FLEXPASS WAY OF LIFE</span><span>PRIVATE MEMBERSHIP ACCESS</span></div>
-      <div className="hero-copy"><div className="eyebrow">A FLEXIBLE EVERYDAY</div><h1 id="home-title">More experiences.<br/><em>A more flexible everyday.</em></h1><div className="hero-rule"/><p>Wellbeing, movement and meaningful experiences, brought together with the freedom to choose what suits your day.</p>
-        <div className="gateway-access" aria-label="Choose your account type">
-          <Link className="gateway-access-card" to="/login/client"><span className="gateway-card-index">01 / CLIENT ACCESS</span><strong>For clients</strong><span>Shop credit packages, book experiences and manage your orders.</span><span className="gateway-card-action">Client sign in ↗</span></Link>
-          <Link className="gateway-access-card gateway-access-card-business" to="/login/business"><span className="gateway-card-index">02 / BUSINESS ACCESS</span><strong>For partners</strong><span>Manage sessions, reservations and settlements.</span><span className="gateway-card-action">Business sign in ↗</span></Link>
+function Home(){
+  const {user}=useApp();
+  if(user)return <Navigate to={`/${user.role}`} replace/>;
+  return <PublicLayout home><main className="home-page quiet-home">
+    <section className="quiet-hero" aria-labelledby="home-title">
+      <div className="quiet-hero-content">
+        <div className="quiet-hero-kicker">FLEXPASS <span aria-hidden="true">/</span> A FLEXIBLE EVERYDAY</div>
+        <div className="quiet-hero-intro">
+          <h1 id="home-title">More experiences.<br/><em>A more flexible everyday.</em></h1>
+          <p>Wellbeing, movement and lifestyle experiences, on your terms.</p>
         </div>
+        <nav className="quiet-entry-list" aria-label="Choose how to enter FlexPass">
+          <Link to="/login/client" className="quiet-entry quiet-entry-client">
+            <span className="quiet-entry-number">01 / CLIENT</span>
+            <span className="quiet-entry-body"><strong>Client login</strong><small>Explore experiences and manage your bookings.</small></span>
+            <UIIcon name="arrow" size={22}/>
+          </Link>
+          <Link to="/login/business" className="quiet-entry quiet-entry-business">
+            <span className="quiet-entry-number">02 / BUSINESS</span>
+            <span className="quiet-entry-body"><strong>Business login</strong><small>Manage services and reservations.</small></span>
+            <UIIcon name="arrow" size={22}/>
+          </Link>
+        </nav>
+        <div className="quiet-hero-footnote">WELLBEING <span aria-hidden="true">·</span> MOVEMENT <span aria-hidden="true">·</span> LIFESTYLE</div>
       </div>
-      <div className="hero-footnote"><span className="footnote-line"/> WELLNESS&nbsp; · &nbsp; LIFESTYLE&nbsp; · &nbsp; FREEDOM</div>
+      <div className="quiet-hero-image">
+        <img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Sunlit Mediterranean stone arch framing calm blue water" decoding="async" fetchPriority="high"/>
+        <span className="quiet-hero-image-label">THE FLEXPASS WAY OF LIFE</span>
+      </div>
+    </section>
+    <section className="quiet-statement" aria-labelledby="quiet-statement-title">
+      <div className="quiet-statement-inner">
+        <span className="quiet-statement-eyebrow">OUR PHILOSOPHY</span>
+        <h2 id="quiet-statement-title">A healthier, happier <em>everyday.</em></h2>
+        <p>Make space for what matters. A flexible way to experience more of what you enjoy.</p>
+      </div>
+    </section>
+    <div className="quiet-pilot-note" role="note">
+      <span>PILOT INFORMATION</span>
+      <p>Some experiences may be fictional demo listings. Credit-package requests do not charge a card; bank transfers are verified separately before credits are issued.</p>
     </div>
-    <div className="hero-art"><img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Mediterranean arch overlooking a calm sea"/><div className="hero-art-shade"/><div className="hero-art-caption">A HEALTHIER,<br/><em>HAPPIER EVERYDAY.</em></div><span className="hero-art-index">FLEXPASS</span></div>
-  </section>
-  <section className="brand-manifesto"><div className="container manifesto-inner"><span className="manifesto-label">MADE FOR YOUR EVERYDAY</span><p>Meaningful experiences start with <em>membership.</em></p><div className="manifesto-stars" aria-hidden="true">✳</div></div></section>
-  <section className="gateway-about container"><span className="eyebrow">YOUR FLEXPASS MEMBERSHIP</span><h2>One platform.<br/><em>Two ways to experience it.</em></h2><p>Clients can create personal accounts, request credit packages and reserve experiences. Approved business partners manage their services, reservations and visits in a separate workspace.</p></section>
-  {pagesPreview&&<div className="container preview-disclaimer">This GitHub Pages build is a visual preview. Account access and live data are available only on the separately hosted full-stack application.</div>}
-</main></PublicLayout>}
+    {pagesPreview&&<div className="container preview-disclaimer">This GitHub Pages build is a visual preview. Account access and live data are available only on the full-stack FlexPass application.</div>}
+  </main></PublicLayout>;
+}
 type LoginPortal = 'client'|'partner'|'admin';
 const portalNames:Record<LoginPortal,{title:string;eyebrow:string;description:string}>={
   client:{title:'Client sign in',eyebrow:'01 / CLIENT ACCESS',description:'Explore experiences, purchase credit packages and manage your bookings.'},

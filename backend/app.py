@@ -3,6 +3,9 @@ import csv
 import hashlib
 import hmac
 import io
+import json
+from urllib.request import Request as UrlRequest, urlopen
+from urllib.error import HTTPError, URLError
 import os
 import secrets
 import smtplib
@@ -274,10 +277,23 @@ def invitation_link(token):
 
 def send_invite(email, name, token, role):
     link=invitation_link(token)
+    api_key=os.environ.get('FLEXPASS_RESEND_API_KEY','')
+    sender=os.environ.get('FLEXPASS_EMAIL_FROM','') or os.environ.get('FLEXPASS_SMTP_FROM','')
     host=os.environ.get('FLEXPASS_SMTP_HOST','')
-    sender=os.environ.get('FLEXPASS_SMTP_FROM','')
+    if api_key and sender:
+        body=json.dumps({'from':sender,'to':[email],'subject':'Activate your FlexPass account',
+                         'text':f'Hello {name},\\n\\nActivate your {role} account using this one-time link within 24 hours:\\n{link}\\n\\nIf you did not request this invitation, ignore this message.'}).encode()
+        request=UrlRequest('https://api.resend.com/emails',data=body,
+                           headers={'Authorization':'Bearer '+api_key,'Content-Type':'application/json','User-Agent':'FlexPass/1.0'},
+                           method='POST')
+        try:
+            with urlopen(request,timeout=15) as response:
+                if response.status not in (200,201,202):raise HTTPException(503,'Invitation email could not be delivered')
+        except (OSError,HTTPError,URLError) as exc:
+            raise HTTPException(503,'Invitation email could not be delivered') from exc
+        return None
     if not host or not sender:
-        if ENVIRONMENT=='production':raise HTTPException(503,'Email delivery is not configured')
+        if ENVIRONMENT=='production':raise HTTPException(503,'Configure FLEXPASS_RESEND_API_KEY and FLEXPASS_EMAIL_FROM (or SMTP on paid hosting)')
         return link
     msg=EmailMessage()
     msg['Subject']='Activate your FlexPass account'

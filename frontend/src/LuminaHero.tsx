@@ -93,6 +93,24 @@ export function LuminaHero(){
   }
 
   return <section className="lumina-hero" aria-labelledby="home-title">
+    <div className="lumina-hero-copy">
+      <div className="lumina-hero-top">
+        <span className="lumina-hero-identity"><BrandLogo variant="monogram" tone="ivory" decorative/></span>
+      </div>
+  
+      <div className="lumina-hero-main">
+        <span className="lumina-hero-overline" key={`overline-${active}`}>{selected.eyebrow}</span>
+        <div className="lumina-hero-text" key={`message-${active}`}>
+          <h1 id="home-title">{selected.title}<br/><em>{selected.accent}</em></h1>
+          <p>{selected.description}</p>
+        </div>
+        <div className="lumina-hero-actions" aria-label="FlexPass account access">
+          <Link className="lumina-hero-entry lumina-hero-entry-primary" to="/login/client">Client login <UIIcon name="arrow" size={17}/></Link>
+          <Link className="lumina-hero-entry lumina-hero-entry-secondary" to="/login/business">Business login <UIIcon name="arrow" size={17}/></Link>
+        </div>
+        <p className="lumina-hero-caption">More experiences. A more flexible everyday.</p>
+      </div>
+    </div>
     <div className="lumina-hero-media" aria-hidden="true">
       {EXPERIENCES.map((item,index)=><img
         key={item.image}
@@ -105,23 +123,6 @@ export function LuminaHero(){
         onError={photoFallback}
       />)}
       <div className="lumina-hero-scrim"/>
-    </div>
-
-    <div className="lumina-hero-top">
-      <span className="lumina-hero-identity"><BrandLogo variant="monogram" tone="ivory" decorative/></span>
-    </div>
-
-    <div className="lumina-hero-main">
-      <span className="lumina-hero-overline" key={`overline-${active}`}>{selected.eyebrow}</span>
-      <div className="lumina-hero-text" key={`message-${active}`}>
-        <h1 id="home-title">{selected.title}<br/><em>{selected.accent}</em></h1>
-        <p>{selected.description}</p>
-      </div>
-      <div className="lumina-hero-actions" aria-label="FlexPass account access">
-        <Link className="lumina-hero-entry lumina-hero-entry-primary" to="/login/client">Client login <UIIcon name="arrow" size={17}/></Link>
-        <Link className="lumina-hero-entry lumina-hero-entry-secondary" to="/login/business">Business login <UIIcon name="arrow" size={17}/></Link>
-      </div>
-      <p className="lumina-hero-caption">More experiences. A more flexible everyday.</p>
     </div>
 
     <nav ref={navRef} className={`lumina-hero-navigation ${paused?'is-paused':''}`}

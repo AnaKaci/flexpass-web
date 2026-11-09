@@ -109,7 +109,6 @@ export function LuminaHero(){
 
     <div className="lumina-hero-top">
       <span className="lumina-hero-identity"><BrandLogo variant="monogram" tone="ivory" decorative/><span>THE FLEXPASS WAY OF LIFE</span></span>
-      <span className="lumina-hero-index"><strong>{String(active+1).padStart(2,'0')}</strong><span className="lumina-hero-index-divider" aria-hidden="true"/> {String(EXPERIENCES.length).padStart(2,'0')}</span>
     </div>
 
     <div className="lumina-hero-main">

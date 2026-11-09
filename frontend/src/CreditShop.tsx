@@ -3,17 +3,13 @@ import {money} from './api';
 import {UIIcon} from './UIIcon';
 import {BrandLogo} from './BrandLogo';
 
-type BankInfo={demo_enabled:boolean;configured:boolean;bank_name:string;beneficiary:string;iban:string};
-
 export function CreditShop({
   products,
   balance,
-  bank,
   onPurchase,
 }:{
   products:CreditProduct[];
   balance:number;
-  bank?:BankInfo;
   onPurchase:(product:CreditProduct)=>void;
 }){
   return <section className="credit-shop" aria-labelledby="credit-shop-heading">
@@ -71,22 +67,6 @@ export function CreditShop({
       <p>No credit packages have been published yet.</p>
     </div>}
 
-    <aside className="credit-shop-payment-note" aria-label="Payment and transfer information">
-      <div className="credit-shop-payment-heading">
-        <UIIcon name="shield" size={22}/>
-        <div>
-          <span className="credit-shop-section-index">02 / HOW IT WORKS</span>
-          <h2>Clear from the beginning.</h2>
-        </div>
-      </div>
-      <p>Checkout is not connected. Requesting a package creates a pending bank transfer order. In demo mode, you can simulate payment with no actual funds. Live transfers require independent bank verification.</p>
-      <div className="credit-shop-payment-steps">
-        <span><b>01</b> Request a package</span>
-        <span><b>02</b> Review your bank-transfer instructions</span>
-        <span><b>03</b> Credits arrive after verified payment</span>
-      </div>
-      {bank?.demo_enabled&&<span className="credit-shop-demo-label">Demo payments are simulated. No actual funds move.</span>}
-      {!bank?.demo_enabled&&!bank?.configured&&<span className="credit-shop-demo-label">Bank transfer details are not yet configured. Do not send money.</span>}
-    </aside>
+
   </section>;
 }

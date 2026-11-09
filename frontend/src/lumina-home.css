@@ -56,17 +56,6 @@
   letter-spacing:.18em;
 }
 .lumina-hero-identity .official-brand-logo-monogram{width:39px;height:39px}
-.lumina-hero-index{
-  display:flex;
-  align-items:center;
-  gap:16px;
-  color:rgba(245,239,228,.82);
-  font:500 12px/1 'Inter',sans-serif;
-  letter-spacing:.16em;
-  font-variant-numeric:tabular-nums;
-}
-.lumina-hero-index strong{font-weight:650;color:#F5EFE4}
-.lumina-hero-index-divider{width:37px;height:1px;background:rgba(245,239,228,.55)}
 .lumina-hero-main{
   width:min(100%,1000px);
   margin:auto 0 auto;
@@ -261,8 +250,6 @@
   .lumina-hero-top{padding:25px 22px 0}
   .lumina-hero-identity{font-size:9px;letter-spacing:.09em;gap:11px}
   .lumina-hero-identity .official-brand-logo-monogram{width:32px;height:32px}
-  .lumina-hero-index{font-size:11px;gap:9px}
-  .lumina-hero-index-divider{width:19px}
   .lumina-hero-main{padding:50px 24px 35px}
   .lumina-hero-overline{font-size:9px;margin-bottom:17px}
   .lumina-hero-main h1{font-size:clamp(49px,12.3vw,73px);margin-bottom:18px}

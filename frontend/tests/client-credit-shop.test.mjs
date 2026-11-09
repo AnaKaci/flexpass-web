@@ -16,9 +16,9 @@ test('purchase action remains tied to the real product order flow',()=>{
   assert.match(dashboard,/if\(section==='shop'\)return <CreditShop/);
   assert.match(dashboard,/onPurchase=\{onPurchase\}/);
 });
-test('the demo payment notice keeps the transfer verification limitation clear',()=>{
-  assert.match(src,/pending bank transfer order/);
-  assert.match(src,/independent bank verification/);
+test('pink how-it-works guide is removed while request flow remains transparent',()=>{
+  assert.doesNotMatch(src,/credit-shop-payment-note|HOW IT WORKS|Clear from the beginning/);
+  assert.match(src,/Bank transfer request/);
   assert.match(src,/No payment is collected/);
   assert.doesNotMatch(src,/pay now|instant bank|card charged/i);
 });

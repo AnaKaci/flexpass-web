@@ -5,6 +5,9 @@ import hmac
 import io
 import os
 import secrets
+import smtplib
+from email.message import EmailMessage
+from urllib.parse import quote
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -76,6 +79,15 @@ class User(Base):
     partner_id = Column(Integer, ForeignKey('partners.id'))
     plan_id = Column(Integer, ForeignKey('plans.id'))
     membership_status = Column(String(25), default='ACTIVE')
+    created_at = Column(DateTime, default=now)
+
+class AccountInvitation(Base):
+    __tablename__ = 'account_invitations'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    token_hash = Column(String(64), nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime)
     created_at = Column(DateTime, default=now)
 
 class Partner(Base):
@@ -188,6 +200,16 @@ class LoginBody(BaseModel):
     email: str
     password: str
     portal: Optional[str] = None
+class ActivateBody(BaseModel):
+    token: str = Field(min_length=32, max_length=256)
+    password: str = Field(min_length=12, max_length=256)
+
+class PartnerInviteBody(BaseModel):
+    name: str = Field(min_length=2, max_length=150)
+    zone: str = Field(min_length=2, max_length=100)
+    contact_name: str = Field(min_length=2, max_length=160)
+    contact_email: str = Field(min_length=3, max_length=200)
+
 class BookBody(BaseModel):
     slot_id: int
 class CompanyBody(BaseModel):
@@ -243,6 +265,56 @@ def match_pass(raw, h):
         x = hashlib.pbkdf2_hmac('sha256',raw.encode(), bytes.fromhex(salt),180000).hex()
         return hmac.compare_digest(x,digest)
     except Exception: return False
+
+def invitation_link(token):
+    origin=os.environ.get('FLEXPASS_APP_URL','http://127.0.0.1:5173').rstrip('/')
+    if ENVIRONMENT=='production' and not origin.startswith('https://'):
+        raise HTTPException(503,'FLEXPASS_APP_URL must be an HTTPS address')
+    return origin + '/register?token=' + quote(token)
+
+def send_invite(email, name, token, role):
+    link=invitation_link(token)
+    host=os.environ.get('FLEXPASS_SMTP_HOST','')
+    sender=os.environ.get('FLEXPASS_SMTP_FROM','')
+    if not host or not sender:
+        if ENVIRONMENT=='production':raise HTTPException(503,'Email delivery is not configured')
+        return link
+    msg=EmailMessage()
+    msg['Subject']='Activate your FlexPass account'
+    msg['From']=sender
+    msg['To']=email
+    msg.set_content(f'Hello {name},\\n\\nYour {role} account has been invited to FlexPass.\\nUse this single-use activation link within 24 hours:\\n{link}\\n\\nIf you did not expect this invitation, ignore this email.')
+    port=int(os.environ.get('FLEXPASS_SMTP_PORT','465'))
+    user=os.environ.get('FLEXPASS_SMTP_USER','')
+    password=os.environ.get('FLEXPASS_SMTP_PASSWORD','')
+    try:
+        if port==465:
+            with smtplib.SMTP_SSL(host,port,timeout=15) as conn:
+                if user:conn.login(user,password)
+                conn.send_message(msg)
+        else:
+            with smtplib.SMTP(host,port,timeout=15) as conn:
+                conn.starttls()
+                if user:conn.login(user,password)
+                conn.send_message(msg)
+    except (OSError,smtplib.SMTPException) as exc:
+        raise HTTPException(503,'Invitation email could not be delivered') from exc
+    return None
+
+def create_invitation(s, user):
+    token=secrets.token_urlsafe(36)
+    # Make a newly issued link invalidate all prior pending invitations.
+    for pending in s.scalars(select(AccountInvitation).where(AccountInvitation.user_id==user.id,AccountInvitation.used_at.is_(None))).all():
+        pending.used_at=now()
+    invite=AccountInvitation(user_id=user.id,token_hash=hashlib.sha256(token.encode()).hexdigest(),expires_at=now()+timedelta(hours=24))
+    s.add(invite)
+    return token
+
+def invite_response(user_id, link):
+    response={'id':user_id,'status':'INVITED','email_sent':link is None}
+    # Only local development may expose an activation link for demo testing.
+    if link and ENVIRONMENT!='production':response['dev_activation_url']=link
+    return response
 
 def token_for(u):
     payload = {'sub':str(u.id),'role':u.role,'exp':datetime.now(timezone.utc)+timedelta(hours=12)}
@@ -309,6 +381,28 @@ def login(body:LoginBody):
 @app.post('/api/auth/admin/login')
 def admin_login(body:LoginBody):
     return authenticate_portal(body, ('admin',))
+
+@app.post('/api/auth/activate')
+def activate_account(body:ActivateBody):
+    digest=hashlib.sha256(body.token.encode()).hexdigest()
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            invitation=s.scalar(select(AccountInvitation).where(AccountInvitation.token_hash==digest).with_for_update())
+            if not invitation or invitation.used_at or invitation.expires_at<=now():
+                raise HTTPException(400,'Activation link is invalid or expired')
+            user=s.scalar(select(User).where(User.id==invitation.user_id).with_for_update())
+            if not user or user.membership_status!='INVITED' or user.role not in ('employee','partner'):
+                raise HTTPException(400,'Invitation is no longer valid')
+            user.password_hash=hash_pass(body.password)
+            user.membership_status='ACTIVE'
+            invitation.used_at=now()
+            audit(s,user.id,'ACCOUNT_ACTIVATED',user.role)
+            s.commit()
+            return {'status':'ACTIVE','role':user.role}
+        except HTTPException:
+            s.rollback()
+            raise
 
 @app.get('/api/auth/me')
 def me(u=Depends(get_user)):return user_view(u)
@@ -491,6 +585,44 @@ def create_company(body:CompanyBody,u=Depends(roles('admin'))):
         if s.scalar(select(Company).where(Company.name==body.name)):raise HTTPException(409,'Company already exists')
         c=Company(**body.model_dump());s.add(c);s.flush();audit(s,u.id,'COMPANY_CREATED',str(c.id));s.commit();return {'id':c.id}
 
+@app.get('/api/admin/partners')
+def admin_partners(u=Depends(roles('admin'))):
+    with Session() as s:
+        return [{'id':p.id,'name':p.name,'zone':p.zone,'status':p.status,
+                 'accounts':[{'email':x.email,'status':x.membership_status}
+                             for x in s.scalars(select(User).where(User.partner_id==p.id,User.role=='partner')).all()]}
+                for p in s.scalars(select(Partner).order_by(Partner.id)).all()]
+
+@app.post('/api/admin/partners')
+def admin_invite_partner(body:PartnerInviteBody,u=Depends(roles('admin'))):
+    address=body.contact_email.strip().lower()
+    with Session() as s:
+        if s.scalar(select(User.id).where(User.email==address)):
+            raise HTTPException(409,'Email already registered')
+        partner=Partner(name=body.name.strip(),zone=body.zone.strip(),status='ACTIVE')
+        s.add(partner);s.flush()
+        account=User(full_name=body.contact_name.strip(),email=address,role='partner',
+                     partner_id=partner.id,password_hash=hash_pass(secrets.token_urlsafe(40)),
+                     membership_status='INVITED')
+        s.add(account);s.flush()
+        token=create_invitation(s,account)
+        link=send_invite(account.email,account.full_name,token,'business partner')
+        audit(s,u.id,'PARTNER_INVITED',f'{partner.id}:{address}')
+        s.commit()
+        return {**invite_response(account.id,link),'partner_id':partner.id}
+
+@app.post('/api/admin/invitations/{user_id}/resend')
+def resend_invitation(user_id:int,u=Depends(roles('admin'))):
+    with Session() as s:
+        account=s.get(User,user_id)
+        if not account or account.membership_status!='INVITED' or account.role not in ('employee','partner'):
+            raise HTTPException(404,'Pending invitation not found')
+        token=create_invitation(s,account)
+        link=send_invite(account.email,account.full_name,token,account.role)
+        audit(s,u.id,'INVITATION_RESENT',account.email)
+        s.commit()
+        return invite_response(account.id,link)
+
 @app.get('/api/admin/plans')
 def plans(u=Depends(roles('admin'))):
     with Session() as s:return [{'id':p.id,'name':p.name,'credits':p.credits,'monthly_price':p.monthly_price,'currency':p.currency} for p in s.scalars(select(Plan).order_by(Plan.id)).all()]
@@ -506,13 +638,13 @@ def create_employee(body:EmployeeBody,u=Depends(roles('admin'))):
         if s.scalar(select(User).where(User.email==body.email.lower())):raise HTTPException(409,'Email already registered')
         p=s.get(Plan,body.plan_id)
         if not p or not s.get(Company,body.company_id):raise HTTPException(400,'Unknown company or plan')
-        e=User(email=body.email.lower(),full_name=body.full_name,role='employee',password_hash=hash_pass('InviteOnly!234'),company_id=body.company_id,plan_id=body.plan_id,membership_status='INVITED')
+        e=User(email=body.email.strip().lower(),full_name=body.full_name.strip(),role='employee',password_hash=hash_pass(secrets.token_urlsafe(40)),company_id=body.company_id,plan_id=body.plan_id,membership_status='INVITED')
         s.add(e);s.flush()
+        token=create_invitation(s,e)
+        link=send_invite(e.email,e.full_name,token,'client')
         amount=body.initial_credits if body.initial_credits is not None else p.credits
-        # Funding can be administered only once the invitation is accepted in production.
-        # MVP pilot accounts are invited and do not yet have login access.
         if amount: s.add(Ledger(user_id=e.id,kind='ALLOCATION',amount=amount,period=now().strftime('%Y-%m'),actor_id=u.id,reason='Pilot initial allocation'))
-        audit(s,u.id,'EMPLOYEE_INVITED',e.email);s.commit();return {'id':e.id,'status':'INVITED','note':'Invitation delivery/activation requires Supabase Auth integration.'}
+        audit(s,u.id,'EMPLOYEE_INVITED',e.email);s.commit();return invite_response(e.id,link)
 
 @app.post('/api/admin/adjust-credits')
 def adjust(body:AdjustBody,u=Depends(roles('admin'))):
@@ -633,6 +765,7 @@ if DIST.is_dir():
 @app.get('/login')
 @app.get('/login/client')
 @app.get('/login/business')
+@app.get('/register')
 @app.get('/admin/login')
 @app.get('/contact')
 @app.get('/privacy')

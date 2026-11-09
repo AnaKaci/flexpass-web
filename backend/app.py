@@ -1059,6 +1059,57 @@ def seed_showcase_catalog(s):
     audit(s,None,'SHOWCASE_CATALOG_SEEDED',str(created))
     return created
 
+def bootstrap_temporary_test_logins(s):
+    """One-time, operator-approved test account setup. No credentials in repository/logs."""
+    # Requires the independently enabled, explicitly fictional showcase catalog.
+    if os.environ.get('FLEXPASS_SEED_SHOWCASE_CATALOG','').lower() not in ('true','1','yes'):
+        raise RuntimeError('Test account bootstrap requires the showcase catalog enabled')
+    client_password=os.environ.get('FLEXPASS_TEMP_CLIENT_PASSWORD','')
+    business_password=os.environ.get('FLEXPASS_TEMP_BUSINESS_PASSWORD','')
+    if len(client_password)<20 or len(business_password)<20 or client_password==business_password:
+        raise RuntimeError('Provide two different temporary account passwords of at least 20 characters')
+    if client_password in ('Demo123!', business_password):
+        raise RuntimeError('Do not reuse demonstration passwords')
+    result={'created_client':0,'activated_business':0,'client_existing':0,'business_existing':0}
+    email='demo.client@flexpass.test'
+    client=s.scalar(select(User).where(User.email==email))
+    if client is None:
+        client=User(email=email,full_name='FlexPass Test Client [DEMO]',role='client',
+                    membership_status='ACTIVE',company_id=None,plan_id=None,
+                    password_hash=hash_pass(client_password))
+        s.add(client);s.flush()
+        result['created_client']=1
+    elif client.role!='client' or client.membership_status!='ACTIVE' or client.company_id is not None:
+        # No password reset or activation of accounts this operation did not create.
+        raise RuntimeError('Demo client identifier already belongs to an unexpected account')
+    else:
+        result['client_existing']=1
+    # Seed enough fictional credits for booking the [DEMO] inventory without a bank payment.
+    allocation=s.scalar(select(Ledger.id).where(
+        Ledger.user_id==client.id, Ledger.source=='DEMO_BOOTSTRAP').limit(1))
+    if allocation is None:
+        s.add(Ledger(user_id=client.id,kind='ALLOCATION',amount=25,source='DEMO_BOOTSTRAP',
+                     period=now().strftime('%Y-%m'),reason='Fictional test credits — no payment made'))
+    account=s.scalar(select(User).where(User.email=='akaci@ccs.al'))
+    partner=s.scalar(select(Partner).where(Partner.name=='FlexPass Demo Studio [DEMO]'))
+    if not partner or not account or account.role!='partner' or account.partner_id!=partner.id:
+        raise RuntimeError('Demo business account is missing or does not match demo studio')
+    if account.membership_status=='INVITED':
+        account.password_hash=hash_pass(business_password)
+        account.membership_status='ACTIVE'
+        for pending in s.scalars(select(AccountInvitation).where(
+            AccountInvitation.user_id==account.id,AccountInvitation.used_at.is_(None))).all():
+            pending.used_at=now()
+        result['activated_business']=1
+    elif account.membership_status=='ACTIVE':
+        # Prevent later deployments from silently resetting a password.
+        result['business_existing']=1
+    else:
+        raise RuntimeError('Demo business is in an unexpected state')
+    audit(s,None,'TEMP_TEST_ACCOUNTS_BOOTSTRAPPED',
+          f"client={result['created_client']},business={result['activated_business']}")
+    return result
+
 def seed():
     Base.metadata.create_all(engine)
     with Session() as s:
@@ -1068,6 +1119,10 @@ def seed():
             changes=seed_showcase_catalog(s)
             s.commit()
             print('FLEXPASS_SHOWCASE_SEED '+str(changes),flush=True)
+        if os.environ.get('FLEXPASS_BOOTSTRAP_TEMP_TEST_LOGINS','false').lower() in ('true','1','yes'):
+            changes=bootstrap_temporary_test_logins(s)
+            s.commit()
+            print('FLEXPASS_TEST_LOGINS_SETUP '+str(changes),flush=True)
         if not DEMO_MODE:
             email = os.environ.get('FLEXPASS_ADMIN_EMAIL', '').strip().lower()
             password = os.environ.get('FLEXPASS_ADMIN_PASSWORD', '')

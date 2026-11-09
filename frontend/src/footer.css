@@ -11,6 +11,7 @@
 .flexpass-footer .footer-inner{
   display:flex;
   flex-direction:column;
+  align-items:stretch;
   width:100%;
   max-width:1450px;
   padding:0 clamp(24px,4vw,60px);
@@ -19,7 +20,8 @@
 }
 .flexpass-footer .flexpass-footer-top{
   display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
+  width:100%;
+  grid-template-columns:minmax(0,1fr) max-content;
   gap:clamp(28px,6vw,96px);
   align-items:center;
   padding:clamp(38px,4vw,55px) 0;
@@ -102,6 +104,7 @@
 .flexpass-footer .footlinks a:focus-visible{color:white;text-decoration:underline}
 .flexpass-footer .flexpass-footer-bottom{
   display:flex;
+  width:100%;
   align-items:center;
   justify-content:space-between;
   gap:24px;

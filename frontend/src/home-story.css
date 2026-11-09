@@ -50,10 +50,20 @@
   color:#526E65;
   font:400 clamp(14px,1.18vw,16px)/1.9 'Inter',sans-serif;
 }
+/* Editorial staircase: each collection starts progressively lower, with
+   the same images, aspect ratios, captions and brand styling. The grid grows
+   with the stagger so the last card never overlaps the next section. */
 .home-collection-grid{
   display:grid;
   grid-template-columns:1.12fr .96fr .96fr;
+  align-items:start;
   gap:clamp(13px,2vw,27px);
+}
+.home-collection-grid .home-collection:nth-child(2){
+  margin-top:clamp(65px,7vw,112px);
+}
+.home-collection-grid .home-collection:nth-child(3){
+  margin-top:clamp(130px,14vw,224px);
 }
 .home-collection{
   margin:0;
@@ -238,6 +248,8 @@
 .home-editorial-portal a:hover{gap:44px;border-color:#F3DEDF}
 .home-editorial-portal a:focus-visible{outline:2px solid #F3DEDF;outline-offset:4px}
 @media(max-width:900px){
+  .home-collection-grid .home-collection:nth-child(2){margin-top:clamp(32px,5vw,52px)}
+  .home-collection-grid .home-collection:nth-child(3){margin-top:clamp(64px,10vw,104px)}
   .home-editorial-introduction,
   .home-editorial-journey-heading{
     grid-template-columns:minmax(130px,.45fr) minmax(0,1.55fr);
@@ -270,6 +282,9 @@
     padding-bottom:10px;
     scrollbar-width:thin;
   }
+  /* Mobile is a swipeable image collection, not a clipped staircase. */
+  .home-collection-grid .home-collection:nth-child(2),
+  .home-collection-grid .home-collection:nth-child(3){margin-top:0}
   .home-collection{scroll-snap-align:start}
   .home-collection-image{aspect-ratio:4/4.9}
   .home-editorial-photo-note{text-align:left}

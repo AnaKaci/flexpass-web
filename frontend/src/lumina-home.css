@@ -207,15 +207,6 @@
   line-height:1.4;
 }
 .lumina-nav-row svg{color:#F3DEDF}
-.lumina-hero-image-disclosure{
-  position:absolute;
-  right:clamp(26px,6vw,103px);
-  bottom:11px;
-  color:rgba(245,239,228,.75);
-  font:400 10px/1.4 'Inter',sans-serif;
-  letter-spacing:.035em;
-  pointer-events:none;
-}
 @keyframes lumina-copy-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes lumina-progress{from{width:0}to{width:100%}}
 @media(max-width:1180px){
@@ -223,7 +214,6 @@
   .lumina-hero-main h1{font-size:clamp(61px,8vw,104px)}
   .lumina-hero-navigation{width:calc(100% - 90px)}
   .lumina-hero-top{padding-inline:clamp(35px,6vw,88px)}
-  .lumina-hero-image-disclosure{right:45px}
 }
 @media(max-width:900px){
   .quiet-home .lumina-hero{min-height:clamp(730px,95svh,980px)}
@@ -234,7 +224,6 @@
   .lumina-nav-text small{font-size:10px}
   .lumina-nav-row{gap:7px;grid-template-columns:minmax(0,1fr) 15px}
   .lumina-hero-top{padding:39px 38px 10px}
-  .lumina-hero-image-disclosure{right:38px}
 }
 @media(max-width:650px){
   .quiet-home .lumina-hero{min-height:780px}
@@ -260,7 +249,6 @@
   .lumina-hero-nav-item{gap:10px;min-height:64px;padding:0}
   .lumina-nav-text strong{font-size:23px}
   .lumina-nav-text small{font-size:10px}
-  .lumina-hero-image-disclosure{right:22px;bottom:11px;font-size:9px}
 }
 @media(max-width:390px){
   .lumina-hero-main h1{font-size:clamp(44px,11.5vw,54px)}

@@ -156,3 +156,15 @@
 @media(prefers-reduced-motion:reduce){
   .dashboard-app-shell .dashboard-sidebar{animation:none}
 }
+
+/* Compact navigation opener: only the hamburger icon when the sidebar is hidden. */
+.dashboard-app-shell .dashboard-menu-icon-only{
+  width:40px;
+  min-width:40px;
+  height:40px;
+  min-height:40px;
+  padding:0;
+  display:inline-grid;
+  place-items:center;
+  flex-shrink:0;
+}

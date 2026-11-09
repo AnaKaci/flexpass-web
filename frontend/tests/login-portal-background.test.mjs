@@ -34,6 +34,8 @@ test('Pilates image fills the entire auth viewport behind the centered form card
   assert.ok(styles.includes('filter:blur(1.25px);'));
   assert.ok(styles.includes('> .auth-card-refined{'));
   assert.ok(styles.includes('z-index:2;'));
+  assert.ok(styles.includes('  justify-content:center;'));
+  assert.ok(!styles.includes('  justify-content:flex-start;'));
   assert.ok(!styles.includes('grid-template-columns:'));
   assert.ok(!styles.includes('.auth-photo-panel'));
   assert.ok(styles.includes('@media(max-width:760px)'));
@@ -49,4 +51,10 @@ test('role-specific login autofill and real authentication are preserved',()=>{
     assert.ok(app.includes(`<Route path="${route}" element={<Login portal="${portal}"/>`));
   }
   assert.match(app,/await signIn\(email,password,portal\)/);
+});
+
+test('auth footer touches photograph with no legacy beige margin strip',()=>{
+  assert.match(styles,/\.auth-page\.auth-photo-stage \+ \.foot\.flexpass-footer\{\s*margin-top:0;/);
+  assert.match(app,/<footer className=\{`foot flexpass-footer/);
+  assert.match(app,/return <PublicLayout home><main className="home-page quiet-home">/);
 });

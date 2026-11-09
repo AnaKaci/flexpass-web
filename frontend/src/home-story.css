@@ -174,9 +174,37 @@
   font:400 13px/1.85 'Inter',sans-serif;
 }
 .home-editorial-invitation{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
   background:#10565C;
   color:#F5EFE4;
   padding:clamp(70px,8.2vw,130px) 0 clamp(67px,8vw,119px);
+}
+/* Full-bleed people-free yoga photograph, with a flat brand-teal overlay
+   to preserve the ivory text's readability. */
+.home-editorial-invitation-photo{
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 52%;
+  display:block;
+  pointer-events:none;
+}
+.home-editorial-invitation::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(7,45,48,.68);
+  z-index:0;
+  pointer-events:none;
+}
+.home-editorial-invitation>.home-editorial-wrap{
+  position:relative;
+  z-index:1;
 }
 .home-editorial-invitation .home-editorial-label{color:#F3DEDF}
 .home-editorial-invitation-heading h2{
@@ -253,6 +281,8 @@
   .home-collection-caption h3{font-size:clamp(32px,4vw,43px)}
 }
 @media(max-width:700px){
+  .home-editorial-invitation-photo{object-position:60% center}
+  .home-editorial-invitation::before{background:rgba(7,45,48,.74)}
   .home-editorial-wrap{padding-inline:22px}
   .home-editorial-introduction,
   .home-editorial-journey-heading{display:block}

@@ -50,3 +50,15 @@ test('mobile collection keeps swipeable cards aligned without vertical clipping'
   assert.match(storyStyles,/scroll-snap-type:x mandatory/);
   assert.match(storyStyles,/object-fit:cover/);
 });
+
+test('homepage invitation uses the supplied people-free photo as a full-bleed background',()=>{
+  const photo=readFileSync(new URL('../public/brand/home-invitation-yoga.webp',import.meta.url));
+  assert.ok(photo.length>10000);
+  assert.equal(photo.toString('ascii',0,4),'RIFF');
+  assert.equal(photo.toString('ascii',8,12),'WEBP');
+  assert.match(home,/className="home-editorial-invitation-photo"/);
+  assert.match(home,/brand\/home-invitation-yoga\.webp/);
+  assert.match(storyStyles,/\.home-editorial-invitation-photo\{[^}]*object-fit:cover/s);
+  assert.match(storyStyles,/\.home-editorial-invitation::before\{[^}]*background:rgba\(7,45,48,\.68\)/s);
+  assert.doesNotMatch(home,/Imagery is illustrative and does not represent specific FlexPass partner venues/);
+});

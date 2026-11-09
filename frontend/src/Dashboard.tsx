@@ -7,6 +7,7 @@ import {Heading,Panel,Stat,StatusTag,useApp} from './App';
 import {BookingDialog,ServiceCard} from './ServicesPage';
 import {ActionDialog} from './Forms';
 import {PartnerCalendar} from './PartnerCalendar';
+import {ClientExplore} from './ClientExplore';
 import {UIIcon} from './UIIcon';
 import type {IconName} from './UIIcon';
 
@@ -106,12 +107,16 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
         <button className="side-link" onClick={()=>{signOut();navigate('/')}}>↪ &nbsp; Sign out</button>
       </div>
     </aside>}
-    <div className="dash-main dashboard-main"><header className="dash-topbar dashboard-topbar">
+    <div className="dash-main dashboard-main"><header className={`dash-topbar dashboard-topbar ${role==='client'&&section==='discover'?'dashboard-topbar-client-explore':''}`}>
       <div className="dashboard-topbar-left">
         {!sidebarOpen&&<button type="button" className="dashboard-menu-toggle dashboard-menu-icon-only" aria-label="Show sidebar" aria-expanded={false} onClick={()=>setSidebarOpen(true)} title="Show sidebar">
           <UIIcon name="menu" size={19}/>
         </button>}
-        <div><small>FlexPass / {role}</small><b>{active[1]}</b></div>
+        <div className="dashboard-page-identity">
+          {role==='client'&&section==='discover'
+            ?<><small>FLEXPASS <span className="dashboard-identity-divider" aria-hidden="true">/</span> CLIENT COLLECTION</small><b>Explore experiences</b></>
+            :<><small>FlexPass / {role}</small><b>{active[1]}</b></>}
+        </div>
       </div>
       <div className="flex-between"><span className="status">● &nbsp; Pilot environment</span></div>
     </header>
@@ -131,7 +136,7 @@ function EmployeeView({section,data,onSection,onBooking,onService,onPurchase,onD
   if(section==='shop')return <><Heading title="Credit packages" subtitle="Choose credits for your FlexPass experiences."/><div className="notice notice-gap">Checkout is not connected. Requesting a package creates a pending bank transfer order. In demo mode, you can simulate payment with no actual funds. Live transfers require independent bank verification.</div><div className="stats three-cols">{data.products.map(p=><div className="panel" key={p.id}><h3>{p.name}</h3><div className="wallet-big"><strong>{p.credits}</strong><span>credits</span></div><p><b>{money(p.price_cents)}</b> · {p.currency}</p><button className="btn btn-primary" onClick={()=>onPurchase(p)}>Request package →</button></div>)}{data.products.length===0&&<div className="notice">No credit packages have been published yet.</div>}</div></>;
   if(section==='orders')return <><Heading title="My purchases" subtitle="Review bank-transfer instructions and payment status."/><div className="notice notice-gap">{bank?.demo_enabled?'DEMO BANK ONLY — no real banking information, transfers or funds. Simulated credits are for testing.':bank?.configured?'Bank transfer instructions are provided for review. Sending money does not automatically credit your wallet.':'Bank transfer instructions are not configured. Do not send money. Contact FlexPass.'}</div><Panel title="Order history"><Table columns={['Package','Amount','Transfer instructions','Status / action']} rows={data.orders.map(o=>[<><b>{o.product}</b><small style={{display:'block'}}>{o.credits} credits</small></>,money(o.amount_cents),<div><b>{bank?.bank_name||'Bank unavailable'}</b><small style={{display:'block'}}>Beneficiary: {bank?.beneficiary||'Not configured'}</small><small style={{display:'block'}}>IBAN: {bank?.iban||'Not configured'}</small><small style={{display:'block'}}>Reference: {o.bank_reference||`FP-ORDER-${String(o.id).padStart(6,'0')}`}</small></div>,<div><StatusTag status={o.status}/>{o.status==='PENDING' && bank?.demo_enabled &&<button className="btn btn-primary btn-sm" onClick={()=>onDemoTransfer(o)} style={{marginTop:12}}>Simulate bank payment →</button>}</div>])}/></Panel><div className="notice notice-gap">DEMO_PAID records a fictional bank payment and demo credits only. PENDING means no confirmed payment. CONFIRMED requires Admin verification of a real external transfer.</div></>;
   if(section==='bookings')return <><Heading title="My bookings" subtitle="Review, attend or cancel reservations."/><Panel title="Booking history"><BookingTable role="employee" bookings={data.bookings} action={onBooking}/></Panel></>;
-  if(section==='discover')return <><Heading title="Explore experiences" subtitle="Available experiences across FlexPass categories."/><div className="tabs">{(Object.keys(labels) as Group[]).map(group=><button className={`tab-btn ${category===group?'active':''}`} key={group} onClick={()=>onCategory(group)}>{labels[group]}</button>)}</div><div className="services-grid">{data.catalog.length?data.catalog.map(s=><ServiceCard service={s} onSelect={onService} key={s.id}/>):<div className="empty"><p>No activities available in this category.</p></div>}</div></>;
+  if(section==='discover')return <ClientExplore category={category} onCategory={onCategory} catalog={data.catalog} onService={onService} summary={s} onWallet={()=>onSection('wallet')}/>;;
   return null;
 }
 function PartnerView({section,data,onSection,onBooking,onForm}:{section:Section;data:AllData;onSection:(v:Section)=>void;onBooking:(b:Booking)=>void;onForm:(f:FormDialog)=>void}){const s=data.partnerSummary!;const {token,notify}=useApp();

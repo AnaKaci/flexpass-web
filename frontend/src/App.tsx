@@ -5,6 +5,8 @@ import type { AppInfo, LoginResult, Role, User } from './types';
 import { TOKEN_KEY, login, pagesPreview, post, request } from './api';
 import { ServicesPage } from './ServicesPage';
 import { Dashboard } from './Dashboard';
+import { UIIcon } from './UIIcon';
+import type {IconName} from './UIIcon';
 
 interface AppContextValue {
   user: User|null;
@@ -25,13 +27,22 @@ function PublicLayout({children}:PropsWithChildren){const {user,info}=useApp();r
   {children}
   <footer className="foot"><div className="container footer-inner"><div className="footer-brand"><Brand/><p>A flexible everyday through wellness, movement and meaningful experiences.</p></div><div className="footer-right"><span className="footer-eyebrow">FLEXPASS · PRIVATE PILOT</span><div className="footlinks"><Link to="/">Home</Link><Link to="/contact">About</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div><span className="footer-fine">© {new Date().getFullYear()} FlexPass · {pagesPreview?'Frontend preview':'Members only'}</span></div></div></footer>
 </>}
+function AuthFrame({children}:{children:ReactNode}){
+  return <main className="auth-page gateway-auth auth-editorial-layout">
+    <div className="auth-card auth-card-refined">{children}</div>
+    <aside className="auth-editorial-aside">
+      <img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Sunlit Mediterranean arch framing the water"/>
+      <div className="auth-visual-caption"><span>THE FLEXPASS WAY OF LIFE</span><p>A healthier, happier <em>everyday.</em></p></div>
+    </aside>
+  </main>;
+}
 function Home(){const {user}=useApp();if(user)return <Navigate to={`/${user.role}`} replace/>;return <PublicLayout><main className="home-page gateway-home">
   <section className="hero editorial-hero container" aria-labelledby="home-title">
     <div className="hero-text">
       <div className="hero-index"><span>THE FLEXPASS WAY OF LIFE</span><span>PRIVATE MEMBERSHIP ACCESS</span></div>
-      <div className="hero-copy"><div className="eyebrow">A FLEXIBLE EVERYDAY</div><h1 id="home-title">More experiences.<br/><em>A more flexible everyday.</em></h1><div className="hero-rule"/><p>Your wellness, movement and lifestyle experiences in one place. Sign in to explore your membership or manage your partner services.</p>
+      <div className="hero-copy"><div className="eyebrow">A FLEXIBLE EVERYDAY</div><h1 id="home-title">More experiences.<br/><em>A more flexible everyday.</em></h1><div className="hero-rule"/><p>Wellbeing, movement and meaningful experiences, brought together with the freedom to choose what suits your day.</p>
         <div className="gateway-access" aria-label="Choose your account type">
-          <Link className="gateway-access-card" to="/login/client"><span className="gateway-card-index">01 / CLIENT ACCESS</span><strong>For members</strong><span>Shop credit packages, book experiences and manage your orders.</span><span className="gateway-card-action">Client sign in ↗</span></Link>
+          <Link className="gateway-access-card" to="/login/client"><span className="gateway-card-index">01 / CLIENT ACCESS</span><strong>For clients</strong><span>Shop credit packages, book experiences and manage your orders.</span><span className="gateway-card-action">Client sign in ↗</span></Link>
           <Link className="gateway-access-card gateway-access-card-business" to="/login/business"><span className="gateway-card-index">02 / BUSINESS ACCESS</span><strong>For partners</strong><span>Manage sessions, reservations and settlements.</span><span className="gateway-card-action">Business sign in ↗</span></Link>
         </div>
       </div>
@@ -40,7 +51,7 @@ function Home(){const {user}=useApp();if(user)return <Navigate to={`/${user.role
     <div className="hero-art"><img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Mediterranean arch overlooking a calm sea"/><div className="hero-art-shade"/><div className="hero-art-caption">A HEALTHIER,<br/><em>HAPPIER EVERYDAY.</em></div><span className="hero-art-index">FLEXPASS</span></div>
   </section>
   <section className="brand-manifesto"><div className="container manifesto-inner"><span className="manifesto-label">MADE FOR YOUR EVERYDAY</span><p>Meaningful experiences start with <em>membership.</em></p><div className="manifesto-stars" aria-hidden="true">✳</div></div></section>
-  <section className="gateway-about container"><span className="eyebrow">YOUR FLEXPASS MEMBERSHIP</span><h2>One platform.<br/><em>Two ways to experience it.</em></h2><p>Clients can register, request credit packages and book experiences. Approved partners can manage available sessions and confirmed visits. Access is provided only to authorized accounts.</p></section>
+  <section className="gateway-about container"><span className="eyebrow">YOUR FLEXPASS MEMBERSHIP</span><h2>One platform.<br/><em>Two ways to experience it.</em></h2><p>Clients can create personal accounts, request credit packages and reserve experiences. Approved business partners manage their services, reservations and visits in a separate workspace.</p></section>
   {pagesPreview&&<div className="container preview-disclaimer">This GitHub Pages build is a visual preview. Account access and live data are available only on the separately hosted full-stack application.</div>}
 </main></PublicLayout>}
 type LoginPortal = 'client'|'partner'|'admin';
@@ -53,7 +64,7 @@ function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=us
   const entry=portalNames[portal];
   if(user)return <Navigate to={`/${user.role}`} replace/>;
   async function submit(e:FormEvent){e.preventDefault();setBusy(true);try{const u=await signIn(email,password,portal);navigate(`/${u.role}`,{replace:true});notify('Signed in successfully.');}catch(err){notify((err as Error).message,true);}finally{setBusy(false)}}
-  return <PublicLayout><main className="auth-page gateway-auth"><div className="auth-card"><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
+  return <PublicLayout><AuthFrame><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
     {pagesPreview?<div className="notice">Account access is disabled on the GitHub Pages preview. Open the separately hosted FlexPass application to sign in.</div>:<form className="stack" onSubmit={submit}>
       <label className="form-field">Email address<input className="input" autoComplete="username" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" required/></label>
       <label className="form-field">Password<input className="input" autoComplete="current-password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
@@ -62,18 +73,18 @@ function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=us
     {info?.demo_mode && import.meta.env.DEV && !pagesPreview && <div className="gateway-demo-hint"><button type="button" className="btn btn-outline btn-sm" onClick={()=>{setEmail(`${portal==='client'?'employee':portal}@flexpass.demo`);setPassword('Demo123!')}}>Use local fictional {portal==='admin'?'admin':portal==='partner'?'partner':'member'} account</button><p className="muted">Local development only; demo passwords are not shown on hosted deployments.</p></div>}
     {portal==='client'&&<p className="gateway-register-link">New to FlexPass? <Link to="/register/client">Register as a client</Link></p>}
     <p className="gateway-return"><Link to="/">← Back to FlexPass</Link></p>
-  </div></main></PublicLayout>;
+  </AuthFrame></PublicLayout>;
 }
 function ClientSignup(){const {notify,user}=useApp();const [fullName,setFullName]=useState('');const [email,setEmail]=useState('');const [busy,setBusy]=useState(false);const [registered,setRegistered]=useState(false);
   if(user)return <Navigate to={`/${user.role}`} replace/>;
   async function submit(e:FormEvent){e.preventDefault();setBusy(true);try{await post('/auth/register','',{full_name:fullName,email});setRegistered(true);}catch(err){notify((err as Error).message,true)}finally{setBusy(false)}}
-  return <PublicLayout><main className="auth-page gateway-auth"><div className="auth-card"><div className="eyebrow">CREATE YOUR FLEXPASS ACCOUNT</div><h1>Register as a client</h1><p>Personal registration gives you access to the FlexPass experience catalog. Purchase requests do not charge your card: orders require confirmation before credits are issued.</p>
+  return <PublicLayout><AuthFrame><div className="eyebrow">CREATE YOUR FLEXPASS ACCOUNT</div><h1>Register as a client</h1><p>Personal registration gives you access to the FlexPass experience catalog. Purchase requests do not charge your card: orders require confirmation before credits are issued.</p>
     {pagesPreview?<div className="notice">Registration is available on the full FlexPass application hosted on Render.</div>:registered?<div className="notice">Registration received. Check your email for a one-time activation link. Once activated, sign in from the Client portal.</div>:<form className="stack" onSubmit={submit}>
       <label className="form-field">Full name<input className="input" value={fullName} onChange={e=>setFullName(e.target.value)} minLength={2} maxLength={160} autoComplete="name" required/></label>
       <label className="form-field">Email address<input className="input" value={email} onChange={e=>setEmail(e.target.value)} type="email" maxLength={200} autoComplete="email" required/></label>
       <button className="btn btn-primary" type="submit" disabled={busy}>{busy?'Submitting…':'Register →'}</button>
     </form>}
-    <p className="gateway-return"><Link to="/login/client">← Already registered? Client sign in</Link></p></div></main></PublicLayout>;
+    <p className="gateway-return"><Link to="/login/client">← Already registered? Client sign in</Link></p></AuthFrame></PublicLayout>;
 }
 function Register(){const {notify,user}=useApp();const navigate=useNavigate();const [search]=useSearchParams();const [token,setToken]=useState(search.get('token')||'');const [password,setPassword]=useState('');const [confirm,setConfirm]=useState('');const [busy,setBusy]=useState(false);const [success,setSuccess]=useState(false);
   if(user)return <Navigate to={`/${user.role}`} replace/>;
@@ -81,7 +92,7 @@ function Register(){const {notify,user}=useApp();const navigate=useNavigate();co
     try{const result=await post<{status:string;role:Role}>('/auth/activate','',{token,password});setSuccess(true);notify('Account activated. You can now sign in.');navigate(result.role==='partner'?'/login/business':'/login/client',{replace:true});}
     catch(err){notify((err as Error).message,true)}finally{setBusy(false)}
   }
-  return <PublicLayout><main className="auth-page gateway-auth"><div className="auth-card"><div className="eyebrow">ACCOUNT ACTIVATION</div><h1>Create your account</h1><p>Use the individual invitation sent by FlexPass. Business accounts are invited by FlexPass. Client accounts use the separate registration form.</p>
+  return <PublicLayout><AuthFrame><div className="eyebrow">ACCOUNT ACTIVATION</div><h1>Create your account</h1><p>Use the individual invitation sent by FlexPass. Business accounts are invited by FlexPass. Client accounts use the separate registration form.</p>
     {pagesPreview?<div className="notice">Activation is available on the full-stack Render application, not GitHub Pages.</div>:success?<div className="notice">Your account is active. Continue to your sign-in page.</div>:<form className="stack" onSubmit={submit}>
       <label className="form-field">Invitation code<input className="input" type="text" autoComplete="off" value={token} onChange={e=>setToken(e.target.value)} required minLength={32} placeholder="Paste your invitation code"/></label>
       <label className="form-field">Create password<input className="input" type="password" autoComplete="new-password" minLength={12} maxLength={256} value={password} onChange={e=>setPassword(e.target.value)} required/></label>
@@ -89,7 +100,7 @@ function Register(){const {notify,user}=useApp();const navigate=useNavigate();co
       <button className="btn btn-primary" disabled={busy}>{busy?'Activating…':'Activate account →'}</button>
     </form>}
     <div className="notice" style={{marginTop:20}}>Activation links expire after 24 hours. Contact FlexPass if your link has expired.</div><p className="gateway-return"><Link to="/login/client">← Client sign in</Link></p>
-  </div></main></PublicLayout>;
+  </AuthFrame></PublicLayout>;
 }
 function StaticPage({kind}:{kind:'contact'|'privacy'|'terms'}){const contents={contact:['Request access','FlexPass is a private-launch B2B pilot. Contact the project team through your organization to join an approved pilot.','Online application and payment are intentionally not enabled in the MVP.'],privacy:['Privacy notice','This is an MVP preview with fictional services. Do not enter real personal or payment information.','A reviewed production privacy policy is required before a public pilot.'],terms:['Terms of use','This project is a functional MVP demonstration, not a live consumer service.','Booking and cancellation policies must be approved before real-world operation.']} as const;const [title,body,note]=contents[kind];return <PublicLayout><main className="content-page"><div className="eyebrow">FlexPass</div><h1>{title}</h1><p>{body}</p><div className="notice">{note}</div><p style={{marginTop:22}}><Link to="/" className="btn btn-primary">Back to FlexPass</Link></p></main></PublicLayout>}
 function Authenticated({role}:{role:Role}){const {user}=useApp();if(!user)return <Navigate to={role==='admin'?'/admin/login':role==='partner'?'/login/business':'/login/client'} replace/>;if(user.role!==role)return <Navigate to={`/${user.role}`} replace/>;return <Dashboard role={role}/>;}
@@ -111,11 +122,21 @@ export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem
     <Route path="/client" element={<Authenticated role="client"/>}/><Route path="/employee" element={<Authenticated role="client"/>}/><Route path="/partner" element={<Authenticated role="partner"/>}/><Route path="/admin" element={<Authenticated role="admin"/>}/><Route path="*" element={<Navigate to="/" replace/>}/>
   </Routes>{message&&<div role="status" className={`toast-fixed ${message.error?'toast-error':''}`}>{message.body}</div>}</AppContext.Provider>;
 }
-export function StatusTag({status}:{status:string}){return <span className={`status status-${status}`}>{status.replace(/_/g,' ')}</span>}
+export function StatusTag({status}:{status:string}){return <span className={`status status-${status}`}><span aria-hidden="true" className="status-dot"/>{status.replace(/_/g,' ')}</span>}
 export function Panel({title,children,action}:{title:string;children:ReactNode;action?:ReactNode}){return <div className="panel"><div className="panel-header"><h3>{title}</h3>{action}</div>{children}</div>}
-export function Stat({icon,label,value,small}:{icon:string;label:string;value:string|number;small?:string}){return <div className="stat"><span className="stat-icon">{icon}</span><label>{label}</label><strong>{value}</strong><small>{small}</small></div>}
+function statIcon(label:string):IconName{
+  const value=label.toLowerCase();
+  if(value.includes('booking')||value.includes('reservations')||value.includes('visits'))return 'calendar';
+  if(value.includes('credit')||value.includes('wallet'))return 'credit';
+  if(value.includes('client')||value.includes('employee'))return 'users';
+  if(value.includes('partner')||value.includes('services'))return 'store';
+  if(value.includes('orders')||value.includes('invoice')||value.includes('requests'))return 'receipt';
+  if(value.includes('earn')||value.includes('payable'))return 'wallet';
+  return 'activity';
+}
+export function Stat({icon,label,value,small}:{icon:string;label:string;value:string|number;small?:string}){return <div className="stat"><span className="stat-icon" aria-hidden="true"><UIIcon name={statIcon(label)} size={21}/></span><span className="stat-label">{label}</span><strong>{value}</strong>{small&&<small>{small}</small>}</div>}
 export function Heading({title,subtitle,action}:{title:string;subtitle:string;action?:ReactNode}){return <div className="page-heading"><div><h1>{title}</h1><p>{subtitle}</p></div>{action}</div>}
 export function Modal({title,subtitle,children,onClose}:{title:string;subtitle?:string;children:ReactNode;onClose:()=>void}){
   useEffect(()=>{const cb=(e:KeyboardEvent)=>{if(e.key==='Escape')onClose()};window.addEventListener('keydown',cb);return()=>window.removeEventListener('keydown',cb)},[onClose]);
-  return <div className="modal-layer" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><div className="modal" role="dialog" aria-modal="true" aria-label={title}><div className="modal-head"><div><h2>{title}</h2><p>{subtitle||''}</p></div><button className="icon-button" onClick={onClose} aria-label="Close">✕</button></div>{children}</div></div>;
+  return <div className="modal-layer" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><div className="modal" role="dialog" aria-modal="true" aria-label={title}><div className="modal-head"><div><h2>{title}</h2><p>{subtitle||''}</p></div><button className="icon-button" onClick={onClose} aria-label="Close dialog"><UIIcon name="close" size={19}/></button></div>{children}</div></div>;
 }

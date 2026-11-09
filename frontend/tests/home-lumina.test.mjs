@@ -31,3 +31,9 @@ test('hero keeps only the two existing Client and Business login routes',()=>{
   assert.match(code,/visibilitychange/);
   assert.doesNotMatch(code,/https:\/\//); // no remote image/script dependencies
 });
+
+test('decorative slide counter is removed without disabling interactive navigation',()=>{
+  assert.doesNotMatch(code,/lumina-hero-index/);
+  assert.match(code,/lumina-hero-navigation/);
+  assert.match(code,/onClick=\{\(\)=>select\(index\)\}/);
+});

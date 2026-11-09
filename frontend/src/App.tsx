@@ -6,6 +6,7 @@ import { TOKEN_KEY, login, pagesPreview, post, request } from './api';
 import { ServicesPage } from './ServicesPage';
 import { Dashboard } from './Dashboard';
 import { UIIcon } from './UIIcon';
+import { BrandLogo } from './BrandLogo';
 import type {IconName} from './UIIcon';
 
 interface AppContextValue {
@@ -18,7 +19,7 @@ interface AppContextValue {
 }
 const AppContext=createContext<AppContextValue|null>(null);
 export function useApp(){const value=useContext(AppContext);if(!value)throw new Error('Missing app context');return value;}
-function Brand(){return <Link className="logo" to="/" aria-label="FlexPass home"><span className="brand-monogram" aria-hidden="true">FP</span><span className="brand-wordmark"><strong>FLEXPASS</strong><small>A FLEXIBLE EVERYDAY</small></span></Link>;}
+function Brand({tone="teal"}:{tone?:"teal"|"ivory"}){return <Link className="logo official-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone={tone} decorative/></Link>;}
 function PublicLayout({children,home=false}:PropsWithChildren<{home?:boolean}>){const {user,info}=useApp();return <>
   {!home&&<div className="top-strip"><span>{pagesPreview?'FRONTEND PREVIEW · ACCOUNTS UNAVAILABLE':info?.demo_mode?'PRIVATE DEMO ENVIRONMENT · FICTIONAL DATA':'A FLEXIBLE EVERYDAY · MEMBERS ONLY'}</span></div>}
   <header className={`site-header ${home?'quiet-public-header':''}`}>
@@ -32,11 +33,11 @@ function PublicLayout({children,home=false}:PropsWithChildren<{home?:boolean}>){
     </div>
   </header>
   {children}
-  <footer className={`foot ${home?'quiet-home-footer':''}`}><div className="container footer-inner"><div className="footer-brand"><Brand/><p>A flexible everyday through wellness, movement and meaningful experiences.</p></div><div className="footer-right"><span className="footer-eyebrow">FLEXPASS · PRIVATE PILOT</span><div className="footlinks"><Link to="/">Home</Link><Link to="/contact">About</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div><span className="footer-fine">© {new Date().getFullYear()} FlexPass · {pagesPreview?'Frontend preview':'Members only'}</span></div></div></footer>
+  <footer className={`foot ${home?'quiet-home-footer':''}`}><div className="container footer-inner"><div className="footer-brand"><Brand tone="ivory"/><p>A flexible everyday through wellness, movement and meaningful experiences.</p></div><div className="footer-right"><span className="footer-eyebrow">FLEXPASS · PRIVATE PILOT</span><div className="footlinks"><Link to="/">Home</Link><Link to="/contact">About</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div><span className="footer-fine">© {new Date().getFullYear()} FlexPass · {pagesPreview?'Frontend preview':'Members only'}</span></div></div></footer>
 </>}
 function AuthFrame({children}:{children:ReactNode}){
   return <main className="auth-page gateway-auth auth-editorial-layout">
-    <div className="auth-card auth-card-refined">{children}</div>
+    <div className="auth-card auth-card-refined"><BrandLogo variant="monogram" className="auth-official-monogram" decorative/>{children}</div>
     <aside className="auth-editorial-aside">
       <img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Sunlit Mediterranean arch framing the water"/>
       <div className="auth-visual-caption"><span>THE FLEXPASS WAY OF LIFE</span><p>A healthier, happier <em>everyday.</em></p></div>
@@ -49,7 +50,7 @@ function Home(){
   return <PublicLayout home><main className="home-page quiet-home">
     <section className="quiet-hero" aria-labelledby="home-title">
       <div className="quiet-hero-content">
-        <div className="quiet-hero-kicker">FLEXPASS <span aria-hidden="true">/</span> A FLEXIBLE EVERYDAY</div>
+        <div className="quiet-hero-kicker"><BrandLogo variant="monogram" tone="ivory" className="quiet-hero-official-monogram" decorative/><span>A FLEXIBLE EVERYDAY</span></div>
         <div className="quiet-hero-intro">
           <h1 id="home-title">More experiences.<br/><em>A more flexible everyday.</em></h1>
           <p>Wellbeing, movement and lifestyle experiences, on your terms.</p>

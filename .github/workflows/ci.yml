@@ -39,4 +39,7 @@ jobs:
             grep -q '<svg' "dist/brand/$asset"
           done
           grep -q 'brand/flexpass-monogram.svg' dist/index.html
+          test -s dist/brand/apple-touch-icon.png
+          file --mime-type dist/brand/apple-touch-icon.png | grep -q 'image/png'
+          grep -q 'apple-touch-icon.png' dist/index.html
           if grep -q '%BASE_URL%' dist/index.html; then exit 1; fi

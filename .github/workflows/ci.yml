@@ -25,12 +25,13 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npm run typecheck
-      - run: node --test tests/client-booking-timeline.test.mjs
+      - run: node --test tests/*.test.mjs
       - run: npm run build
       - name: Verify brand photography is included in release
         run: |
           test -s dist/brand/arch-view.jpg
           file --mime-type dist/brand/arch-view.jpg | grep -q 'image/jpeg'
+          for image in spa pilates yoga padel; do test -s "dist/brand/hero-${image}.webp"; done
       - name: Verify official logo assets and favicon
         run: |
           for asset in flexpass-full.svg flexpass-monogram.svg flexpass-full-ivory.svg flexpass-monogram-ivory.svg; do

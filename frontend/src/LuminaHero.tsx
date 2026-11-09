@@ -123,7 +123,6 @@ export function LuminaHero(){
         onError={photoFallback}
       />)}
       <div className="lumina-hero-scrim"/>
-      <span className="lumina-hero-image-disclosure">Concept imagery · Illustrative experiences</span>
     </div>
 
     <nav ref={navRef} className={`lumina-hero-navigation ${paused?'is-paused':''}`}

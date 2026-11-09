@@ -7,6 +7,7 @@ import { ServicesPage } from './ServicesPage';
 import { Dashboard } from './Dashboard';
 import { UIIcon } from './UIIcon';
 import { BrandLogo } from './BrandLogo';
+import { LuminaHero } from './LuminaHero';
 import type {IconName} from './UIIcon';
 
 interface AppContextValue {
@@ -70,32 +71,7 @@ function Home(){
   const {user}=useApp();
   if(user)return <Navigate to={`/${user.role}`} replace/>;
   return <PublicLayout home><main className="home-page quiet-home">
-    <section className="quiet-hero" aria-labelledby="home-title">
-      <div className="quiet-hero-content">
-        <div className="quiet-hero-kicker"><BrandLogo variant="monogram" tone="ivory" className="quiet-hero-official-monogram" decorative/><span>A FLEXIBLE EVERYDAY</span></div>
-        <div className="quiet-hero-intro">
-          <h1 id="home-title">More experiences.<br/><em>A more flexible everyday.</em></h1>
-          <p>Wellbeing, movement and lifestyle experiences, on your terms.</p>
-        </div>
-        <nav className="quiet-entry-list" aria-label="Choose how to enter FlexPass">
-          <Link to="/login/client" className="quiet-entry quiet-entry-client">
-            <span className="quiet-entry-number">01 / CLIENT</span>
-            <span className="quiet-entry-body"><strong>Client login</strong><small>Explore experiences and manage your bookings.</small></span>
-            <UIIcon name="arrow" size={22}/>
-          </Link>
-          <Link to="/login/business" className="quiet-entry quiet-entry-business">
-            <span className="quiet-entry-number">02 / BUSINESS</span>
-            <span className="quiet-entry-body"><strong>Business login</strong><small>Manage services and reservations.</small></span>
-            <UIIcon name="arrow" size={22}/>
-          </Link>
-        </nav>
-        <div className="quiet-hero-footnote">WELLBEING <span aria-hidden="true">·</span> MOVEMENT <span aria-hidden="true">·</span> LIFESTYLE</div>
-      </div>
-      <div className="quiet-hero-image">
-        <img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Sunlit Mediterranean stone arch framing calm blue water" decoding="async" fetchPriority="high"/>
-        <span className="quiet-hero-image-label">THE FLEXPASS WAY OF LIFE</span>
-      </div>
-    </section>
+    <LuminaHero/>
     <section className="quiet-statement" aria-labelledby="quiet-statement-title">
       <div className="quiet-statement-inner">
         <span className="quiet-statement-eyebrow">OUR PHILOSOPHY</span>

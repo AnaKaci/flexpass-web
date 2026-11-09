@@ -41,7 +41,26 @@ function BookingTable({bookings,role,action}:{bookings:Booking[];role:'employee'
 }
 function SummaryCards({items}:{items:Array<[string,string,string|number,string?]>}){return <div className="stats">{items.map(([icon,label,value,small])=><Stat key={label} icon={icon} label={label} value={value} small={small}/>)}</div>}
 const ERROR_MESSAGE='Could not load this dashboard. Check the API server and sign in again.';
-export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,info}=useApp();const navigate=useNavigate();const [section,setSection]=useState<Section>('overview');const [data,setData]=useState<AllData>(emptyData);const [category,setCategory]=useState<Group>('fitness');const [selectedService,setSelectedService]=useState<Service|null>(null);const [form,setForm]=useState<FormDialog|null>(null);const [revision,setRevision]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [showDemoSetup,setShowDemoSetup]=useState(false);const [clientDemoPassword,setClientDemoPassword]=useState('');const [businessDemoPassword,setBusinessDemoPassword]=useState('');const [demoSetupBusy,setDemoSetupBusy]=useState(false);const refresh=useCallback(()=>setRevision(x=>x+1),[]);
+export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,info}=useApp();const navigate=useNavigate();const [section,setSection]=useState<Section>('overview');const [data,setData]=useState<AllData>(emptyData);const [category,setCategory]=useState<Group>('fitness');const [selectedService,setSelectedService]=useState<Service|null>(null);const [form,setForm]=useState<FormDialog|null>(null);const [revision,setRevision]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [showDemoSetup,setShowDemoSetup]=useState(false);const [clientDemoPassword,setClientDemoPassword]=useState('');const [businessDemoPassword,setBusinessDemoPassword]=useState('');const [demoSetupBusy,setDemoSetupBusy]=useState(false);const [isNarrowScreen,setIsNarrowScreen]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(max-width:760px)').matches);const [sidebarOpen,setSidebarOpen]=useState(()=>typeof window==='undefined'||!window.matchMedia('(max-width:760px)').matches);const refresh=useCallback(()=>setRevision(x=>x+1),[]);
+  useEffect(()=>{
+    const media=window.matchMedia('(max-width:760px)');
+    const onChange=()=>{setIsNarrowScreen(media.matches);setSidebarOpen(!media.matches)};
+    media.addEventListener('change',onChange);
+    return()=>media.removeEventListener('change',onChange);
+  },[]);
+  useEffect(()=>{
+    if(!sidebarOpen)return;
+    const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape')setSidebarOpen(false)};
+    document.addEventListener('keydown',onKey);
+    return()=>document.removeEventListener('keydown',onKey);
+  },[sidebarOpen]);
+  useEffect(()=>{
+    if(!isNarrowScreen||!sidebarOpen)return;
+    const before=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    return()=>{document.body.style.overflow=before};
+  },[isNarrowScreen,sidebarOpen]);
+  function changeSection(next:Section){setSection(next);if(isNarrowScreen)setSidebarOpen(false)}
   useEffect(()=>{let valid=true;setLoading(true);setError('');
     const get=<T,>(path:string)=>request<T>(path,token);
     async function load(){
@@ -69,10 +88,31 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
   function checkIn(b:Booking){if(!window.confirm(`Confirm arrival for ${b.user} (${b.reference})? This action cannot be repeated.`))return;void mutate(`/partner/bookings/${b.id}/checkin`)}
   const active=menu[role].find(row=>row[0]===section)||menu[role][0];
   if(!user)return null;
-  return <div className="app-shell"><aside className="sidebar"><Link className="logo" to="/"><span className="logo-mark">✳</span>FlexPass</Link><div className="side-label">{role[0].toUpperCase()+role.slice(1)} workspace</div><nav className="side-nav" aria-label={`${role} workspace`}>
-    {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} onClick={()=>setSection(name)}><span className="side-ico">{icon}</span>{label}</button>)}</nav>
-    <div className="sidebar-bottom"><div className="profile-pill"><div className="avatar">{user.full_name.slice(0,1)}</div><div><b>{user.full_name}</b><small>{user.email}</small></div></div><button className="side-link" onClick={()=>{signOut();navigate('/')}}>↪ &nbsp; Sign out</button></div></aside>
-    <div className="dash-main"><header className="dash-topbar"><div><small>FlexPass / {role}</small><b>{active[1]}</b></div><div className="flex-between"><span className="status">● &nbsp; Pilot environment</span></div></header>
+  return <div className={`app-shell dashboard-app-shell ${sidebarOpen?'sidebar-expanded':'sidebar-collapsed'}`}>
+    {isNarrowScreen&&sidebarOpen&&<button type="button" className="dashboard-sidebar-backdrop" aria-label="Close navigation menu" onClick={()=>setSidebarOpen(false)}/>}
+    {sidebarOpen&&<aside id="dashboard-sidebar" className="sidebar dashboard-sidebar" aria-label={`${role} navigation`}>
+      <div className="dashboard-sidebar-heading">
+        <Link className="logo" to="/"><span className="logo-mark">✳</span>FlexPass</Link>
+        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(false)} aria-label="Collapse sidebar" title="Collapse sidebar">×</button>
+      </div>
+      <div className="side-label">{role[0].toUpperCase()+role.slice(1)} workspace</div>
+      <nav className="side-nav" aria-label={`${role} workspace`}>
+        {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} aria-current={name===section?'page':undefined} onClick={()=>changeSection(name)}><span className="side-ico">{icon}</span>{label}</button>)}
+      </nav>
+      <div className="sidebar-bottom">
+        <div className="profile-pill"><div className="avatar">{user.full_name.slice(0,1)}</div><div><b>{user.full_name}</b><small>{user.email}</small></div></div>
+        <button className="side-link" onClick={()=>{signOut();navigate('/')}}>↪ &nbsp; Sign out</button>
+      </div>
+    </aside>}
+    <div className="dash-main dashboard-main"><header className="dash-topbar dashboard-topbar">
+      <div className="dashboard-topbar-left">
+        <button type="button" className="dashboard-menu-toggle" aria-label={sidebarOpen?'Hide sidebar':'Show sidebar'} aria-expanded={sidebarOpen} aria-controls={sidebarOpen?'dashboard-sidebar':undefined} onClick={()=>setSidebarOpen(open=>!open)} title={sidebarOpen?'Hide sidebar to enlarge the page':'Show sidebar'}>
+          <span aria-hidden="true">☰</span><span className="dashboard-menu-toggle-label">{sidebarOpen?'Hide menu':'Show menu'}</span>
+        </button>
+        <div><small>FlexPass / {role}</small><b>{active[1]}</b></div>
+      </div>
+      <div className="flex-between"><span className="status">● &nbsp; Pilot environment</span></div>
+    </header>
       <main className="dash-content">{loading?<div className="loading">Loading workspace...</div>:error?<div className="notice warn"><b>{ERROR_MESSAGE}</b><p>{error}</p><button className="btn btn-outline btn-sm" onClick={refresh}>Retry</button></div>:<>
         {role==='client'&&data.employeeSummary&&<EmployeeView section={section} data={data} onSection={setSection} onBooking={cancelBooking} onService={setSelectedService} onPurchase={requestPurchase} onDemoTransfer={demoBankTransfer} bank={info?.bank_transfer} category={category} onCategory={setCategory}/>}
         {role==='partner'&&data.partnerSummary&&(section==='calendar'?<PartnerCalendar initialBookings={data.bookings}/>:<PartnerView section={section} data={data} onSection={setSection} onBooking={checkIn} onForm={setForm}/>)}

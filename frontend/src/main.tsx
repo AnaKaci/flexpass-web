@@ -8,6 +8,7 @@ import './extras.css';
 import './brand.css';
 import './gateway.css';
 import './dashboard-sidebar.css';
+import './refined.css';
 
 // Hash routing avoids GitHub Pages 404 responses on client-side routes.
 const Router = pagesPreview ? HashRouter : BrowserRouter;

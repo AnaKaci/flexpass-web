@@ -187,6 +187,7 @@ class Audit(Base):
 class LoginBody(BaseModel):
     email: str
     password: str
+    portal: Optional[str] = None
 class BookBody(BaseModel):
     slot_id: int
 class CompanyBody(BaseModel):
@@ -290,18 +291,30 @@ def health():
 def info():
     return {'app':'FlexPass','preview':True,'seeded':DEMO_MODE,'demo_mode':DEMO_MODE,'groups':GROUPS,'zones':ZONES,'subcategories':SUBCATS,'tagline':'Private-launch access pass for premium daily services, real booking, and hard-to-reach routines.'}
 
-@app.post('/api/auth/login')
-def login(body:LoginBody):
+def authenticate_portal(body:LoginBody, allowed_roles):
+    # The selected portal is verified on the server. The admin portal is isolated
+    # from employee/partner login even when credentials are otherwise valid.
     with Session() as s:
         u=s.scalar(select(User).where(User.email==body.email.strip().lower()))
-        if not u or not match_pass(body.password,u.password_hash) or u.membership_status!='ACTIVE' or u.role not in ('admin','partner','employee'): raise HTTPException(401,'Invalid credentials or inactive account')
+        if (not u or not match_pass(body.password,u.password_hash)
+            or u.membership_status!='ACTIVE' or u.role not in allowed_roles
+            or (body.portal and body.portal != u.role)):
+            raise HTTPException(401,'Invalid credentials for this portal')
         return {'token':token_for(u),'user':user_view(u)}
+
+@app.post('/api/auth/login')
+def login(body:LoginBody):
+    return authenticate_portal(body, ('employee','partner'))
+
+@app.post('/api/auth/admin/login')
+def admin_login(body:LoginBody):
+    return authenticate_portal(body, ('admin',))
 
 @app.get('/api/auth/me')
 def me(u=Depends(get_user)):return user_view(u)
 
 @app.get('/api/catalog')
-def catalog(group:Optional[str]=None,subcategory:Optional[str]=None,search:str='',zone:str='',maxCredits:Optional[int]=None):
+def catalog(group:Optional[str]=None,subcategory:Optional[str]=None,search:str='',zone:str='',maxCredits:Optional[int]=None,u=Depends(get_user)):
     with Session() as s:
         q=select(Service,Partner).join(Partner,Service.partner_id==Partner.id).where(Service.active==True,Partner.status=='ACTIVE')
         if group and group in GROUPS:q=q.where(Service.group_name==group)
@@ -618,6 +631,9 @@ if DIST.is_dir():
 @app.get('/')
 @app.get('/services')
 @app.get('/login')
+@app.get('/login/client')
+@app.get('/login/business')
+@app.get('/admin/login')
 @app.get('/contact')
 @app.get('/privacy')
 @app.get('/terms')

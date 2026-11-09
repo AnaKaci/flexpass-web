@@ -355,3 +355,34 @@
   }
   .quiet-hero-image img{opacity:1;transform:none}
 }
+
+/* Homepage only: shorten the navigation bar without changing the official logo
+   proportions, login links, or the headers used by any other page. */
+.site-header.quiet-public-header .header-row{
+  min-height:94px;
+  padding-block:5px;
+}
+.site-header.quiet-public-header .official-brand-link .official-brand-logo-full{
+  width:115px;
+  height:82px;
+}
+@media(max-width:1050px){
+  .site-header.quiet-public-header .header-row{
+    min-height:86px;
+    padding-block:5px;
+  }
+  .site-header.quiet-public-header .official-brand-link .official-brand-logo-full{
+    width:108px;
+    height:77px;
+  }
+}
+@media(max-width:600px){
+  .site-header.quiet-public-header .header-row{
+    min-height:76px;
+    padding-block:4px;
+  }
+  .site-header.quiet-public-header .official-brand-link .official-brand-logo-full{
+    width:98px;
+    height:68px;
+  }
+}

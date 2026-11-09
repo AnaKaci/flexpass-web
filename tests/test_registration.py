@@ -28,7 +28,7 @@ def test_client_must_be_invited_and_can_activate_once():
     assert client.post('/api/auth/activate',json={'token':'wrong'*12,'password':'SamplePassword123!'}).status_code==400
     activated=client.post('/api/auth/activate',json={'token':token,'password':'SamplePassword123!'})
     assert activated.status_code==200,activated.text
-    assert activated.json()['role']=='employee'
+    assert activated.json()['role']=='client'
     assert client.post('/api/auth/activate',json={'token':token,'password':'SamplePassword123!'}).status_code==400
     sign_in=client.post('/api/auth/login',json={'email':'invited.qa.member@example.test','password':'SamplePassword123!','portal':'employee'})
     assert sign_in.status_code==200

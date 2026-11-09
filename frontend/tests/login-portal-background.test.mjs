@@ -11,7 +11,9 @@ test('original Pilates photograph is bundled as a valid self-hosted WebP',()=>{
   assert.equal(bytes.toString('ascii',0,4),'RIFF');
   assert.equal(bytes.toString('ascii',8,12),'WEBP');
   assert.match(app,/brand\/login-pilates\.webp/);
-  assert.match(app,/<aside className="auth-photo-panel" style=\{\{backgroundImage:/);
+  assert.ok(app.includes('className="auth-photo-backdrop" aria-hidden="true"'));
+  assert.ok(app.includes('<img src={photoUrl} alt=""/>'));
+  assert.ok(!app.includes('className="auth-photo-panel"'));
 });
 
 test('same image-led frame is shared by login, signup and activation',()=>{
@@ -23,13 +25,18 @@ test('same image-led frame is shared by login, signup and activation',()=>{
   assert.ok(!app.includes('auth-editorial-layout'));
 });
 
-test('desktop grid contains two assigned columns and blurred visible photo',()=>{
-  assert.match(styles,/\.auth-page\.auth-photo-stage\{[^}]*display:grid;[^}]*grid-template-columns:/s);
-  assert.match(styles,/\.auth-page\.auth-photo-stage > \.auth-card-refined\{[^}]*grid-column:1;/s);
-  assert.match(styles,/\.auth-page\.auth-photo-stage > \.auth-photo-panel\{[^}]*display:block;[^}]*grid-column:2;/s);
-  assert.match(styles,/\.auth-page\.auth-photo-stage \.auth-photo-panel img\{[^}]*object-fit:cover;[^}]*filter:blur\(5px\)/s);
-  assert.match(styles,/@media\(max-width:760px\)/);
-  assert.match(styles,/\.auth-page\.auth-photo-stage > \.auth-photo-panel\{[^}]*order:-1;/s);
+test('Pilates image fills the entire auth viewport behind the centered form card',()=>{
+  assert.ok(styles.includes('.auth-page.auth-photo-stage{'));
+  assert.ok(styles.includes('min-height:100svh;'));
+  assert.ok(styles.includes('width:100%;\n  max-width:none;'));
+  assert.ok(styles.includes('> .auth-photo-backdrop{'));
+  assert.ok(styles.includes('object-fit:cover;'));
+  assert.ok(styles.includes('filter:blur(1.25px);'));
+  assert.ok(styles.includes('> .auth-card-refined{'));
+  assert.ok(styles.includes('z-index:2;'));
+  assert.ok(!styles.includes('grid-template-columns:'));
+  assert.ok(!styles.includes('.auth-photo-panel'));
+  assert.ok(styles.includes('@media(max-width:760px)'));
 });
 
 test('role-specific login autofill and real authentication are preserved',()=>{

@@ -756,6 +756,15 @@ def admin_summary(u=Depends(roles('admin'))):
         bookings=s.scalars(select(Booking)).all()
         return {'companies':count(Company),'employees':s.scalar(select(func.count(User.id)).where(User.role=='employee')),'partners':count(Partner),'services':count(Service),'bookings':len(bookings),'visits':sum(x.status=='CHECKED_IN' for x in bookings),'clients':s.scalar(select(func.count(User.id)).where(User.role.in_(['client','employee']))),'orders_pending':s.scalar(select(func.count(ClientOrder.id)).where(ClientOrder.status=='PENDING')),'credits_issued':s.scalar(select(func.coalesce(func.sum(Ledger.amount),0)).where(Ledger.kind=='ALLOCATION')),'partner_payables_cents':sum(x.payout_snapshot_cents for x in bookings if x.status=='CHECKED_IN')}
 
+@app.get('/api/admin/clients')
+def admin_clients(u=Depends(roles('admin'))):
+    with Session() as s:
+        rows=s.scalars(select(User).where(User.role.in_(['client','employee'])).order_by(User.id.desc())).all()
+        return [{'id':client.id,'name':client.full_name,'email':client.email,
+                 'status':client.membership_status,'balance':balance(s,client.id),
+                 'orders':s.scalar(select(func.count(ClientOrder.id)).where(ClientOrder.client_id==client.id)),
+                 'legacy':client.role=='employee'} for client in rows]
+
 @app.get('/api/admin/companies')
 def companies(u=Depends(roles('admin'))):
     with Session() as s:return [{'id':c.id,'name':c.name,'hr_email':c.hr_email,'status':c.status,'employees':s.scalar(select(func.count(User.id)).where(User.company_id==c.id,User.role=='employee'))} for c in s.scalars(select(Company).order_by(Company.name)).all()]
@@ -943,6 +952,10 @@ def seed():
                 date=(now()+timedelta(days=days)).replace(hour=9+(sv.id%8),minute=0,second=0,microsecond=0)
                 s.add(Slot(service_id=sv.id,start_at=date,capacity=6+(sv.id%4),reserved=0))
         demo_passwords = {role: os.environ.get(f'FLEXPASS_DEMO_{role.upper()}_PASSWORD', 'Demo123!') for role in ('admin', 'employee', 'partner')}
+        products=[CreditProduct(name='Trial Pack',credits=10,price_cents=150000),
+                  CreditProduct(name='Everyday Pack',credits=25,price_cents=320000),
+                  CreditProduct(name='Flex Pack',credits=50,price_cents=550000)]
+        s.add_all(products)
         users=[User(email='admin@flexpass.demo',full_name='FlexPass Admin',password_hash=hash_pass(demo_passwords['admin']),role='admin'),User(email='employee@flexpass.demo',full_name='Alex Demo',password_hash=hash_pass(demo_passwords['employee']),role='employee',company_id=c1.id,plan_id=p2.id),User(email='partner@flexpass.demo',full_name='Studio Manager',password_hash=hash_pass(demo_passwords['partner']),role='partner',partner_id=partners[0].id)]
         s.add_all(users);s.flush()
         s.add(Ledger(user_id=users[1].id,kind='ALLOCATION',amount=30,period=now().strftime('%Y-%m'),actor_id=users[0].id,reason='Pilot monthly allowance'))
@@ -960,6 +973,7 @@ if DIST.is_dir():
 @app.get('/login/client')
 @app.get('/login/business')
 @app.get('/register')
+@app.get('/register/client')
 @app.get('/admin/login')
 @app.get('/contact')
 @app.get('/privacy')

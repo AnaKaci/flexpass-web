@@ -43,7 +43,7 @@ def test_production_admin_bootstrap_has_no_demo_accounts(tmp_path):
 from backend.app import app
 c = TestClient(app)
 assert c.get('/api/health').json() == {'status': 'ok'}
-assert c.post('/api/auth/login', json={'email':'owner@example.test', 'password':'CorrectHorseBattery99!'}).status_code == 200
+assert c.post('/api/auth/admin/login', json={'email':'owner@example.test', 'password':'CorrectHorseBattery99!', 'portal':'admin'}).status_code == 200
 assert c.post('/api/auth/login', json={'email':'admin@flexpass.demo', 'password':'Demo123!'}).status_code == 401
 assert c.get('/api/info').json()['demo_mode'] is False
 ''')

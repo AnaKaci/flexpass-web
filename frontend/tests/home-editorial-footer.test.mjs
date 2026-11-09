@@ -11,14 +11,14 @@ const footerStyles=read('../src/footer.css');
 test('homepage story is included without replacing the existing carousel',()=>{
   assert.match(app,/<LuminaHero\s*\/>/);
   assert.match(app,/<HomeStory\s*\/>/);
-  assert.match(app,/<div className="quiet-pilot-note" role="note">/);
+  assert.doesNotMatch(app,/<div className="quiet-pilot-note" role="note">/);
 });
 
 test('editorial marketing visuals come from the existing bundled generated images',()=>{
   for(const image of ['hero-spa.webp','hero-pilates.webp','hero-padel.webp']){
     assert.ok(home.includes(image),'Missing '+image);
   }
-  assert.match(home,/Imagery is illustrative/);
+  assert.doesNotMatch(home,/Imagery is illustrative and does not represent specific FlexPass partner venues/);
   assert.match(home,/loading="lazy"/);
   assert.match(storyStyles,/@media\(max-width:700px\)/);
 });

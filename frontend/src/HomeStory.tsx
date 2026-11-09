@@ -57,7 +57,6 @@ export function HomeStory(){
             </figcaption>
           </figure>)}
         </div>
-        <p className="home-editorial-photo-note">Imagery is illustrative and does not represent specific FlexPass partner venues.</p>
       </div>
     </section>
 

@@ -33,7 +33,29 @@ function PublicLayout({children,home=false}:PropsWithChildren<{home?:boolean}>){
     </div>
   </header>
   {children}
-  <footer className={`foot ${home?'quiet-home-footer':''}`}><div className="container footer-inner"><div className="footer-brand"><Brand tone="ivory"/><p>A flexible everyday through wellness, movement and meaningful experiences.</p></div><div className="footer-right"><span className="footer-eyebrow">FLEXPASS · PRIVATE PILOT</span><div className="footlinks"><Link to="/">Home</Link><Link to="/contact">About</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div><span className="footer-fine">© {new Date().getFullYear()} FlexPass · {pagesPreview?'Frontend preview':'Members only'}</span></div></div></footer>
+  <footer className={`foot flexpass-footer ${home?'quiet-home-footer':''}`}>
+    <div className="container footer-inner">
+      <div className="flexpass-footer-top">
+        <div className="footer-brand">
+          <Brand tone="ivory"/>
+          <p>A flexible everyday through wellness, movement and meaningful experiences.</p>
+        </div>
+        <nav className="footer-right" aria-label="Footer navigation">
+          <span className="footer-eyebrow">FLEXPASS · PRIVATE PILOT</span>
+          <div className="footlinks">
+            <Link to="/">Home</Link>
+            <Link to="/contact">About</Link>
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+          </div>
+        </nav>
+      </div>
+      <div className="flexpass-footer-bottom">
+        <span>A flexible everyday.</span>
+        <span className="footer-fine">© {new Date().getFullYear()} FlexPass · {pagesPreview?'Frontend preview':'Members only'}</span>
+      </div>
+    </div>
+  </footer>
 </>}
 function AuthFrame({children}:{children:ReactNode}){
   return <main className="auth-page gateway-auth auth-editorial-layout">

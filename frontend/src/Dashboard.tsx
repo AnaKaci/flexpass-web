@@ -108,9 +108,9 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     </aside>}
     <div className="dash-main dashboard-main"><header className="dash-topbar dashboard-topbar">
       <div className="dashboard-topbar-left">
-        <button type="button" className="dashboard-menu-toggle" aria-label={sidebarOpen?'Hide sidebar':'Show sidebar'} aria-expanded={sidebarOpen} aria-controls={sidebarOpen?'dashboard-sidebar':undefined} onClick={()=>setSidebarOpen(open=>!open)} title={sidebarOpen?'Hide sidebar to enlarge the page':'Show sidebar'}>
-          <UIIcon name="menu" size={19}/><span className="dashboard-menu-toggle-label">{sidebarOpen?'Hide menu':'Show menu'}</span>
-        </button>
+        {!sidebarOpen&&<button type="button" className="dashboard-menu-toggle dashboard-menu-icon-only" aria-label="Show sidebar" aria-expanded={false} onClick={()=>setSidebarOpen(true)} title="Show sidebar">
+          <UIIcon name="menu" size={19}/>
+        </button>}
         <div><small>FlexPass / {role}</small><b>{active[1]}</b></div>
       </div>
       <div className="flex-between"><span className="status">● &nbsp; Pilot environment</span></div>

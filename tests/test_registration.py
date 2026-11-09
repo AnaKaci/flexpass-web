@@ -1,6 +1,13 @@
 """Invitation-only registration and partner onboarding regression tests."""
 from urllib.parse import urlparse, parse_qs
-from tests.test_api import client, auth
+from fastapi.testclient import TestClient
+from backend.app import app
+client=TestClient(app)
+def auth(role):
+    path='/api/auth/admin/login' if role=='admin' else '/api/auth/login'
+    response=client.post(path,json={'email':f'{role}@flexpass.demo','password':'Demo123!','portal':role})
+    assert response.status_code==200,response.text
+    return {'Authorization':'Bearer '+response.json()['token']}
 
 def extract_token(payload):
     url = payload.get('dev_activation_url')

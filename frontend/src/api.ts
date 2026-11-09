@@ -26,7 +26,7 @@ export async function request<T>(path:string, token = '', options:RequestInit = 
 export function post<T>(path:string, token:string, body:Record<string,unknown> = {}, headers:Record<string,string> = {}):Promise<T> {
   return request<T>(path, token, {method:'POST', headers, body:JSON.stringify(body)});
 }
-export function login(email:string, password:string, portal:'employee'|'partner'|'admin'):Promise<LoginResult> { return post<LoginResult>(portal==='admin'?'/auth/admin/login':'/auth/login','',{email,password,portal}); }
+export function login(email:string, password:string, portal:'client'|'partner'|'admin'):Promise<LoginResult> { return post<LoginResult>(portal==='admin'?'/auth/admin/login':'/auth/login','',{email,password,portal}); }
 export const month = () => new Date().toISOString().slice(0,7);
 export const money = (cents:number) => `${new Intl.NumberFormat('en-AL', {maximumFractionDigits:0}).format((cents || 0)/100)} ALL`;
 export const shortDate = (value:string) => new Date(value).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});

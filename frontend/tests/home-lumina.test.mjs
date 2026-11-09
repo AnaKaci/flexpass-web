@@ -43,3 +43,22 @@ test('carousel navigation displays titles without numbered labels',()=>{
   assert.match(code,/lumina-nav-text/);
   assert.match(code,/aria-pressed=\{active===index\}/);
 });
+
+test('responsive carousel fully preserves portrait photographs without cropping or distortion',()=>{
+  const css=readFileSync(new URL('../src/lumina-responsive.css',import.meta.url),'utf8');
+  assert.match(css,/\.quiet-home \.lumina-hero-photo\{[^}]*object-fit:contain/s);
+  assert.match(css,/\.quiet-home \.lumina-hero-photo\{[^}]*transform:none/s);
+  assert.match(css,/@media\(max-width:880px\)/);
+  assert.match(css,/@media\(max-width:650px\)/);
+  assert.match(css,/\.quiet-home \.lumina-hero-navigation\{[^}]*grid-row:2/s);
+});
+
+test('monogram is grouped closely with the hero headline in the content column',()=>{
+  const logoIndex=code.indexOf('className="lumina-hero-identity"');
+  const contentIndex=code.indexOf('className="lumina-hero-main"');
+  const copyIndex=code.indexOf('className="lumina-hero-copy"');
+  const mediaIndex=code.indexOf('className="lumina-hero-media"');
+  assert.ok(copyIndex>=0 && copyIndex<logoIndex && logoIndex<contentIndex && contentIndex<mediaIndex);
+  const css=readFileSync(new URL('../src/lumina-responsive.css',import.meta.url),'utf8');
+  assert.match(css,/\.quiet-home \.lumina-hero-copy\{[^}]*gap:clamp\(20px,3\.2svh,35px\)/s);
+});

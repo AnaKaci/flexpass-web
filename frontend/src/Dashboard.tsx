@@ -7,6 +7,8 @@ import {Heading,Panel,Stat,StatusTag,useApp} from './App';
 import {BookingDialog,ServiceCard} from './ServicesPage';
 import {ActionDialog} from './Forms';
 import {PartnerCalendar} from './PartnerCalendar';
+import {UIIcon} from './UIIcon';
+import type {IconName} from './UIIcon';
 
 interface AllData {
   employeeSummary?:EmployeeSummary;
@@ -28,12 +30,12 @@ interface AllData {
   orders:ClientOrder[];
 }
 const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],partners:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[],products:[],orders:[],clients:[]};
-const menu:Record<Role,Array<[Section,string,string]>>={
-  client:[['overview','Overview','▦'],['shop','Credit shop','◇'],['discover','Explore experiences','✦'],['orders','My orders','▤'],['bookings','My bookings','✓'],['wallet','My wallet','◉']],
-  partner:[['overview','Overview','▦'],['calendar','Booking calendar','▦'],['reservations','Reservations','▤'],['services','My services','✦'],['settlements','Settlements','◉']],
-  admin:[['overview','Overview','▦'],['clients','Clients','♙'],['partners','Business partners','⌂'],['products','Credit products','◇'],['orders','Client orders','▤'],['settlements','Partner settlements','◉'],['audit','Audit log','☷']],
+const menu:Record<Role,Array<[Section,string,IconName]>>={
+  client:[['overview','Overview','overview'],['shop','Credit shop','credit'],['discover','Explore experiences','compass'],['orders','My orders','receipt'],['bookings','My bookings','calendar'],['wallet','My wallet','wallet']],
+  partner:[['overview','Overview','overview'],['calendar','Booking calendar','calendar'],['reservations','Reservations','list'],['services','My services','layers'],['settlements','Settlements','wallet']],
+  admin:[['overview','Overview','overview'],['clients','Clients','users'],['partners','Business partners','store'],['products','Credit products','credit'],['orders','Client orders','receipt'],['settlements','Partner settlements','wallet'],['audit','Audit log','shield']],
 };
-function Table({columns,rows}:{columns:string[];rows:ReactNode[][]}){return <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(col=><th key={col}>{col}</th>)}</tr></thead><tbody>{rows.length?rows.map((row,i)=><tr key={i}>{row.map((cell,k)=><td key={k}>{cell}</td>)}</tr>):<tr><td colSpan={columns.length} className="muted">No records yet.</td></tr>}</tbody></table></div>}
+function Table({columns,rows}:{columns:string[];rows:ReactNode[][]}){return <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(col=><th key={col}>{col}</th>)}</tr></thead><tbody>{rows.length?rows.map((row,i)=><tr key={i}>{row.map((cell,k)=><td key={k} data-label={columns[k]}>{cell}</td>)}</tr>):<tr><td colSpan={columns.length} className="muted">No records yet.</td></tr>}</tbody></table></div>}
 function BookingTable({bookings,role,action}:{bookings:Booking[];role:'employee'|'partner';action:(book:Booking)=>void}){
   return <Table columns={['Experience','Date / venue','Credits','Status','Action']} rows={bookings.map(b=>[
     <><b>{b.service}</b><br/><small>{b.reference}</small></>,<><b>{dateTime(b.start_at)}</b><br/><small>{b.partner}</small></>,`${b.credits} credits`,<StatusTag status={b.status}/>,b.status==='BOOKED'?<button className={`btn ${role==='employee'?'btn-outline':'btn-primary'} btn-sm`} onClick={()=>action(b)}>{role==='employee'?'Cancel':'Confirm arrival'}</button>:'—',
@@ -93,11 +95,11 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     {sidebarOpen&&<aside id="dashboard-sidebar" className="sidebar dashboard-sidebar" aria-label={`${role} navigation`}>
       <div className="dashboard-sidebar-heading">
         <Link className="logo" to="/"><span className="logo-mark">✳</span>FlexPass</Link>
-        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(false)} aria-label="Collapse sidebar" title="Collapse sidebar">×</button>
+        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(false)} aria-label="Collapse sidebar" title="Collapse sidebar"><UIIcon name="close" size={18}/></button>
       </div>
       <div className="side-label">{role[0].toUpperCase()+role.slice(1)} workspace</div>
       <nav className="side-nav" aria-label={`${role} workspace`}>
-        {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} aria-current={name===section?'page':undefined} onClick={()=>changeSection(name)}><span className="side-ico">{icon}</span>{label}</button>)}
+        {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} aria-current={name===section?'page':undefined} onClick={()=>changeSection(name)}><span className="side-ico"><UIIcon name={icon} size={19}/></span><span className="side-text">{label}</span></button>)}
       </nav>
       <div className="sidebar-bottom">
         <div className="profile-pill"><div className="avatar">{user.full_name.slice(0,1)}</div><div><b>{user.full_name}</b><small>{user.email}</small></div></div>
@@ -107,7 +109,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     <div className="dash-main dashboard-main"><header className="dash-topbar dashboard-topbar">
       <div className="dashboard-topbar-left">
         <button type="button" className="dashboard-menu-toggle" aria-label={sidebarOpen?'Hide sidebar':'Show sidebar'} aria-expanded={sidebarOpen} aria-controls={sidebarOpen?'dashboard-sidebar':undefined} onClick={()=>setSidebarOpen(open=>!open)} title={sidebarOpen?'Hide sidebar to enlarge the page':'Show sidebar'}>
-          <span aria-hidden="true">☰</span><span className="dashboard-menu-toggle-label">{sidebarOpen?'Hide menu':'Show menu'}</span>
+          <UIIcon name="menu" size={19}/><span className="dashboard-menu-toggle-label">{sidebarOpen?'Hide menu':'Show menu'}</span>
         </button>
         <div><small>FlexPass / {role}</small><b>{active[1]}</b></div>
       </div>
@@ -141,7 +143,22 @@ function PartnerView({section,data,onSection,onBooking,onForm}:{section:Section;
   return null;
 }
 function AdminView({section,data,onSection,onForm,onGenerate,onConfirmOrder,onResendInvitation,onOpenDemoSetup}:{section:Section;data:AllData;onSection:(v:Section)=>void;onForm:(f:FormDialog)=>void;onGenerate:()=>void;onConfirmOrder:(o:ClientOrder)=>void;onResendInvitation:(id:number)=>void;onOpenDemoSetup:()=>void}){const s=data.adminSummary!;
-  if(section==='overview')return <><Heading title="Business overview" subtitle="Monitor client purchases, business partners and bookings." action={<button className="btn btn-primary" onClick={onOpenDemoSetup}>Set up demo accounts →</button>}/><SummaryCards items={[["♙","Clients",s.clients,"Personal and legacy member accounts"],["◈","Partners",s.partners],["▤","Bookings",s.bookings],["✓","Confirmed visits",s.visits]]}/><SummaryCards items={[["▣","Pending client orders",s.orders_pending],["✦","Services",s.services],["◉","Credits allocated",s.credits_issued],["↗","Partner payables",money(s.partner_payables_cents)]]}/><div className="dash-grid"><Panel title="Company snapshot" action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('companies')}>View all →</button>}><Table columns={['Company','HR contact','Employees','Status']} rows={data.companies.map(c=>[<b>{c.name}</b>,c.hr_email,c.employees,<StatusTag status={c.status}/>])}/></Panel><Panel title="Pilot operating principles"><div className="notice">Three workspaces: Admin, Partner, Client. Legacy employee records are retained for historical compatibility.</div><p>Bookings, credit movements and refunds are validated by the API and recorded in the ledger.</p><p>Client purchases are manually confirmed after offline payment verification. Partner payouts remain outside FlexPass.</p></Panel></div></>;
+  if(section==='overview')return <>
+    <Heading title="Operations at a glance" subtitle="Client purchases, partner reservations and actions that need review." action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('orders')}>Review orders <UIIcon name="arrow" size={16}/></button>}/>
+    <SummaryCards items={[["","Clients",s.clients,"Personal and legacy accounts"],["","Partners",s.partners,"Registered business partners"],["","Pending client orders",s.orders_pending,"Review payments before crediting"],["","Bookings",s.bookings,"All reservation statuses"]]}/>
+    <div className="dash-grid">
+      <Panel title="Latest payment requests">
+        <Table columns={['Client','Product','Amount','Status']} rows={data.orders.slice(0,5).map(o=>[o.email||`Client #${o.client_id}`,o.product,money(o.amount_cents),<StatusTag status={o.status}/>])}/>
+        <button className="btn btn-tertiary btn-sm" onClick={()=>onSection('orders')}>View all orders <UIIcon name="arrow" size={15}/></button>
+      </Panel>
+      <div className="stack">
+        <Panel title="Operational snapshot">
+          <div className="ops-summary-list"><div><span>Published services</span><strong>{s.services}</strong></div><div><span>Completed visits</span><strong>{s.visits}</strong></div><div><span>Partner payables</span><strong>{money(s.partner_payables_cents)}</strong></div></div>
+        </Panel>
+        <div className="notice"><strong>Payment verification</strong><p>Bank transfers are confirmed outside FlexPass. Record an order as paid only after independent verification of the actual incoming funds.</p></div>
+      </div>
+    </div>
+  </>;
   if(section==='companies')return <><Heading title="Companies" subtitle="Track employer accounts and HR contacts." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'company'})}>+ Add company</button>}/><Panel title="Registered companies"><Table columns={['Company','HR email','Employees','Status']} rows={data.companies.map(c=>[<b>{c.name}</b>,c.hr_email,c.employees,<StatusTag status={c.status}/>])}/></Panel></>;
   if(section==='partners')return <><Heading title="Business partners" subtitle="Register businesses and invite their managers by email." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'partner-invite'})}>+ Register business</button>}/><Panel title="Registered partners"><Table columns={['Business','Location','Contact accounts','Status']} rows={data.partners.map(p=>[<b>{p.name}</b>,p.zone,<div>{p.accounts.length?p.accounts.map(a=><div key={a.id}><small>{a.email} ({a.status})</small>{a.status==='INVITED'&&<button className="btn btn-outline btn-sm" style={{marginLeft:8}} onClick={()=>onResendInvitation(a.id)}>Send activation email</button>}</div>):'No contact'}</div>,<StatusTag status={p.status}/>])}/></Panel></>;
   if(section==='clients')return <><Heading title="Clients" subtitle="Personal accounts and their purchased credits."/><Panel title="Client accounts"><Table columns={['Client','Credits','Orders','Account status']} rows={data.clients.map(c=>[<><b>{c.name}</b><br/><small>{c.email}</small></>,c.balance,c.orders,<StatusTag status={c.status}/>])}/></Panel></>;

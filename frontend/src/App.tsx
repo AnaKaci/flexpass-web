@@ -62,11 +62,8 @@ function PublicLayout({children,home=false,hideHeader=false}:PropsWithChildren<{
 function AuthFrame({children}:{children:ReactNode}){
   const photoUrl=`${import.meta.env.BASE_URL}brand/login-pilates.webp`;
   return <main className="auth-page gateway-auth auth-photo-stage">
+    <div className="auth-photo-backdrop" aria-hidden="true"><img src={photoUrl} alt=""/></div>
     <div className="auth-card auth-card-refined"><BrandLogo variant="monogram" className="auth-official-monogram" decorative/>{children}</div>
-    <aside className="auth-photo-panel" style={{backgroundImage:`url("${photoUrl}")`}}>
-      <img src={photoUrl} alt="Sunlit Mediterranean Pilates studio overlooking the sea"/>
-      <div className="auth-visual-caption"><span>THE FLEXPASS WAY OF LIFE</span><p>A healthier, happier <em>everyday.</em></p></div>
-    </aside>
   </main>;
 }
 function Home(){

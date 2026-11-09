@@ -81,10 +81,6 @@ function Home(){
       </div>
     </section>
     <HomeStory/>
-    <div className="quiet-pilot-note" role="note">
-      <span>PILOT INFORMATION</span>
-      <p>Some experiences may be fictional demo listings. Credit-package requests do not charge a card; bank transfers are verified separately before credits are issued.</p>
-    </div>
     {pagesPreview&&<div className="container preview-disclaimer">This GitHub Pages build is a visual preview. Account access and live data are available only on the full-stack FlexPass application.</div>}
   </main></PublicLayout>;
 }

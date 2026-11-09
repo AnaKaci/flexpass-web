@@ -108,7 +108,7 @@ export function LuminaHero(){
     </div>
 
     <div className="lumina-hero-top">
-      <span className="lumina-hero-identity"><BrandLogo variant="monogram" tone="ivory" decorative/><span>THE FLEXPASS WAY OF LIFE</span></span>
+      <span className="lumina-hero-identity"><BrandLogo variant="monogram" tone="ivory" decorative/></span>
     </div>
 
     <div className="lumina-hero-main">

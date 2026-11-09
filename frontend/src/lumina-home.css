@@ -45,7 +45,7 @@
   justify-content:space-between;
   align-items:center;
   gap:20px;
-  padding:clamp(29px,3.8vw,56px) clamp(26px,6vw,103px) 10px;
+  padding:clamp(29px,3.8vw,56px) clamp(26px,8.4vw,148px) 10px;
 }
 .lumina-hero-identity{
   display:flex;
@@ -222,7 +222,7 @@
   .lumina-hero-main{padding-left:clamp(35px,6vw,88px);padding-right:35px}
   .lumina-hero-main h1{font-size:clamp(61px,8vw,104px)}
   .lumina-hero-navigation{width:calc(100% - 90px)}
-  .lumina-hero-top{padding-inline:45px}
+  .lumina-hero-top{padding-inline:clamp(35px,6vw,88px)}
   .lumina-hero-image-disclosure{right:45px}
 }
 @media(max-width:900px){
@@ -240,7 +240,7 @@
   .quiet-home .lumina-hero{min-height:780px}
   .lumina-hero-photo{object-position:50% 43%}
   .lumina-hero-scrim{background:rgba(5,35,39,.57)}
-  .lumina-hero-top{padding:25px 22px 0}
+  .lumina-hero-top{padding:25px 24px 0}
   .lumina-hero-identity{font-size:9px;letter-spacing:.09em;gap:11px}
   .lumina-hero-identity .official-brand-logo-monogram{width:32px;height:32px}
   .lumina-hero-main{padding:50px 24px 35px}

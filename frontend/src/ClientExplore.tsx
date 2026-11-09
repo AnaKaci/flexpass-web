@@ -2,6 +2,7 @@ import type {Group,Service,EmployeeSummary} from './types';
 import {labels} from './api';
 import {ServiceCard} from './ServicesPage';
 import {UIIcon} from './UIIcon';
+import {BrandLogo} from './BrandLogo';
 import type {IconName} from './UIIcon';
 
 const categories:ReadonlyArray<{key:Group;icon:IconName;note:string}>= [
@@ -31,7 +32,7 @@ export function ClientExplore({
   return <div className="client-explore-page">
     <section className="client-explore-hero" aria-labelledby="client-explore-heading">
       <div className="client-explore-hero-content">
-        <span className="client-explore-eyebrow"><span className="client-explore-fine-line" aria-hidden="true"/> THE FLEXPASS COLLECTION</span>
+        <span className="client-explore-eyebrow"><BrandLogo variant="monogram" tone="ivory" className="client-explore-official-monogram" decorative/> THE FLEXPASS COLLECTION</span>
         <div className="client-explore-hero-copy">
           <h1 id="client-explore-heading">Make room for <em>more.</em></h1>
           <p>Find your next moment of movement, restoration or discovery. Your everyday, on your terms.</p>

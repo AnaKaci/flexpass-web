@@ -1,0 +1,128 @@
+/* FlexPass official identity integration.
+   Official uploaded SVG shapes are kept intact; display variants only crop empty
+   canvas and, for dark surfaces, apply the approved warm-ivory brand color. */
+.official-brand-logo{
+  display:block;
+  object-fit:contain;
+  object-position:center;
+  flex:none;
+  max-width:100%;
+  user-select:none;
+}
+.site-header .official-brand-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+  line-height:1;
+  min-width:0;
+  padding:0;
+  text-decoration:none;
+}
+.site-header .official-brand-link .official-brand-logo-full{
+  width:130px;
+  height:94px;
+}
+.site-header .header-row,
+.quiet-public-header .header-row{
+  min-height:108px;
+}
+.site-header .official-brand-link:hover{
+  opacity:.85;
+}
+.foot .official-brand-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  padding:0;
+  width:fit-content;
+  max-width:100%;
+}
+.foot .official-brand-link .official-brand-logo-full{
+  width:170px;
+  height:122px;
+}
+.foot .footer-brand p{margin-top:12px;}
+.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-heading{
+  min-height:98px;
+  align-items:center;
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-brand-link{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex:1 1 0;
+  min-width:0;
+  padding:0 4px;
+  margin:0;
+  width:auto;
+  font-size:initial;
+  line-height:1;
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-brand-link .official-brand-logo-full{
+  width:132px;
+  height:94px;
+  max-width:100%;
+}
+.auth-editorial-layout .auth-official-monogram{
+  width:51px;
+  height:51px;
+  margin:0 0 18px;
+}
+.quiet-hero-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:13px;
+}
+.quiet-hero-kicker span{
+  margin:0;
+  color:#F5EFE4;
+}
+.quiet-hero-official-monogram{
+  width:35px;
+  height:35px;
+}
+.client-explore-eyebrow .client-explore-official-monogram{
+  width:31px;
+  height:31px;
+}
+@media(max-width:1050px){
+  .site-header .official-brand-link .official-brand-logo-full{
+    width:118px;
+    height:85px;
+  }
+  .site-header .header-row,
+  .quiet-public-header .header-row{
+    min-height:98px;
+  }
+  .dashboard-app-shell .dashboard-sidebar .dashboard-brand-link .official-brand-logo-full{
+    width:117px;
+    height:84px;
+  }
+}
+@media(max-width:600px){
+  .site-header .official-brand-link .official-brand-logo-full{
+    width:103px;
+    height:74px;
+  }
+  .site-header .header-row,
+  .quiet-public-header .header-row{
+    min-height:84px;
+  }
+  .foot .official-brand-link .official-brand-logo-full{
+    width:137px;
+    height:98px;
+  }
+  .dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-heading{
+    min-height:90px;
+  }
+  .quiet-hero-official-monogram{
+    width:29px;
+    height:29px;
+  }
+  .quiet-hero-kicker{gap:9px;}
+  .auth-editorial-layout .auth-official-monogram{
+    width:44px;
+    height:44px;
+  }
+}

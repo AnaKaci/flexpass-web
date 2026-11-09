@@ -10,6 +10,13 @@ The previous supplied technical document describes employer-funded employees, co
 - **Business/Partner:** accounts are created only by Admin; the partner uses a one-time email activation link to choose a password; partner can create services and slots, manage bookings/check-ins and review settlements.
 - **Admin:** has a separate login and controls partner invitations, credit-product pricing, client/order overview, external payment verification and settlement/audit workflows.
 
+### Simulated bank transfer (demo-only)
+
+- In `FLEXPASS_ENV=development`, `test` or `staging` with `FLEXPASS_DEMO_MODE=true`, the Client order view displays explicitly fictional bank details and enables **Simulate bank payment**. This records `DEMO_PAID`, assigns credits once with ledger source `DEMO_BANK`, and writes an audit entry. No actual funds, banking APIs, or real transfers are involved.
+- In `FLEXPASS_ENV=production`, simulated transfers are disabled regardless of `FLEXPASS_DEMO_MODE`. Clients may submit pending orders; Admin verifies real incoming bank payments separately before confirming an order and allocating actual credits.
+- For production bank instructions, set `FLEXPASS_BANK_NAME`, `FLEXPASS_BANK_BENEFICIARY`, `FLEXPASS_BANK_IBAN` only when actual approved details exist. Absent them, the UI must say bank information is not configured and warn the user not to send funds.
+- Demo tests must run on an **isolated sandbox database**. Never run fictional-credit transactions in the production account database.
+
 ### Deliberately not implemented yet
 
 - Live card checkout, payment gateway integrations or webhooks, refunds to payment instruments, automatic payments to partners, fiscal invoice generation, formal credit rollover/expiry.
@@ -31,7 +38,7 @@ The previous supplied technical document describes employer-funded employees, co
 
 1. Review the change request: decide whether sellable products are **credit bundles**, **individual experiences**, **physical products** or a combination. Current branch assumes **credit bundles + experience booking**, because this is closest to the existing booking/ledger API.
 2. Review/approve package names, credits, prices, currencies and sales terms; fictional local packages are not offers.
-3. Add an actual payment provider with verified webhooks before letting clients claim to purchase online; Admin confirmation must only follow independently verified payment, not an arbitrary reference typed into a prompt.
+3. Decide whether live bank transfers will be manually reconciled or supported with a banking API. Until then, Admin confirmation must only follow independently verified incoming funds, not an arbitrary reference typed into a prompt.
 4. Add rate limits and anti-abuse to public registration, customer email verification, notification monitoring, expired-link resend/recovery and CSRF review.
 5. Add Alembic migrations and staging PostgreSQL test database; `create_all` is not a substitute for versioned migrations.
 6. Run concurrency and idempotency tests under PostgreSQL, role/tenant authorization and end-to-end booking/settlement tests; test new users cannot reserve until funds are confirmed.

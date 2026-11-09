@@ -1,0 +1,27 @@
+/* FlexPass role-access gateway: follows the approved brand palette and typography. */
+.gateway-header-links{display:flex;align-items:center;gap:16px}
+.gateway-home .hero-copy{padding-top:44px}
+.gateway-home .hero-copy p{max-width:580px;font-size:17px;line-height:1.65}
+.gateway-access{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:30px;max-width:680px}
+.gateway-access-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:202px;border:1px solid rgba(16,86,92,.18);border-radius:19px;padding:24px;background:#fffcf7;color:#10565C;transition:transform .18s,border-color .18s,box-shadow .18s}
+.gateway-access-card:hover,.gateway-access-card:focus-visible{transform:translateY(-3px);border-color:#10565C;box-shadow:0 14px 30px rgba(16,86,92,.08)}
+.gateway-access-card-business{background:#f3dedf;border-color:rgba(170,19,80,.2)}
+.gateway-access-card-business:hover,.gateway-access-card-business:focus-visible{border-color:#aa1350}
+.gateway-card-index{font-family:Inter,sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;color:#746f69}
+.gateway-access-card strong{font-family:'Bodoni Moda',Georgia,serif;font-size:27px;font-weight:500;letter-spacing:-.04em;line-height:1.15}
+.gateway-access-card>span:nth-child(3){color:#586b66;font-size:12px;line-height:1.55}
+.gateway-card-action{margin-top:auto;font-size:12px;font-weight:700;color:#10565C}
+.gateway-access-card-business .gateway-card-action{color:#aa1350}
+.gateway-about{padding-top:100px;padding-bottom:100px;max-width:1080px}
+.gateway-about h2{font-size:clamp(38px,5vw,63px);line-height:1.14}
+.gateway-about h2 em{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400}
+.gateway-about p{font-size:15px;max-width:720px;line-height:1.8}
+.gateway-auth{min-height:65vh}
+.gateway-auth .auth-card{border:1px solid rgba(16,86,92,.12);box-shadow:0 22px 68px rgba(7,60,65,.07)}
+.gateway-demo-hint{margin-top:30px;padding-top:20px;border-top:1px solid rgba(16,86,92,.12)}
+.gateway-demo-hint p{margin-top:12px;font-size:11px}
+.gateway-return{margin:26px 0 0;font-size:12px;color:#10565C}
+.gateway-return a{text-decoration:underline;text-underline-offset:4px}
+.foot{margin-top:clamp(52px,6vw,88px);padding-top:clamp(76px,8vw,108px);padding-bottom:clamp(52px,5vw,72px)}
+@media(max-width:1120px){.gateway-home .editorial-hero{grid-template-columns:55% 45%}.gateway-access-card{padding:17px;min-height:190px}.gateway-access-card strong{font-size:23px}}
+@media(max-width:640px){.gateway-access{grid-template-columns:1fr;gap:12px}.gateway-access-card{min-height:145px;padding:20px}.gateway-home .hero-text{min-height:auto;padding-bottom:35px}.gateway-home .hero-copy{padding-top:20px}.gateway-home .hero-copy p{font-size:15px}.gateway-about{padding-top:58px;padding-bottom:65px}.gateway-header-links .nav-user{display:none}}

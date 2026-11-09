@@ -1,0 +1,355 @@
+/* Client Credit Shop — editorial package presentation inspired by the supplied
+   pricing-card reference. Uses existing FlexPass brand and real API product data. */
+.credit-shop{
+  width:100%;
+  max-width:1450px;
+  margin:0 auto;
+  padding:3px 0 30px;
+  color:#10565C;
+}
+.credit-shop-intro{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:34px;
+  padding:17px 0 38px;
+  border-bottom:1px solid rgba(16,86,92,.22);
+}
+.credit-shop-eyebrow{
+  font:650 10px/1.5 'Inter',sans-serif;
+  letter-spacing:.16em;
+  color:#AA1350;
+}
+.credit-shop-eyebrow span{color:#8D9F95;padding-inline:7px}
+.credit-shop-intro-copy h1{
+  font-family:'Bodoni Moda',Georgia,serif;
+  font-weight:400;
+  font-size:clamp(40px,4vw,62px);
+  line-height:1.1;
+  letter-spacing:-.045em;
+  margin:12px 0 12px;
+  color:#10565C;
+}
+.credit-shop-intro-copy h1 em{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:1.12em;
+  font-weight:400;
+}
+.credit-shop-intro-copy>p{
+  margin:0;
+  font:400 14px/1.7 'Inter',sans-serif;
+  color:#5F756D;
+}
+.credit-shop-balance{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  border-left:1px solid rgba(16,86,92,.25);
+  padding:8px 0 8px 23px;
+  min-width:175px;
+  color:#10565C;
+}
+.credit-shop-balance>svg{flex:none;color:#AA1350}
+.credit-shop-balance>span{display:flex;flex-direction:column;gap:4px}
+.credit-shop-balance small{
+  color:#5F756D;
+  font:650 9px/1.4 'Inter',sans-serif;
+  letter-spacing:.095em;
+}
+.credit-shop-balance strong{
+  display:block;
+  color:#10565C;
+  font:650 22px/1.4 'Inter',sans-serif;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.035em;
+  white-space:nowrap;
+}
+.credit-shop-balance strong span{font-size:12px;font-weight:450}
+.credit-shop-section-heading{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:27px;
+  padding:36px 0 27px;
+}
+.credit-shop-section-index{
+  display:block;
+  font:650 10px/1.5 'Inter',sans-serif;
+  letter-spacing:.13em;
+  color:#AA1350;
+}
+.credit-shop-section-heading h2{
+  color:#10565C;
+  margin:10px 0 0;
+  font:400 clamp(30px,3.1vw,45px)/1.18 'Bodoni Moda',Georgia,serif;
+  letter-spacing:-.04em;
+}
+.credit-shop-section-heading h2 em{
+  font:italic 400 1.07em/1 'Cormorant Garamond',Georgia,serif;
+}
+.credit-shop-section-heading>p{
+  margin:0 0 4px;
+  max-width:340px;
+  color:#617A70;
+  font:400 12px/1.65 'Inter',sans-serif;
+}
+.credit-shop-card-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:18px;
+  width:100%;
+}
+.credit-shop-card-grid .credit-package{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:489px;
+  padding:27px clamp(20px,2vw,30px) 24px;
+  background:#FFFCF7;
+  color:#10565C;
+  border:1px solid rgba(16,86,92,.24);
+  border-radius:6px;
+  box-shadow:none;
+  transition:border-color 240ms ease,transform 240ms ease;
+}
+.credit-shop-card-grid .credit-package:hover{
+  border-color:#10565C;
+  transform:translateY(-3px);
+}
+.credit-shop-card-grid .credit-package-emphasis{
+  background:#10565C;
+  border-color:#10565C;
+  color:#F5EFE4;
+}
+.credit-package-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+}
+.credit-package-index{
+  display:block;
+  color:#AA1350;
+  font:700 10px/1.5 'Inter',sans-serif;
+  letter-spacing:.13em;
+}
+.credit-package-emphasis .credit-package-index{color:#F3DEDF}
+.credit-package-monogram.official-brand-logo-monogram{
+  width:35px;
+  height:35px;
+  flex:none;
+}
+.credit-package h3{
+  margin:26px 0 5px;
+  color:inherit;
+  font:400 clamp(25px,2.3vw,34px)/1.22 'Bodoni Moda',Georgia,serif;
+  letter-spacing:-.037em;
+  overflow-wrap:anywhere;
+}
+.credit-package-credits{
+  display:flex;
+  align-items:baseline;
+  gap:15px;
+  margin:12px 0 23px;
+}
+.credit-package-credits strong{
+  display:block;
+  color:inherit;
+  font:600 clamp(54px,5vw,79px)/1 'Inter',sans-serif;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.07em;
+}
+.credit-package-credits span{
+  max-width:88px;
+  font:650 10px/1.6 'Inter',sans-serif;
+  letter-spacing:.12em;
+  color:#5A716A;
+}
+.credit-package-emphasis .credit-package-credits span{color:#C9DDE2}
+.credit-package-divider{
+  display:block;
+  width:100%;
+  height:1px;
+  margin-bottom:19px;
+  background:rgba(16,86,92,.22);
+}
+.credit-package-emphasis .credit-package-divider{background:rgba(245,239,228,.29)}
+.credit-package-details{
+  display:grid;
+  gap:14px;
+}
+.credit-package-details>div{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:16px;
+  border-bottom:1px solid rgba(16,86,92,.09);
+  padding-bottom:10px;
+}
+.credit-package-details>div:last-child{border:0;padding-bottom:0}
+.credit-package-details span{
+  color:#5A716A;
+  font:450 11px/1.4 'Inter',sans-serif;
+}
+.credit-package-details strong{
+  font:600 11px/1.55 'Inter',sans-serif;
+  color:#10565C;
+  overflow-wrap:anywhere;
+  text-align:right;
+}
+.credit-package-emphasis .credit-package-details>div{border-color:rgba(245,239,228,.13)}
+.credit-package-emphasis .credit-package-details span{color:#CDDCD6}
+.credit-package-emphasis .credit-package-details strong{color:#F5EFE4}
+.credit-package-bottom{
+  display:flex;
+  flex-direction:column;
+  margin-top:auto;
+  padding-top:28px;
+  gap:9px;
+}
+.credit-package-price-label{
+  color:#5A716A;
+  font:700 9px/1.5 'Inter',sans-serif;
+  letter-spacing:.13em;
+}
+.credit-package-emphasis .credit-package-price-label{color:#C9DDE2}
+.credit-package-price strong{
+  color:inherit;
+  font:650 clamp(23px,2.6vw,34px)/1.2 'Inter',sans-serif;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.045em;
+}
+.credit-package-request{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  width:100%;
+  min-height:48px;
+  padding:12px 18px;
+  margin-top:10px;
+  color:#F5EFE4;
+  background:#10565C;
+  border:1px solid #10565C;
+  border-radius:999px;
+  font:600 12px/1.35 'Inter',sans-serif;
+  transition:background-color 240ms ease,color 240ms ease;
+}
+.credit-package-request:hover{background:#073C41;color:#FFFFFF}
+.credit-package-emphasis .credit-package-request{
+  color:#10565C;
+  background:#F5EFE4;
+  border-color:#F5EFE4;
+}
+.credit-package-emphasis .credit-package-request:hover{background:#FFFCF7}
+.credit-package-bottom>p{
+  margin:4px 0 0;
+  text-align:center;
+  color:#617A70;
+  font:400 10px/1.5 'Inter',sans-serif;
+}
+.credit-package-emphasis .credit-package-bottom>p{color:#D8E3DE}
+.credit-shop-payment-note{
+  display:grid;
+  grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);
+  gap:20px clamp(30px,5vw,76px);
+  align-items:start;
+  width:100%;
+  padding:30px clamp(23px,3vw,41px);
+  margin-top:34px;
+  border:1px solid rgba(16,86,92,.16);
+  border-radius:6px;
+  background:#F3DEDF;
+}
+.credit-shop-payment-heading{
+  display:flex;
+  align-items:flex-start;
+  gap:15px;
+}
+.credit-shop-payment-heading>svg{color:#AA1350;flex:none;margin-top:3px}
+.credit-shop-payment-heading h2{
+  color:#10565C;
+  margin:8px 0 0;
+  font:400 clamp(26px,2.45vw,34px)/1.15 'Bodoni Moda',Georgia,serif;
+  letter-spacing:-.035em;
+}
+.credit-shop-payment-note>p{
+  margin:0;
+  color:#3E6057;
+  font:400 12px/1.75 'Inter',sans-serif;
+  max-width:750px;
+}
+.credit-shop-payment-steps{
+  grid-column:2;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  padding-top:12px;
+  border-top:1px solid rgba(16,86,92,.22);
+}
+.credit-shop-payment-steps>span{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  color:#10565C;
+  font:550 11px/1.55 'Inter',sans-serif;
+}
+.credit-shop-payment-steps b{
+  color:#AA1350;
+  font:700 10px/1.5 'Inter',sans-serif;
+  letter-spacing:.1em;
+}
+.credit-shop-demo-label{
+  grid-column:2;
+  margin-top:0;
+  color:#8C294D;
+  font:600 11px/1.5 'Inter',sans-serif;
+}
+.credit-shop-empty{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:10px;
+  padding:35px 30px;
+  border-radius:6px;
+  border:1px solid rgba(16,86,92,.2);
+  background:#FFFCF7;
+}
+.credit-shop-empty h3{
+  color:#10565C;
+  margin:0;
+  font:400 29px/1.2 'Bodoni Moda',Georgia,serif;
+}
+.credit-shop-empty p{font-size:12px;margin:0}
+@media(max-width:1190px){
+  .credit-shop-card-grid{gap:12px}
+  .credit-shop-card-grid .credit-package{padding-inline:20px}
+  .credit-package-details>div{gap:10px}
+  .credit-package-details strong{font-size:10px}
+}
+@media(max-width:980px){
+  .credit-shop-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .credit-shop-card-grid .credit-package:last-child:nth-child(odd){grid-column:1/-1;min-height:0}
+  .credit-shop-payment-note{grid-template-columns:1fr;gap:20px}
+  .credit-shop-payment-steps,.credit-shop-demo-label{grid-column:auto}
+}
+@media(max-width:700px){
+  .credit-shop-intro{align-items:flex-start;flex-direction:column;gap:17px;padding-bottom:25px}
+  .credit-shop-balance{padding:0 0 0 16px}
+  .credit-shop-section-heading{align-items:flex-start;flex-direction:column;padding:30px 0 23px;gap:10px}
+  .credit-shop-section-heading>p{max-width:450px}
+  .credit-shop-card-grid{grid-template-columns:1fr;gap:14px}
+  .credit-shop-card-grid .credit-package{grid-column:auto!important;min-height:440px;padding:25px}
+  .credit-package h3{font-size:30px}
+  .credit-package-credits strong{font-size:68px}
+  .credit-shop-payment-note{padding:25px 21px}
+  .credit-shop-payment-steps{grid-template-columns:1fr;gap:12px}
+  .credit-shop-payment-steps>span{flex-direction:row;align-items:baseline;gap:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .credit-shop-card-grid .credit-package,
+  .credit-package-request{transition:none}
+  .credit-shop-card-grid .credit-package:hover{transform:none}
+}

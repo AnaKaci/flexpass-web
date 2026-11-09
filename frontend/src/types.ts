@@ -8,7 +8,7 @@ export type AdminSection = 'clients' | 'overview' | 'companies' | 'partners' | '
 export type Section = EmployeeSection | PartnerSection | AdminSection;
 export interface User { id:number; full_name:string; email:string; role:Role; company_id:number|null; partner_id:number|null; plan_id:number|null; status:string; }
 export interface LoginResult { token:string; user:User; }
-export interface AppInfo { app:string; preview:boolean; seeded:boolean; demo_mode:boolean; groups:Group[]; zones:string[]; subcategories:Record<Group,string[]>; tagline:string; }
+export interface AppInfo { app:string; preview:boolean; seeded:boolean; demo_mode:boolean; groups:Group[]; zones:string[]; subcategories:Record<Group,string[]>; tagline:string; bank_transfer?:{demo_enabled:boolean;configured:boolean;bank_name:string;beneficiary:string;iban:string}; }
 export interface Slot {id:number; start_at:string; capacity:number; available:number; reserved?:number; }
 export interface Service {id:number; name:string; group:Group; subcategory:string; description:string; credits:number; duration_minutes:number; partner:string; partner_id:number; zone:string; slots:Slot[]; }
 export interface Booking {id:number; reference:string; service:string; partner:string; partner_id:number; user:string; email:string; start_at:string; credits:number; payout_cents:number; status:Status; created_at:string; checked_in_at:string|null; zone:string; }
@@ -19,7 +19,7 @@ export interface PartnerService {id:number; name:string; group:Group; subcategor
 export interface AdminSummary {companies:number; employees:number; clients:number; orders_pending:number; partners:number; services:number; bookings:number; visits:number; credits_issued:number; partner_payables_cents:number; }
 export interface Company {id:number; name:string; hr_email:string; status:string; employees:number; }
 export interface CreditProduct {id:number;name:string;credits:number;price_cents:number;currency:string;active:boolean;}
-export interface ClientOrder {id:number;product:string;product_id:number;client_id:number;email?:string;credits:number;amount_cents:number;currency:string;status:string;created_at:string;payment_reference:string;}
+export interface ClientOrder {id:number;product:string;product_id:number;client_id:number;email?:string;credits:number;amount_cents:number;currency:string;status:string;created_at:string;payment_reference:string;bank_reference?:string;payment_method?:string;simulated?:boolean;}
 export interface ClientRecord {id:number;name:string;email:string;status:string;balance:number;orders:number;legacy:boolean;}
 export interface PartnerAccount {email:string;status:string;}
 export interface AdminPartner {id:number;name:string;zone:string;status:string;accounts:PartnerAccount[];}

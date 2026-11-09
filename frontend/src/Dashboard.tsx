@@ -10,6 +10,7 @@ import {PartnerCalendar} from './PartnerCalendar';
 import {ClientExplore} from './ClientExplore';
 import {ProfileMenu} from './ProfileMenu';
 import {UIIcon} from './UIIcon';
+import {BrandLogo} from './BrandLogo';
 import type {IconName} from './UIIcon';
 
 interface AllData {
@@ -96,7 +97,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     {isNarrowScreen&&sidebarOpen&&<button type="button" className="dashboard-sidebar-backdrop" aria-label="Close navigation menu" onClick={()=>setSidebarOpen(false)}/>}
     {sidebarOpen&&<aside id="dashboard-sidebar" className="sidebar dashboard-sidebar" aria-label={`${role} navigation`}>
       <div className="dashboard-sidebar-heading">
-        <Link className="logo" to="/"><span className="logo-mark">✳</span>FlexPass</Link>
+        <Link className="logo dashboard-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone="ivory" decorative/></Link>
         <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(false)} aria-label="Collapse sidebar" title="Collapse sidebar"><UIIcon name="close" size={18}/></button>
       </div>
       <div className="side-label">{role[0].toUpperCase()+role.slice(1)} workspace</div>

@@ -1,7 +1,7 @@
 import type {SVGProps} from 'react';
 
 /** Consistent outlined interface icon set. Purely decorative when adjacent to a visible label. */
-export type IconName='overview'|'compass'|'calendar'|'clock'|'wallet'|'receipt'|'users'|'store'|'layers'|'shield'|'check'|'filter'|'search'|'arrow'|'spark'|'list'|'activity'|'credit'|'settings'|'menu'|'close'|'refresh'|'location'|'info'|'chevron';
+export type IconName='overview'|'compass'|'calendar'|'clock'|'wallet'|'receipt'|'users'|'store'|'layers'|'shield'|'check'|'filter'|'search'|'arrow'|'spark'|'list'|'activity'|'credit'|'settings'|'menu'|'close'|'refresh'|'location'|'info'|'chevron'|'log-out';
 export function UIIcon({name,size=19,...props}:{name:IconName;size?:number}&Omit<SVGProps<SVGSVGElement>,'children'>){
   const common={fill:'none',stroke:'currentColor',strokeWidth:1.8,strokeLinecap:'round' as const,strokeLinejoin:'round' as const};
   return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...common} {...props}>
@@ -30,5 +30,6 @@ export function UIIcon({name,size=19,...props}:{name:IconName;size?:number}&Omit
     {name==='location'&&<><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>}
     {name==='info'&&<><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/></>}
     {name==='chevron'&&<path d="m9 5 7 7-7 7"/>}
+    {name==='log-out'&&<><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></>}
   </svg>;
 }

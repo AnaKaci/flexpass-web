@@ -26,8 +26,8 @@ function fieldsFor(dialog:FormDialog,data:Source):{title:string;submit:string;fi
   }
 }
 export function ActionDialog({dialog,data,onClose,onSuccess}:{dialog:FormDialog;data:Source;onClose:()=>void;onSuccess:()=>void}){
-  const {token,notify}=useApp();const [busy,setBusy]=useState(false);const {title,submit,fields}=fieldsFor(dialog,data);
-  async function save(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);const f=Object.fromEntries(new FormData(e.currentTarget).entries()) as Record<string,string>;let path='';let body:Record<string,unknown>={...f};
+  const {token,notify}=useApp();const [busy,setBusy]=useState(false);const [formError,setFormError]=useState('');const {title,submit,fields}=fieldsFor(dialog,data);
+  async function save(e:FormEvent<HTMLFormElement>){e.preventDefault();setFormError('');setBusy(true);const f=Object.fromEntries(new FormData(e.currentTarget).entries()) as Record<string,string>;let path='';let body:Record<string,unknown>={...f};
     switch(dialog.kind){
       case 'company':path='/admin/companies';break;
       case 'partner-invite':path='/admin/partners';break;
@@ -41,12 +41,13 @@ export function ActionDialog({dialog,data,onClose,onSuccess}:{dialog:FormDialog;
       case 'adjust':path='/admin/adjust-credits';body={user_id:dialog.id,amount:Number(f.amount),reason:f.reason};break;
       case 'settlement-status':path=`/admin/settlements/${dialog.id}/status`;break;
     }
-    try{await post(path,token,body);onSuccess();}catch(err){notify((err as Error).message,true)}finally{setBusy(false)}
+    try{await post(path,token,body);onSuccess();}catch(err){const message=(err as Error).message;setFormError(message);notify(message,true)}finally{setBusy(false)}
   }
-  return <Modal title={title} onClose={onClose}><form className="form-grid" style={{marginTop:20}} onSubmit={save}>
+  return <Modal title={title} onClose={onClose}><form className="form-grid" style={{marginTop:20}} onSubmit={save} onChange={()=>{if(formError)setFormError('')}}>
+    {formError&&<div className="notice warn form-error-summary" role="alert">{formError}</div>}
     {fields.map(field=><label key={field.name} className={`form-field ${field.type==='textarea'?'full':''}`}>{field.label}
       {field.type==='select'?<select className="select" name={field.name} defaultValue={field.defaultValue} required={field.required!==false}>{field.options?.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>:field.type==='textarea'?<textarea rows={3} className="input" name={field.name} defaultValue={field.defaultValue} required={field.required!==false}/>:<input className="input" name={field.name} type={field.type||'text'} step={field.step} min={field.min} defaultValue={field.defaultValue} required={field.required!==false}/>}
     </label>)}
-    <div className="form-actions"><button type="button" className="btn btn-outline" onClick={onClose}>Cancel</button><button className="btn btn-primary" type="submit" disabled={busy}>{busy?'Saving...':submit}</button></div>
+    <div className="form-actions"><button type="button" className="btn btn-outline" onClick={onClose} disabled={busy}>Cancel</button><button className="btn btn-primary" type="submit" disabled={busy}>{busy?'Saving...':submit}</button></div>
   </form></Modal>;
 }

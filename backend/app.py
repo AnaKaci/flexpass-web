@@ -33,6 +33,8 @@ elif DB_URL.startswith('postgresql://'):
     DB_URL = 'postgresql+psycopg://' + DB_URL[len('postgresql://'):]
 ENVIRONMENT = os.environ.get('FLEXPASS_ENV', 'development').lower()
 DEMO_MODE = os.environ.get('FLEXPASS_DEMO_MODE', 'false' if ENVIRONMENT == 'production' else 'true').lower() in ('true', '1', 'yes')
+# Simulated bank transfer can never run in production, even if demo data is enabled there.
+SIMULATED_BANK_TRANSFERS = DEMO_MODE and ENVIRONMENT in ('development', 'test', 'staging')
 CANCELLATION_CUTOFF_HOURS = max(0, int(os.environ.get('FLEXPASS_CANCELLATION_CUTOFF_HOURS', '0')))
 SECRET = os.environ.get('FLEXPASS_SECRET', 'change-me-demo-only-local-secret')
 if ENVIRONMENT == 'production':
@@ -425,7 +427,18 @@ def health():
 
 @app.get('/api/info')
 def info():
-    return {'app':'FlexPass','preview':True,'seeded':DEMO_MODE,'demo_mode':DEMO_MODE,'groups':GROUPS,'zones':ZONES,'subcategories':SUBCATS,'tagline':'Private-launch access pass for premium daily services, real booking, and hard-to-reach routines.'}
+    # Bank instructions are public operational details, never credentials.
+    # No real beneficiary details are implied by demo placeholders.
+    configured=all(os.environ.get(key,'').strip() for key in
+                   ('FLEXPASS_BANK_NAME','FLEXPASS_BANK_BENEFICIARY','FLEXPASS_BANK_IBAN'))
+    bank={'demo_enabled':SIMULATED_BANK_TRANSFERS,
+          'configured':SIMULATED_BANK_TRANSFERS or configured,
+          'bank_name':'DEMO BANK — NO REAL TRANSFERS' if SIMULATED_BANK_TRANSFERS else os.environ.get('FLEXPASS_BANK_NAME',''),
+          'beneficiary':'FLEXPASS DEMO ONLY' if SIMULATED_BANK_TRANSFERS else os.environ.get('FLEXPASS_BANK_BENEFICIARY',''),
+          'iban':'DEMO-ONLY-NOT-A-REAL-IBAN' if SIMULATED_BANK_TRANSFERS else os.environ.get('FLEXPASS_BANK_IBAN','')}
+    return {'app':'FlexPass','preview':True,'seeded':DEMO_MODE,'demo_mode':DEMO_MODE,
+            'bank_transfer':bank,'groups':GROUPS,'zones':ZONES,'subcategories':SUBCATS,
+            'tagline':'Private-launch access pass for premium daily services, real booking, and hard-to-reach routines.'}
 
 def authenticate_portal(body:LoginBody, allowed_roles):
     # The selected portal is verified on the server. The admin portal is isolated
@@ -596,7 +609,10 @@ def client_order_view(s,order):
     return {'id':order.id,'product':item.name if item else 'Credit package','product_id':order.product_id,
             'client_id':order.client_id,'credits':order.credits_snapshot,'amount_cents':order.amount_cents,
             'currency':order.currency,'status':order.status,'created_at':iso(order.created_at),
-            'payment_reference':order.payment_reference or ''}
+            'payment_reference':order.payment_reference or '',
+            'bank_reference':f'FP-ORDER-{order.id:06d}',
+            'payment_method':'BANK_TRANSFER',
+            'simulated':order.status=='DEMO_PAID'}
 
 @app.get('/api/client/products')
 def client_products(u=Depends(roles('employee','client'))):
@@ -634,6 +650,42 @@ def request_client_order(body:ClientOrderBody,u=Depends(roles('employee','client
             return client_order_view(s,order)
         except HTTPException:s.rollback();raise
         except Exception:s.rollback();raise
+
+@app.post('/api/client/orders/{order_id}/demo-bank-transfer')
+def simulate_bank_transfer(order_id:int,u=Depends(roles('client','employee'))):
+    # Strict sandbox endpoint. Real production cannot simulate a paid bank transaction.
+    if not SIMULATED_BANK_TRANSFERS:
+        raise HTTPException(403,'Simulated bank transfer is disabled outside test environments')
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            order=s.scalar(select(ClientOrder).where(ClientOrder.id==order_id).with_for_update())
+            if not order:
+                raise HTTPException(404,'Order not found')
+            if order.client_id != u.id:
+                raise HTTPException(403,'Not your order')
+            if order.status=='DEMO_PAID':
+                return client_order_view(s,order)  # replay without a second allocation
+            if order.status!='PENDING':
+                raise HTTPException(409,'Order was already processed')
+            account=s.scalar(select(User).where(User.id==u.id).with_for_update())
+            if not account or account.membership_status!='ACTIVE':
+                raise HTTPException(403,'Account inactive')
+            order.status='DEMO_PAID'
+            order.confirmed_at=now()
+            order.payment_reference=f'DEMO-BANK-{order.id:06d}'
+            s.add(Ledger(user_id=u.id,kind='ALLOCATION',amount=order.credits_snapshot,
+                         source='DEMO_BANK',period=now().strftime('%Y-%m'),
+                         actor_id=u.id,reason=f'SIMULATED bank transfer for order {order.id} (no funds transferred)'))
+            audit(s,u.id,'DEMO_BANK_TRANSFER_SIMULATED',f'Order {order.id}; no real funds')
+            s.commit()
+            return client_order_view(s,order)
+        except HTTPException:
+            s.rollback()
+            raise
+        except Exception:
+            s.rollback()
+            raise
 
 @app.get('/api/admin/client-products')
 def admin_client_products(u=Depends(roles('admin'))):

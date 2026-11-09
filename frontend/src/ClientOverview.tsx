@@ -1,6 +1,7 @@
 import type {Booking,EmployeeSummary,Service,User,Section} from './types';
 import {dateTime,labels} from './api';
 import {UIIcon} from './UIIcon';
+import {upcomingClientBookings,completedClientVisits} from './clientBookingTimeline';
 
 interface Props {
   user:User;
@@ -20,9 +21,8 @@ export function ClientOverview({user,summary,bookings,services,onSection,onServi
   const greeting=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
   const firstName=user.full_name.trim().split(/\s+/)[0]||'there';
   const today=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
-  const upcoming=bookings
-    .filter(b=>b.status==='BOOKED'&&new Date(b.start_at).getTime()>=now.getTime())
-    .sort((a,b)=>new Date(a.start_at).getTime()-new Date(b.start_at).getTime());
+  const upcoming=upcomingClientBookings(bookings,now);
+  const completedVisits=completedClientVisits(bookings,now);
   const next=upcoming[0];
   const picks=services.filter(item=>item.slots.some(slot=>slot.available>0)).slice(0,3);
   return <div className="member-overview">
@@ -47,7 +47,7 @@ export function ClientOverview({user,summary,bookings,services,onSection,onServi
       </button>
       <button type="button" className="member-metric" onClick={()=>onSection('bookings')} aria-label="View completed visits">
         <span className="member-metric-label">VISITS COMPLETED</span>
-        <span className="member-metric-middle"><strong>{String(summary.visits).padStart(2,'0')}</strong><span>View activity <UIIcon name="arrow" size={14}/></span></span>
+        <span className="member-metric-middle"><strong>{String(completedVisits).padStart(2,'0')}</strong><span>View activity <UIIcon name="arrow" size={14}/></span></span>
         <small>experiences enjoyed to date</small>
       </button>
     </div>
@@ -65,7 +65,7 @@ export function ClientOverview({user,summary,bookings,services,onSection,onServi
               <h3>{b.service}</h3>
               <p>{b.partner}{b.zone?' · '+b.zone:''}</p>
             </div>
-            <div className="member-booking-state"><span>Booked</span><small>{b.credits} credits</small></div>
+            <div className="member-booking-state"><span>{b.status==='CHECKED_IN'?'Checked in':'Booked'}</span><small>{b.credits} credits</small></div>
           </div>):<div className="member-empty-bookings">
             <p>No upcoming bookings yet.</p>
             <button type="button" className="member-inline-link" onClick={()=>onSection('discover')}>Find your next experience <UIIcon name="arrow" size={15}/></button>

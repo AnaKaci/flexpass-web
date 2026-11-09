@@ -102,7 +102,20 @@ function Register(){const {notify,user}=useApp();const navigate=useNavigate();co
     <div className="notice" style={{marginTop:20}}>Activation links expire after 24 hours. Contact FlexPass if your link has expired.</div><p className="gateway-return"><Link to="/login/client">← Client sign in</Link></p>
   </AuthFrame></PublicLayout>;
 }
-function StaticPage({kind}:{kind:'contact'|'privacy'|'terms'}){const contents={contact:['Request access','FlexPass is a private-launch B2B pilot. Contact the project team through your organization to join an approved pilot.','Online application and payment are intentionally not enabled in the MVP.'],privacy:['Privacy notice','This is an MVP preview with fictional services. Do not enter real personal or payment information.','A reviewed production privacy policy is required before a public pilot.'],terms:['Terms of use','This project is a functional MVP demonstration, not a live consumer service.','Booking and cancellation policies must be approved before real-world operation.']} as const;const [title,body,note]=contents[kind];return <PublicLayout><main className="content-page"><div className="eyebrow">FlexPass</div><h1>{title}</h1><p>{body}</p><div className="notice">{note}</div><p style={{marginTop:22}}><Link to="/" className="btn btn-primary">Back to FlexPass</Link></p></main></PublicLayout>}
+function StaticPage({kind}:{kind:'contact'|'privacy'|'terms'}){
+  const contents={
+    contact:['Contact & access','FlexPass is operating as a pilot. Clients can request personal accounts; approved businesses are onboarded by the FlexPass team.','Account activation requires email delivery to be configured. If registration or an invitation fails, contact the FlexPass team through your existing point of contact.'],
+    privacy:['Privacy notice','FlexPass uses account information and booking details to run its client, business and administrator workspaces. Pilot listings may be fictional.','This page is an interim notice and is not a complete privacy policy. Do not submit sensitive or banking information until the production privacy review and approved notices are in place.'],
+    terms:['Terms of use','The app currently supports credit-package requests and bookings. Payments are not processed automatically; any incoming bank transfer must be independently verified before credits are confirmed.','These are pilot disclosures, not final consumer terms. Cancellation, refunds and other consumer policies must be approved before real-world operation.']
+  } as const;
+  const [title,body,note]=contents[kind];
+  return <PublicLayout><main className="content-page editorial-content-page">
+    <nav className="content-breadcrumb"><Link to="/">FlexPass</Link><span aria-hidden="true">/</span><span>{title}</span></nav>
+    <div className="eyebrow">A FLEXIBLE EVERYDAY</div><h1>{title}</h1>
+    <p className="content-intro">{body}</p><div className="notice" role="note">{note}</div>
+    <div className="content-page-actions"><Link to="/" className="btn btn-outline">Back to FlexPass <UIIcon name="arrow" size={16}/></Link></div>
+  </main></PublicLayout>;
+}
 function Authenticated({role}:{role:Role}){const {user}=useApp();if(!user)return <Navigate to={role==='admin'?'/admin/login':role==='partner'?'/login/business':'/login/client'} replace/>;if(user.role!==role)return <Navigate to={`/${user.role}`} replace/>;return <Dashboard role={role}/>;}
 function ProtectedServices(){const {user}=useApp();if(!user)return <Navigate to="/login/client" replace/>;if(user.role!=='client')return <Navigate to={`/${user.role}`} replace/>;return <PublicLayout><ServicesPage/></PublicLayout>}
 export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem(TOKEN_KEY)||'');const [user,setUser]=useState<User|null>(null);const [info,setInfo]=useState<AppInfo|null>(null);const [loading,setLoading]=useState(Boolean(sessionStorage.getItem(TOKEN_KEY)));const [message,setMessage]=useState<{body:string;error:boolean}|null>(null);

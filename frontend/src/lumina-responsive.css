@@ -51,20 +51,6 @@
   background:rgba(5,35,39,.53);
   pointer-events:none;
 }
-.quiet-home .lumina-hero-image-disclosure{
-  position:absolute;
-  z-index:1;
-  top:clamp(17px,2.8vw,35px);
-  right:clamp(23px,4vw,60px);
-  bottom:auto;
-  padding:5px 7px;
-  background:rgba(7,60,65,.65);
-  color:#F5EFE4;
-  font-size:9px;
-  line-height:1.5;
-  letter-spacing:.025em;
-}
-
 /* The logo shares the same left gutter and flow as the headline. Its vertical
    separation is intentionally small instead of being anchored to the top. */
 .quiet-home .lumina-hero-copy{
@@ -235,11 +221,7 @@
     padding-top:13px;
   }
   .quiet-home .lumina-hero-nav-item{min-height:62px;gap:10px}
-  .quiet-home .lumina-hero-image-disclosure{
-    top:15px;
-    right:16px;
-    font-size:8px;
-  }
+
 }
 @media(max-width:390px){
   .quiet-home .lumina-hero{min-height:740px}

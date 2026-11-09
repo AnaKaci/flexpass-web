@@ -64,3 +64,7 @@ test('monogram is grouped closely with the hero headline in the content column',
   const css=readFileSync(new URL('../src/lumina-responsive.css',import.meta.url),'utf8');
   assert.match(css,/\.quiet-home \.lumina-hero-copy\{[^}]*gap:clamp\(15px,2\.5svh,27px\)/s);
 });
+
+test('carousel has no illustrative imagery label overlay',()=>{
+  assert.doesNotMatch(code,/lumina-hero-image-disclosure|Concept imagery · Illustrative experiences/);
+});

@@ -143,7 +143,6 @@ export function LuminaHero(){
           {active===index&&<span key={generation} className={`lumina-nav-progress-fill ${reduceMotion?'no-motion':''}`} style={{animationDuration:`${SLIDE_MS}ms`}}/>}
         </span>
         <span className="lumina-nav-row">
-          <span className="lumina-nav-number">{String(index+1).padStart(2,'0')}</span>
           <span className="lumina-nav-text"><strong>{item.label}</strong><small>{item.detail}</small></span>
           {active===index&&<UIIcon name="arrow" size={15}/>}
         </span>

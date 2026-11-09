@@ -37,3 +37,9 @@ test('decorative slide counter is removed without disabling interactive navigati
   assert.match(code,/lumina-hero-navigation/);
   assert.match(code,/onClick=\{\(\)=>select\(index\)\}/);
 });
+
+test('carousel navigation displays titles without numbered labels',()=>{
+  assert.doesNotMatch(code,/lumina-nav-number/);
+  assert.match(code,/lumina-nav-text/);
+  assert.match(code,/aria-pressed=\{active===index\}/);
+});

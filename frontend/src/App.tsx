@@ -59,7 +59,7 @@ function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=us
       <label className="form-field">Password<input className="input" autoComplete="current-password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
       <button className="btn btn-primary" disabled={busy}>{busy?'Signing in…':'Continue securely →'}</button>
     </form>}
-    {info?.demo_mode && import.meta.env.DEV && !pagesPreview && <div className="gateway-demo-hint"><button type="button" className="btn btn-outline btn-sm" onClick={()=>{setEmail(`${portal}@flexpass.demo`);setPassword('Demo123!')}}>Use local fictional {portal==='admin'?'admin':portal==='partner'?'partner':'member'} account</button><p className="muted">Local development only; demo passwords are not shown on hosted deployments.</p></div>}
+    {info?.demo_mode && import.meta.env.DEV && !pagesPreview && <div className="gateway-demo-hint"><button type="button" className="btn btn-outline btn-sm" onClick={()=>{setEmail(`${portal==='client'?'employee':portal}@flexpass.demo`);setPassword('Demo123!')}}>Use local fictional {portal==='admin'?'admin':portal==='partner'?'partner':'member'} account</button><p className="muted">Local development only; demo passwords are not shown on hosted deployments.</p></div>}
     {portal==='client'&&<p className="gateway-register-link">New to FlexPass? <Link to="/register/client">Register as a client</Link></p>}
     <p className="gateway-return"><Link to="/">← Back to FlexPass</Link></p>
   </div></main></PublicLayout>;

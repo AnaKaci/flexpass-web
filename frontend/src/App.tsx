@@ -22,9 +22,9 @@ interface AppContextValue {
 const AppContext=createContext<AppContextValue|null>(null);
 export function useApp(){const value=useContext(AppContext);if(!value)throw new Error('Missing app context');return value;}
 function Brand({tone="teal"}:{tone?:"teal"|"ivory"}){return <Link className="logo official-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone={tone} decorative/></Link>;}
-function PublicLayout({children,home=false}:PropsWithChildren<{home?:boolean}>){const {user,info}=useApp();return <>
-  {!home&&<div className="top-strip"><span>{pagesPreview?'FRONTEND PREVIEW · ACCOUNTS UNAVAILABLE':info?.demo_mode?'PRIVATE DEMO ENVIRONMENT · FICTIONAL DATA':'A FLEXIBLE EVERYDAY · MEMBERS ONLY'}</span></div>}
-  <header className={`site-header ${home?'quiet-public-header':''}`}>
+function PublicLayout({children,home=false,hideHeader=false}:PropsWithChildren<{home?:boolean;hideHeader?:boolean}>){const {user,info}=useApp();return <>
+  {!home&&!hideHeader&&<div className="top-strip"><span>{pagesPreview?'FRONTEND PREVIEW · ACCOUNTS UNAVAILABLE':info?.demo_mode?'PRIVATE DEMO ENVIRONMENT · FICTIONAL DATA':'A FLEXIBLE EVERYDAY · MEMBERS ONLY'}</span></div>}
+  {!hideHeader&&<header className={`site-header ${home?'quiet-public-header':''}`}>
     <div className="container header-row">
       <Brand/>
       <nav className={`gateway-header-links ${home?'quiet-header-links':''}`} aria-label="Account navigation">
@@ -33,7 +33,7 @@ function PublicLayout({children,home=false}:PropsWithChildren<{home?:boolean}>){
         <Link className="btn btn-outline btn-sm" to="/">Member access</Link>}
       </nav>
     </div>
-  </header>
+  </header>}
   {children}
   <footer className={`foot flexpass-footer ${home?'quiet-home-footer':''}`}>
     <div className="container footer-inner">
@@ -97,7 +97,7 @@ function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=us
   useEffect(()=>{setEmail('');setPassword('');setFormError('');},[portal]);
   if(user)return <Navigate to={`/${user.role}`} replace/>;
   async function submit(e:FormEvent){e.preventDefault();setFormError('');setBusy(true);try{const u=await signIn(email,password,portal);navigate(`/${u.role}`,{replace:true});notify('Signed in successfully.');}catch(err){const message=(err as Error).message;setFormError(message);notify(message,true);}finally{setBusy(false)}}
-  return <PublicLayout><AuthFrame loginPortal={portal}><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
+  return <PublicLayout hideHeader><AuthFrame loginPortal={portal}><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
     {pagesPreview?<div className="notice">Account access is disabled on the GitHub Pages preview. Open the separately hosted FlexPass application to sign in.</div>:<form key={portal} className="stack" onSubmit={submit} onChange={()=>setFormError('')} autoComplete="off">
       {formError&&<div className="notice warn" role="alert">{formError}</div>}
       <label className="form-field" htmlFor={`flexpass-${portal}-email`}>Email address<input id={`flexpass-${portal}-email`} name={`flexpass-${portal}-username`} className="input" autoComplete={`section-flexpass-${portal} username`} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" spellCheck={false} required/></label>

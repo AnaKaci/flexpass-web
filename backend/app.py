@@ -980,9 +980,94 @@ def audit_log(u=Depends(roles('admin'))):
     with Session() as s:return [{'id':x.id,'action':x.action,'detail':x.detail,'actor_id':x.actor_id,'at':iso(x.created_at)} for x in s.scalars(select(Audit).order_by(Audit.id.desc()).limit(50)).all()]
 
 
+# Fictional pilot catalog. Disabled by default; enable only with explicit operator opt-in.
+# Idempotent by deterministic DEMO business/product/service names and future slot dates.
+SHOWCASE_BUSINESSES = (
+    ('FlexPass Demo Studio [DEMO]', 'Blloku', (
+        ('Reformer Pilates [DEMO]', 'fitness', 'Pilates', 5, 60),
+        ('Morning Yoga Flow [DEMO]', 'fitness', 'Yoga', 4, 60),
+        ('Stretch & Recover [DEMO]', 'wellness', 'Recovery', 3, 45),
+    )),
+    ('CityMotion Fitness [DEMO]', 'Komuna e Parisit', (
+        ('Gym Day Pass [DEMO]', 'fitness', 'Gyms', 4, 90),
+        ('Zumba Class [DEMO]', 'fitness', 'Zumba', 3, 50),
+    )),
+    ('BlueWave Sports [DEMO]', 'Liqeni i Thate', (
+        ('Swimming Session [DEMO]', 'sport', 'Swimming', 5, 60),
+        ('Tennis Coaching [DEMO]', 'sport', 'Tennis', 6, 60),
+    )),
+    ('Serenity Wellness [DEMO]', 'Pazari i Ri', (
+        ('Relaxing Massage [DEMO]', 'wellness', 'Massage', 8, 60),
+        ('Spa & Sauna [DEMO]', 'wellness', 'Spa', 7, 75),
+    )),
+    ('Glow Corner [DEMO]', 'Myslym Shyri', (
+        ('Facial Treatment [DEMO]', 'glow', 'Facials', 6, 50),
+        ('Express Beauty Session [DEMO]', 'glow', 'Beauty', 4, 40),
+    )),
+)
+
+SHOWCASE_PRODUCTS = (
+    ('Starter Credit Pack [DEMO]', 10, 150000),
+    ('Everyday Credit Pack [DEMO]', 25, 320000),
+    ('Flex Credit Pack [DEMO]', 50, 550000),
+)
+
+def seed_showcase_catalog(s):
+    """Insert deterministic, explicitly fictional examples, without modifying existing records.
+    The demo business login is invitation-only. No password or login token is exposed.
+    """
+    created = {'partners':0, 'services':0, 'slots':0, 'credit_products':0, 'invited_accounts':0}
+    for name, zone, experiences in SHOWCASE_BUSINESSES:
+        partner=s.scalar(select(Partner).where(Partner.name==name))
+        if not partner:
+            partner=Partner(name=name,zone=zone,status='ACTIVE')
+            s.add(partner);s.flush()
+            created['partners']+=1
+        for title,group,subcategory,credits,duration in experiences:
+            service=s.scalar(select(Service).where(Service.partner_id==partner.id,Service.name==title))
+            if not service:
+                service=Service(partner_id=partner.id,name=title,group_name=group,subcategory=subcategory,
+                                description=f'Fictional {duration}-minute experience for testing FlexPass. Not a real offer.',
+                                credits=credits,payout_cents=credits*10000,duration_minutes=duration,active=True)
+                s.add(service);s.flush()
+                created['services']+=1
+            # Only add slots if none exist yet for that service. Never modify existing bookings.
+            has_slot=s.scalar(select(Slot.id).where(Slot.service_id==service.id).limit(1))
+            if not has_slot:
+                for day in (2,3,5,7,10):
+                    slot=Slot(service_id=service.id,start_at=(now()+timedelta(days=day)).replace(
+                        hour=9+(service.id % 8),minute=0,second=0,microsecond=0),
+                        capacity=8,reserved=0)
+                    s.add(slot)
+                    created['slots']+=1
+        if name=='FlexPass Demo Studio [DEMO]':
+            address='akaci@ccs.al'
+            existing=s.scalar(select(User).where(User.email==address))
+            if not existing:
+                # Account is pending activation; never set a known/usable password.
+                user=User(email=address,full_name='Demo Business Manager',
+                          password_hash=hash_pass(secrets.token_urlsafe(48)),role='partner',
+                          partner_id=partner.id,membership_status='INVITED')
+                s.add(user);s.flush()
+                created['invited_accounts']+=1
+            # Existing email accounts are deliberately never re-assigned or modified.
+    for name,credits,cents in SHOWCASE_PRODUCTS:
+        if not s.scalar(select(CreditProduct.id).where(CreditProduct.name==name)):
+            s.add(CreditProduct(name=name,credits=credits,price_cents=cents,
+                                currency='ALL',active=True))
+            created['credit_products']+=1
+    audit(s,None,'SHOWCASE_CATALOG_SEEDED',str(created))
+    return created
+
 def seed():
     Base.metadata.create_all(engine)
     with Session() as s:
+        # Explicitly requested pilot fixtures. Run once per startup, safe to rerun.
+        # Production does not enable the demo payment simulation.
+        if os.environ.get('FLEXPASS_SEED_SHOWCASE_CATALOG', 'false').lower() in ('true','1','yes'):
+            changes=seed_showcase_catalog(s)
+            s.commit()
+            print('FLEXPASS_SHOWCASE_SEED '+str(changes),flush=True)
         if not DEMO_MODE:
             email = os.environ.get('FLEXPASS_ADMIN_EMAIL', '').strip().lower()
             password = os.environ.get('FLEXPASS_ADMIN_PASSWORD', '')

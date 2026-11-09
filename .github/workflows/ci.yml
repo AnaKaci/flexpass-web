@@ -26,3 +26,7 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run typecheck
       - run: npm run build
+      - name: Verify brand photography is included in release
+        run: |
+          test -s dist/brand/arch-view.jpg
+          file --mime-type dist/brand/arch-view.jpg | grep -q 'image/jpeg'

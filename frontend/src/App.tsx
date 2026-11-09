@@ -59,11 +59,12 @@ function PublicLayout({children,home=false}:PropsWithChildren<{home?:boolean}>){
     </div>
   </footer>
 </>}
-function AuthFrame({children}:{children:ReactNode}){
-  return <main className="auth-page gateway-auth auth-editorial-layout">
+function AuthFrame({children,loginPortal}:{children:ReactNode;loginPortal?:LoginPortal}){
+  return <main className={`auth-page gateway-auth auth-editorial-layout ${loginPortal?'auth-login-layout':''}`}>
     <div className="auth-card auth-card-refined"><BrandLogo variant="monogram" className="auth-official-monogram" decorative/>{children}</div>
     <aside className="auth-editorial-aside">
-      <img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Sunlit Mediterranean arch framing the water"/>
+      <img src={`${import.meta.env.BASE_URL}brand/${loginPortal?'login-pilates.webp':'arch-view.jpg'}`}
+        alt={loginPortal?'Sunlit Mediterranean Pilates studio overlooking the sea':'Sunlit Mediterranean arch framing the water'}/>
       <div className="auth-visual-caption"><span>THE FLEXPASS WAY OF LIFE</span><p>A healthier, happier <em>everyday.</em></p></div>
     </aside>
   </main>;
@@ -92,13 +93,15 @@ const portalNames:Record<LoginPortal,{title:string;eyebrow:string;description:st
 };
 function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=useApp();const navigate=useNavigate();const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);const [formError,setFormError]=useState('');
   const entry=portalNames[portal];
+  // Distinct login portals must not carry typed credentials from another role.
+  useEffect(()=>{setEmail('');setPassword('');setFormError('');},[portal]);
   if(user)return <Navigate to={`/${user.role}`} replace/>;
   async function submit(e:FormEvent){e.preventDefault();setFormError('');setBusy(true);try{const u=await signIn(email,password,portal);navigate(`/${u.role}`,{replace:true});notify('Signed in successfully.');}catch(err){const message=(err as Error).message;setFormError(message);notify(message,true);}finally{setBusy(false)}}
-  return <PublicLayout><AuthFrame><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
-    {pagesPreview?<div className="notice">Account access is disabled on the GitHub Pages preview. Open the separately hosted FlexPass application to sign in.</div>:<form className="stack" onSubmit={submit} onChange={()=>setFormError('')}>
+  return <PublicLayout><AuthFrame loginPortal={portal}><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
+    {pagesPreview?<div className="notice">Account access is disabled on the GitHub Pages preview. Open the separately hosted FlexPass application to sign in.</div>:<form key={portal} className="stack" onSubmit={submit} onChange={()=>setFormError('')} autoComplete="off">
       {formError&&<div className="notice warn" role="alert">{formError}</div>}
-      <label className="form-field">Email address<input className="input" autoComplete="username" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" required/></label>
-      <label className="form-field">Password<input className="input" autoComplete="current-password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
+      <label className="form-field" htmlFor={`flexpass-${portal}-email`}>Email address<input id={`flexpass-${portal}-email`} name={`flexpass-${portal}-username`} className="input" autoComplete={`section-flexpass-${portal} username`} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" spellCheck={false} required/></label>
+      <label className="form-field" htmlFor={`flexpass-${portal}-password`}>Password<input id={`flexpass-${portal}-password`} name={`flexpass-${portal}-password`} className="input" autoComplete={`section-flexpass-${portal} current-password`} type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
       <button className="btn btn-primary" disabled={busy}>{busy?'Signing in…':'Continue securely →'}</button>
     </form>}
     {info?.demo_mode && import.meta.env.DEV && !pagesPreview && <div className="gateway-demo-hint"><button type="button" className="btn btn-outline btn-sm" onClick={()=>{setEmail(`${portal==='client'?'employee':portal}@flexpass.demo`);setPassword('Demo123!')}}>Use local fictional {portal==='admin'?'admin':portal==='partner'?'partner':'member'} account</button><p className="muted">Local development only; demo passwords are not shown on hosted deployments.</p></div>}

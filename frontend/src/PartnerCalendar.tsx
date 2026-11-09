@@ -47,7 +47,7 @@ function badgeClass(status:Booking['status']){return 'calendar-event calendar-'+
 export function PartnerCalendar({initialBookings}:{initialBookings:Booking[]}){
   const {token}=useApp();
   const [bookings,setBookings]=useState<Booking[]>(initialBookings);
-  const [view,setView]=useState<CalendarView>('month');
+  const [view,setView]=useState<CalendarView>(()=>typeof window!=='undefined'&&window.matchMedia('(max-width:700px)').matches?'day':'month');
   const [anchor,setAnchor]=useState<Date>(()=>startOfDay(new Date()));
   const [status,setStatus]=useState<BookingStatus>('ALL');
   const [service,setService]=useState('');

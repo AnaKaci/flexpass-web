@@ -60,12 +60,13 @@ const portalNames:Record<LoginPortal,{title:string;eyebrow:string;description:st
   partner:{title:'Business sign in',eyebrow:'02 / PARTNER ACCESS',description:'Manage approved services, sessions, attendance and settlements.'},
   admin:{title:'Admin sign in',eyebrow:'RESTRICTED / FLEXPASS OPERATIONS',description:'Authorized FlexPass administrators only.'}
 };
-function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=useApp();const navigate=useNavigate();const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);
+function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=useApp();const navigate=useNavigate();const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);const [formError,setFormError]=useState('');
   const entry=portalNames[portal];
   if(user)return <Navigate to={`/${user.role}`} replace/>;
-  async function submit(e:FormEvent){e.preventDefault();setBusy(true);try{const u=await signIn(email,password,portal);navigate(`/${u.role}`,{replace:true});notify('Signed in successfully.');}catch(err){notify((err as Error).message,true);}finally{setBusy(false)}}
+  async function submit(e:FormEvent){e.preventDefault();setFormError('');setBusy(true);try{const u=await signIn(email,password,portal);navigate(`/${u.role}`,{replace:true});notify('Signed in successfully.');}catch(err){const message=(err as Error).message;setFormError(message);notify(message,true);}finally{setBusy(false)}}
   return <PublicLayout><AuthFrame><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
-    {pagesPreview?<div className="notice">Account access is disabled on the GitHub Pages preview. Open the separately hosted FlexPass application to sign in.</div>:<form className="stack" onSubmit={submit}>
+    {pagesPreview?<div className="notice">Account access is disabled on the GitHub Pages preview. Open the separately hosted FlexPass application to sign in.</div>:<form className="stack" onSubmit={submit} onChange={()=>setFormError('')}>
+      {formError&&<div className="notice warn" role="alert">{formError}</div>}
       <label className="form-field">Email address<input className="input" autoComplete="username" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" required/></label>
       <label className="form-field">Password<input className="input" autoComplete="current-password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
       <button className="btn btn-primary" disabled={busy}>{busy?'Signing in…':'Continue securely →'}</button>
@@ -75,27 +76,29 @@ function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=us
     <p className="gateway-return"><Link to="/">← Back to FlexPass</Link></p>
   </AuthFrame></PublicLayout>;
 }
-function ClientSignup(){const {notify,user}=useApp();const [fullName,setFullName]=useState('');const [email,setEmail]=useState('');const [busy,setBusy]=useState(false);const [registered,setRegistered]=useState(false);
+function ClientSignup(){const {notify,user}=useApp();const [fullName,setFullName]=useState('');const [email,setEmail]=useState('');const [busy,setBusy]=useState(false);const [registered,setRegistered]=useState(false);const [formError,setFormError]=useState('');
   if(user)return <Navigate to={`/${user.role}`} replace/>;
-  async function submit(e:FormEvent){e.preventDefault();setBusy(true);try{await post('/auth/register','',{full_name:fullName,email});setRegistered(true);}catch(err){notify((err as Error).message,true)}finally{setBusy(false)}}
+  async function submit(e:FormEvent){e.preventDefault();setFormError('');setBusy(true);try{await post('/auth/register','',{full_name:fullName,email});setRegistered(true);}catch(err){const message=(err as Error).message;setFormError(message);notify(message,true)}finally{setBusy(false)}}
   return <PublicLayout><AuthFrame><div className="eyebrow">CREATE YOUR FLEXPASS ACCOUNT</div><h1>Register as a client</h1><p>Personal registration gives you access to the FlexPass experience catalog. Purchase requests do not charge your card: orders require confirmation before credits are issued.</p>
-    {pagesPreview?<div className="notice">Registration is available on the full FlexPass application hosted on Render.</div>:registered?<div className="notice">Registration received. Check your email for a one-time activation link. Once activated, sign in from the Client portal.</div>:<form className="stack" onSubmit={submit}>
+    {pagesPreview?<div className="notice">Registration is available on the full FlexPass application hosted on Render.</div>:registered?<div className="notice" role="status">Registration received. Check your email for a one-time activation link. Once activated, sign in from the Client portal.</div>:<form className="stack" onSubmit={submit} onChange={()=>setFormError('')}>
+      {formError&&<div className="notice warn" role="alert">{formError}</div>}
       <label className="form-field">Full name<input className="input" value={fullName} onChange={e=>setFullName(e.target.value)} minLength={2} maxLength={160} autoComplete="name" required/></label>
       <label className="form-field">Email address<input className="input" value={email} onChange={e=>setEmail(e.target.value)} type="email" maxLength={200} autoComplete="email" required/></label>
       <button className="btn btn-primary" type="submit" disabled={busy}>{busy?'Submitting…':'Register →'}</button>
     </form>}
     <p className="gateway-return"><Link to="/login/client">← Already registered? Client sign in</Link></p></AuthFrame></PublicLayout>;
 }
-function Register(){const {notify,user}=useApp();const navigate=useNavigate();const [search]=useSearchParams();const [token,setToken]=useState(search.get('token')||'');const [password,setPassword]=useState('');const [confirm,setConfirm]=useState('');const [busy,setBusy]=useState(false);const [success,setSuccess]=useState(false);
+function Register(){const {notify,user}=useApp();const navigate=useNavigate();const [search]=useSearchParams();const [token,setToken]=useState(search.get('token')||'');const [password,setPassword]=useState('');const [confirm,setConfirm]=useState('');const [busy,setBusy]=useState(false);const [success,setSuccess]=useState(false);const [formError,setFormError]=useState('');
   if(user)return <Navigate to={`/${user.role}`} replace/>;
-  async function submit(e:FormEvent){e.preventDefault();if(password!==confirm){notify('Passwords do not match.',true);return;}setBusy(true);
+  async function submit(e:FormEvent){e.preventDefault();setFormError('');if(password!==confirm){setFormError('Passwords do not match. Re-enter the confirmation password.');return;}setBusy(true);
     try{const result=await post<{status:string;role:Role}>('/auth/activate','',{token,password});setSuccess(true);notify('Account activated. You can now sign in.');navigate(result.role==='partner'?'/login/business':'/login/client',{replace:true});}
-    catch(err){notify((err as Error).message,true)}finally{setBusy(false)}
+    catch(err){const message=(err as Error).message;setFormError(message);notify(message,true)}finally{setBusy(false)}
   }
   return <PublicLayout><AuthFrame><div className="eyebrow">ACCOUNT ACTIVATION</div><h1>Create your account</h1><p>Use the individual invitation sent by FlexPass. Business accounts are invited by FlexPass. Client accounts use the separate registration form.</p>
-    {pagesPreview?<div className="notice">Activation is available on the full-stack Render application, not GitHub Pages.</div>:success?<div className="notice">Your account is active. Continue to your sign-in page.</div>:<form className="stack" onSubmit={submit}>
+    {pagesPreview?<div className="notice">Activation is available on the full-stack Render application, not GitHub Pages.</div>:success?<div className="notice" role="status">Your account is active. Continue to your sign-in page.</div>:<form className="stack" onSubmit={submit} onChange={()=>setFormError('')}>
+      {formError&&<div className="notice warn" role="alert">{formError}</div>}
       <label className="form-field">Invitation code<input className="input" type="text" autoComplete="off" value={token} onChange={e=>setToken(e.target.value)} required minLength={32} placeholder="Paste your invitation code"/></label>
-      <label className="form-field">Create password<input className="input" type="password" autoComplete="new-password" minLength={12} maxLength={256} value={password} onChange={e=>setPassword(e.target.value)} required/></label>
+      <label className="form-field">Create password<input className="input" type="password" autoComplete="new-password" minLength={12} maxLength={256} value={password} onChange={e=>setPassword(e.target.value)} required/><small className="field-hint">Use at least 12 characters. Do not reuse an existing password.</small></label>
       <label className="form-field">Confirm password<input className="input" type="password" autoComplete="new-password" minLength={12} value={confirm} onChange={e=>setConfirm(e.target.value)} required/></label>
       <button className="btn btn-primary" disabled={busy}>{busy?'Activating…':'Activate account →'}</button>
     </form>}

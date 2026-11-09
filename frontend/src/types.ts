@@ -3,7 +3,7 @@ export type Group = 'fitness' | 'sport' | 'wellness' | 'glow' | 'kids-family';
 export type Status = 'BOOKED' | 'CHECKED_IN' | 'CANCELLED';
 export type EmployeeSection = 'overview' | 'discover' | 'bookings' | 'wallet';
 export type PartnerSection = 'overview' | 'reservations' | 'services' | 'settlements';
-export type AdminSection = 'overview' | 'companies' | 'employees' | 'plans' | 'invoices' | 'settlements' | 'audit';
+export type AdminSection = 'overview' | 'companies' | 'partners' | 'employees' | 'plans' | 'invoices' | 'settlements' | 'audit';
 export type Section = EmployeeSection | PartnerSection | AdminSection;
 export interface User { id:number; full_name:string; email:string; role:Role; company_id:number|null; partner_id:number|null; plan_id:number|null; status:string; }
 export interface LoginResult { token:string; user:User; }
@@ -17,10 +17,12 @@ export interface PartnerSummary {partner:string; zone:string; services:number; b
 export interface PartnerService {id:number; name:string; group:Group; subcategory:string; credits:number; payout_cents:number; active:boolean; slots:Slot[]; }
 export interface AdminSummary {companies:number; employees:number; partners:number; services:number; bookings:number; visits:number; credits_issued:number; partner_payables_cents:number; }
 export interface Company {id:number; name:string; hr_email:string; status:string; employees:number; }
+export interface PartnerAccount {email:string;status:string;}
+export interface AdminPartner {id:number;name:string;zone:string;status:string;accounts:PartnerAccount[];}
 export interface Employee {id:number; full_name:string; email:string; company:string; company_id:number; plan:string; status:string; balance:number; }
 export interface Plan {id:number; name:string; credits:number; monthly_price:number; currency:string; }
 export interface Invoice {id:number; company:string; company_id:number; period:string; reference:string; amount_cents:number; currency:string; status:string; due_date:string; payment_reference:string; }
 export interface Settlement {id:number; partner:string; partner_id:number; period:string; status:string; bookings:number; amount_cents:number; invoice_reference:string; payment_reference:string; }
 export interface AuditRow {id:number; action:string; detail:string; actor_id:number|null; at:string; }
-export type FormAction = 'company'|'employee'|'invoice'|'invoice-status'|'service'|'slot'|'adjust'|'settlement-status';
+export type FormAction = 'company'|'partner-invite'|'plan-create'|'employee'|'invoice'|'invoice-status'|'service'|'slot'|'adjust'|'settlement-status';
 export interface FormDialog {kind:FormAction; id?:number; }

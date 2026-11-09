@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { PropsWithChildren, ReactNode, FormEvent } from 'react';
-import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { AppInfo, LoginResult, Role, User } from './types';
-import { TOKEN_KEY, login, pagesPreview, request } from './api';
+import { TOKEN_KEY, login, pagesPreview, post, request } from './api';
 import { ServicesPage } from './ServicesPage';
 import { Dashboard } from './Dashboard';
 
@@ -60,7 +60,24 @@ function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=us
       <button className="btn btn-primary" disabled={busy}>{busy?'Signing in…':'Continue securely →'}</button>
     </form>}
     {info?.demo_mode && import.meta.env.DEV && !pagesPreview && <div className="gateway-demo-hint"><button type="button" className="btn btn-outline btn-sm" onClick={()=>{setEmail(`${portal}@flexpass.demo`);setPassword('Demo123!')}}>Use local fictional {portal==='admin'?'admin':portal==='partner'?'partner':'member'} account</button><p className="muted">Local development only; demo passwords are not shown on hosted deployments.</p></div>}
+    {portal==='employee'&&<p className="gateway-register-link">New member? <Link to="/register">Activate your invitation</Link></p>}
     <p className="gateway-return"><Link to="/">← Back to FlexPass</Link></p>
+  </div></main></PublicLayout>;
+}
+function Register(){const {notify,user}=useApp();const navigate=useNavigate();const [search]=useSearchParams();const [token,setToken]=useState(search.get('token')||'');const [password,setPassword]=useState('');const [confirm,setConfirm]=useState('');const [busy,setBusy]=useState(false);const [success,setSuccess]=useState(false);
+  if(user)return <Navigate to={`/${user.role}`} replace/>;
+  async function submit(e:FormEvent){e.preventDefault();if(password!==confirm){notify('Passwords do not match.',true);return;}setBusy(true);
+    try{const result=await post<{status:string;role:Role}>('/auth/activate','',{token,password});setSuccess(true);notify('Account activated. You can now sign in.');navigate(result.role==='partner'?'/login/business':'/login/client',{replace:true});}
+    catch(err){notify((err as Error).message,true)}finally{setBusy(false)}
+  }
+  return <PublicLayout><main className="auth-page gateway-auth"><div className="auth-card"><div className="eyebrow">MEMBERSHIP ACTIVATION</div><h1>Create your account</h1><p>Use the individual invitation sent by FlexPass. Your company or partner membership is assigned by the administrator.</p>
+    {pagesPreview?<div className="notice">Activation is available on the full-stack Render application, not GitHub Pages.</div>:success?<div className="notice">Your account is active. Continue to your sign-in page.</div>:<form className="stack" onSubmit={submit}>
+      <label className="form-field">Invitation code<input className="input" type="text" autoComplete="off" value={token} onChange={e=>setToken(e.target.value)} required minLength={32} placeholder="Paste your invitation code"/></label>
+      <label className="form-field">Create password<input className="input" type="password" autoComplete="new-password" minLength={12} maxLength={256} value={password} onChange={e=>setPassword(e.target.value)} required/></label>
+      <label className="form-field">Confirm password<input className="input" type="password" autoComplete="new-password" minLength={12} value={confirm} onChange={e=>setConfirm(e.target.value)} required/></label>
+      <button className="btn btn-primary" disabled={busy}>{busy?'Activating…':'Activate account →'}</button>
+    </form>}
+    <div className="notice" style={{marginTop:20}}>Registration is invitation-only. Contact the FlexPass team if your activation link has expired.</div><p className="gateway-return"><Link to="/login/client">← Client sign in</Link></p>
   </div></main></PublicLayout>;
 }
 function StaticPage({kind}:{kind:'contact'|'privacy'|'terms'}){const contents={contact:['Request access','FlexPass is a private-launch B2B pilot. Contact the project team through your organization to join an approved pilot.','Online application and payment are intentionally not enabled in the MVP.'],privacy:['Privacy notice','This is an MVP preview with fictional services. Do not enter real personal or payment information.','A reviewed production privacy policy is required before a public pilot.'],terms:['Terms of use','This project is a functional MVP demonstration, not a live consumer service.','Booking and cancellation policies must be approved before real-world operation.']} as const;const [title,body,note]=contents[kind];return <PublicLayout><main className="content-page"><div className="eyebrow">FlexPass</div><h1>{title}</h1><p>{body}</p><div className="notice">{note}</div><p style={{marginTop:22}}><Link to="/" className="btn btn-primary">Back to FlexPass</Link></p></main></PublicLayout>}
@@ -78,7 +95,7 @@ export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem
   return <AppContext.Provider value={context}><Routes>
     <Route path="/" element={<Home/>}/>
     <Route path="/services" element={<ProtectedServices/>}/>
-    <Route path="/login" element={<Navigate to="/" replace/>}/><Route path="/login/client" element={<Login portal="employee"/>}/><Route path="/login/business" element={<Login portal="partner"/>}/><Route path="/admin/login" element={<Login portal="admin"/>}/>
+    <Route path="/register" element={<Register/>}/><Route path="/login" element={<Navigate to="/" replace/>}/><Route path="/login/client" element={<Login portal="employee"/>}/><Route path="/login/business" element={<Login portal="partner"/>}/><Route path="/admin/login" element={<Login portal="admin"/>}/>
     <Route path="/contact" element={<StaticPage kind="contact"/>}/><Route path="/privacy" element={<StaticPage kind="privacy"/>}/><Route path="/terms" element={<StaticPage kind="terms"/>}/>
     <Route path="/employee" element={<Authenticated role="employee"/>}/><Route path="/partner" element={<Authenticated role="partner"/>}/><Route path="/admin" element={<Authenticated role="admin"/>}/><Route path="*" element={<Navigate to="/" replace/>}/>
   </Routes>{message&&<div role="status" className={`toast-fixed ${message.error?'toast-error':''}`}>{message.body}</div>}</AppContext.Provider>;

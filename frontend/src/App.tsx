@@ -59,12 +59,12 @@ function PublicLayout({children,home=false,hideHeader=false}:PropsWithChildren<{
     </div>
   </footer>
 </>}
-function AuthFrame({children,loginPortal}:{children:ReactNode;loginPortal?:LoginPortal}){
-  return <main className={`auth-page gateway-auth auth-editorial-layout ${loginPortal?'auth-login-layout':''}`}>
+function AuthFrame({children}:{children:ReactNode}){
+  const photoUrl=`${import.meta.env.BASE_URL}brand/login-pilates.webp`;
+  return <main className="auth-page gateway-auth auth-photo-stage">
     <div className="auth-card auth-card-refined"><BrandLogo variant="monogram" className="auth-official-monogram" decorative/>{children}</div>
-    <aside className="auth-editorial-aside">
-      <img src={`${import.meta.env.BASE_URL}brand/${loginPortal?'login-pilates.webp':'arch-view.jpg'}`}
-        alt={loginPortal?'Sunlit Mediterranean Pilates studio overlooking the sea':'Sunlit Mediterranean arch framing the water'}/>
+    <aside className="auth-photo-panel" style={{backgroundImage:`url("${photoUrl}")`}}>
+      <img src={photoUrl} alt="Sunlit Mediterranean Pilates studio overlooking the sea"/>
       <div className="auth-visual-caption"><span>THE FLEXPASS WAY OF LIFE</span><p>A healthier, happier <em>everyday.</em></p></div>
     </aside>
   </main>;
@@ -97,7 +97,7 @@ function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=us
   useEffect(()=>{setEmail('');setPassword('');setFormError('');},[portal]);
   if(user)return <Navigate to={`/${user.role}`} replace/>;
   async function submit(e:FormEvent){e.preventDefault();setFormError('');setBusy(true);try{const u=await signIn(email,password,portal);navigate(`/${u.role}`,{replace:true});notify('Signed in successfully.');}catch(err){const message=(err as Error).message;setFormError(message);notify(message,true);}finally{setBusy(false)}}
-  return <PublicLayout hideHeader><AuthFrame loginPortal={portal}><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
+  return <PublicLayout hideHeader><AuthFrame><div className="eyebrow">{entry.eyebrow}</div><h1>{entry.title}</h1><p>{entry.description}</p>
     {pagesPreview?<div className="notice">Account access is disabled on the GitHub Pages preview. Open the separately hosted FlexPass application to sign in.</div>:<form key={portal} className="stack" onSubmit={submit} onChange={()=>setFormError('')} autoComplete="off">
       {formError&&<div className="notice warn" role="alert">{formError}</div>}
       <label className="form-field" htmlFor={`flexpass-${portal}-email`}>Email address<input id={`flexpass-${portal}-email`} name={`flexpass-${portal}-username`} className="input" autoComplete={`section-flexpass-${portal} username`} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" spellCheck={false} required/></label>
@@ -112,7 +112,7 @@ function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=us
 function ClientSignup(){const {notify,user}=useApp();const [fullName,setFullName]=useState('');const [email,setEmail]=useState('');const [busy,setBusy]=useState(false);const [registered,setRegistered]=useState(false);const [formError,setFormError]=useState('');
   if(user)return <Navigate to={`/${user.role}`} replace/>;
   async function submit(e:FormEvent){e.preventDefault();setFormError('');setBusy(true);try{await post('/auth/register','',{full_name:fullName,email});setRegistered(true);}catch(err){const message=(err as Error).message;setFormError(message);notify(message,true)}finally{setBusy(false)}}
-  return <PublicLayout><AuthFrame><div className="eyebrow">CREATE YOUR FLEXPASS ACCOUNT</div><h1>Register as a client</h1><p>Personal registration gives you access to the FlexPass experience catalog. Purchase requests do not charge your card: orders require confirmation before credits are issued.</p>
+  return <PublicLayout hideHeader><AuthFrame><div className="eyebrow">CREATE YOUR FLEXPASS ACCOUNT</div><h1>Register as a client</h1><p>Personal registration gives you access to the FlexPass experience catalog. Purchase requests do not charge your card: orders require confirmation before credits are issued.</p>
     {pagesPreview?<div className="notice">Registration is available on the full FlexPass application hosted on Render.</div>:registered?<div className="notice" role="status">Registration received. Check your email for a one-time activation link. Once activated, sign in from the Client portal.</div>:<form className="stack" onSubmit={submit} onChange={()=>setFormError('')}>
       {formError&&<div className="notice warn" role="alert">{formError}</div>}
       <label className="form-field">Full name<input className="input" value={fullName} onChange={e=>setFullName(e.target.value)} minLength={2} maxLength={160} autoComplete="name" required/></label>
@@ -127,7 +127,7 @@ function Register(){const {notify,user}=useApp();const navigate=useNavigate();co
     try{const result=await post<{status:string;role:Role}>('/auth/activate','',{token,password});setSuccess(true);notify('Account activated. You can now sign in.');navigate(result.role==='partner'?'/login/business':'/login/client',{replace:true});}
     catch(err){const message=(err as Error).message;setFormError(message);notify(message,true)}finally{setBusy(false)}
   }
-  return <PublicLayout><AuthFrame><div className="eyebrow">ACCOUNT ACTIVATION</div><h1>Create your account</h1><p>Use the individual invitation sent by FlexPass. Business accounts are invited by FlexPass. Client accounts use the separate registration form.</p>
+  return <PublicLayout hideHeader><AuthFrame><div className="eyebrow">ACCOUNT ACTIVATION</div><h1>Create your account</h1><p>Use the individual invitation sent by FlexPass. Business accounts are invited by FlexPass. Client accounts use the separate registration form.</p>
     {pagesPreview?<div className="notice">Activation is available on the full-stack Render application, not GitHub Pages.</div>:success?<div className="notice" role="status">Your account is active. Continue to your sign-in page.</div>:<form className="stack" onSubmit={submit} onChange={()=>setFormError('')}>
       {formError&&<div className="notice warn" role="alert">{formError}</div>}
       <label className="form-field">Invitation code<input className="input" type="text" autoComplete="off" value={token} onChange={e=>setToken(e.target.value)} required minLength={32} placeholder="Paste your invitation code"/></label>

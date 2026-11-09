@@ -1,0 +1,192 @@
+/* ChatGPT-style account popover, adapted to FlexPass teal and ivory.
+   Available on hover, click and keyboard. Shared across all three dashboards. */
+.dashboard-app-shell .dashboard-sidebar .sidebar-bottom{
+  position:relative;
+  padding-top:13px;
+  border-top:1px solid rgba(245,239,228,.18);
+}
+.sidebar-profile-menu{
+  position:relative;
+  width:100%;
+  min-width:0;
+  isolation:isolate;
+}
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-trigger{
+  display:flex;
+  width:100%;
+  min-width:0;
+  min-height:69px;
+  align-items:center;
+  gap:11px;
+  text-align:left;
+  padding:10px 8px;
+  border:1px solid transparent;
+  border-radius:9px;
+  background:transparent;
+  color:#F5EFE4;
+  cursor:pointer;
+  transition:background-color 180ms ease,border-color 180ms ease;
+}
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-trigger:hover,
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-menu.is-open .sidebar-profile-trigger{
+  background:rgba(245,239,228,.10);
+  border-color:rgba(245,239,228,.14);
+}
+.sidebar-profile-menu-avatar{
+  width:43px;
+  height:43px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  background:#F3DEDF;
+  color:#10565C;
+  border-radius:11px;
+  font-family:'Inter',sans-serif;
+  font-weight:700;
+  font-size:18px;
+}
+.sidebar-profile-trigger-text{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width:0;
+  flex:1 1 0;
+}
+.sidebar-profile-trigger-text strong{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  line-height:1.4;
+  font-weight:650;
+  color:#F5EFE4;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sidebar-profile-trigger-text small{
+  color:#BED3CD;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  line-height:1.35;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sidebar-profile-chevron{
+  color:#C1D4CA;
+  opacity:.7;
+  flex:none;
+  transform:rotate(-90deg);
+  transition:transform 180ms ease,opacity 180ms ease;
+}
+.sidebar-profile-chevron.is-open{
+  transform:rotate(90deg);
+  opacity:1;
+}
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-popover{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:calc(100% + 10px);
+  z-index:40;
+  display:flex;
+  flex-direction:column;
+  background:#FFFCF7;
+  color:#10565C;
+  border:1px solid rgba(16,86,92,.2);
+  border-radius:11px;
+  box-shadow:0 12px 32px rgba(4,34,35,.22);
+  padding:8px;
+  animation:sidebar-profile-in 180ms ease-out both;
+}
+.sidebar-profile-popover-heading{
+  padding:10px 10px 14px;
+  border-bottom:1px solid rgba(16,86,92,.14);
+}
+.sidebar-profile-overline{
+  color:#AA1350;
+  display:block;
+  font-family:'Inter',sans-serif;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.12em;
+  line-height:1.4;
+  margin-bottom:13px;
+}
+.sidebar-profile-popover-identity{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  min-width:0;
+}
+.sidebar-profile-popover-identity .sidebar-profile-menu-avatar{
+  width:38px;height:38px;
+  font-size:16px;
+  border-radius:9px;
+}
+.sidebar-profile-popover-text{
+  min-width:0;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.sidebar-profile-popover-text strong{
+  color:#10565C;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:650;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+.sidebar-profile-popover-text small{
+  color:#56716A;
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+.sidebar-profile-role{
+  color:#668076;
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:500;
+  line-height:1.4;
+  margin-top:3px;
+}
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-sign-out{
+  border:0;
+  border-radius:7px;
+  width:100%;
+  min-height:45px;
+  margin-top:5px;
+  padding:9px 11px;
+  background:transparent;
+  color:#10565C;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  text-align:left;
+  transition:background-color 160ms ease;
+}
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-sign-out:hover,
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-sign-out:focus-visible{
+  background:#F3DEDF;
+  color:#8A1644;
+}
+.sidebar-profile-sign-out svg{flex:none}
+@keyframes sidebar-profile-in{
+  from{opacity:0;transform:translateY(7px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(max-width:760px){
+  .dashboard-app-shell .dashboard-sidebar .sidebar-profile-trigger{min-height:63px}
+  .dashboard-app-shell .dashboard-sidebar .sidebar-profile-sign-out{min-height:47px}
+}
+@media(prefers-reduced-motion:reduce){
+  .dashboard-app-shell .dashboard-sidebar .sidebar-profile-popover{animation:none}
+  .dashboard-app-shell .dashboard-sidebar .sidebar-profile-chevron,
+  .dashboard-app-shell .dashboard-sidebar .sidebar-profile-trigger{transition:none}
+}

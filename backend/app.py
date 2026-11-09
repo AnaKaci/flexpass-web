@@ -218,6 +218,11 @@ class BookBody(BaseModel):
 class CompanyBody(BaseModel):
     name: str = Field(min_length=2)
     hr_email: str = ''
+class PlanBody(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    credits: int = Field(ge=1, le=10000)
+    monthly_price_cents: int = Field(ge=0)
+
 class EmployeeBody(BaseModel):
     full_name: str
     email: str
@@ -642,6 +647,19 @@ def resend_invitation(user_id:int,u=Depends(roles('admin'))):
 @app.get('/api/admin/plans')
 def plans(u=Depends(roles('admin'))):
     with Session() as s:return [{'id':p.id,'name':p.name,'credits':p.credits,'monthly_price':p.monthly_price,'currency':p.currency} for p in s.scalars(select(Plan).order_by(Plan.id)).all()]
+
+@app.post('/api/admin/plans')
+def create_plan(body:PlanBody,u=Depends(roles('admin'))):
+    with Session() as s:
+        if s.scalar(select(Plan.id).where(func.lower(Plan.name)==body.name.strip().lower())):
+            raise HTTPException(409,'Plan already exists')
+        if s.scalar(select(func.count(Plan.id)))>=3:
+            raise HTTPException(409,'MVP supports a maximum of three credit plans')
+        plan=Plan(name=body.name.strip(),credits=body.credits,monthly_price=body.monthly_price_cents)
+        s.add(plan);s.flush()
+        audit(s,u.id,'PLAN_CREATED',f'{plan.id}:{plan.name}')
+        s.commit()
+        return {'id':plan.id}
 
 @app.get('/api/admin/employees')
 def employees(u=Depends(roles('admin'))):

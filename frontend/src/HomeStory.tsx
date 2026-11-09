@@ -88,6 +88,14 @@ export function HomeStory(){
     </section>
 
     <section className="home-editorial-invitation" aria-labelledby="home-invitation-title">
+      <img
+        className="home-editorial-invitation-photo"
+        src={`${import.meta.env.BASE_URL}brand/home-invitation-yoga.webp`}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+      />
       <div className="home-editorial-wrap">
         <header className="home-editorial-invitation-heading">
           <span className="home-editorial-label">A FLEXIBLE EVERYDAY</span>

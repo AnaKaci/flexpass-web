@@ -60,3 +60,16 @@ test('rating stars are solid-filled with distinct idle and selected FlexPass col
   assert.ok(css.includes('animation:flexpass-rating-bloom'), 'retain existing star animation');
   assert.ok(popup.includes("filled?'is-selected':''"), 'preserve rating-dependent star selection');
 });
+
+test('booking actions remain aligned and reviewed bookings show a muted state',()=>{
+  assert.ok(dashboard.includes('<div className="booking-action-slot">'));
+  assert.ok(dashboard.includes("{b.status==='CHECKED_IN'&&role==='employee'&&onReview&&!b.reviewed&&<button"));
+  assert.ok(dashboard.includes("{b.status==='CHECKED_IN'&&role==='employee'&&b.reviewed&&<span className=\"booking-action-state\">Reviewed</span>}"));
+  assert.ok(dashboard.includes('className="booking-action-empty">—</span>'));
+  assert.ok(css.includes('.dashboard-app-shell .booking-action-slot{'));
+  assert.ok(css.includes('min-height:38px;'));
+  assert.ok(css.includes('align-items:flex-start;'));
+  assert.ok(css.includes('justify-content:center;'));
+  assert.ok(css.includes('color:var(--warm-gray);'));
+  assert.ok(!css.includes('font-family:'));
+});

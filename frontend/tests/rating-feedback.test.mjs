@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {test} from 'node:test';
+
+const dashboard=readFileSync(new URL('../src/Dashboard.tsx',import.meta.url),'utf8');
+const popup=readFileSync(new URL('../src/RatingPopup.tsx',import.meta.url),'utf8');
+const feedback=readFileSync(new URL('../src/PartnerFeedback.tsx',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/service-feedback.css',import.meta.url),'utf8');
+const types=readFileSync(new URL('../src/types.ts',import.meta.url),'utf8');
+
+test('client reviews use the animated popup and optional feedback rather than prompts',()=>{
+  assert.ok(dashboard.includes('<RatingPopup booking={reviewBooking}'));
+  assert.ok(dashboard.includes('function leaveReview(booking:Booking){setReviewBooking(booking)}'));
+  assert.ok(dashboard.includes('onReview={leaveReview}'));
+  assert.ok(dashboard.includes('await post(`/client/bookings/${reviewBooking.id}/review`,token,{rating,comment});'));
+  assert.ok(!dashboard.includes("window.prompt('Rate your completed experience"));
+  assert.ok(popup.includes('onSubmit:(rating:number,comment:string)=>Promise<void>'));
+  assert.ok(popup.includes('onChange={setRating}'));
+  assert.ok(popup.includes('Leave a note'));
+  assert.ok(popup.includes('(optional)'));
+  assert.ok(popup.includes('disabled={!rating||submitting}'));
+  assert.ok(popup.includes('maxLength={500}'));
+});
+
+test('star interaction retains keyboard-accessible buttons and reduced motion fallback',()=>{
+  assert.ok(popup.includes('aria-label={`Rate ${number} out of 5 stars`}'));
+  assert.ok(popup.includes('aria-pressed={value===number}'));
+  assert.ok(popup.includes('onMouseEnter={()=>setHovered(number)}'));
+  assert.ok(popup.includes('onFocus={()=>setHovered(number)}'));
+  assert.ok(popup.includes('onClick={()=>onChange?.(number)}'));
+  assert.ok(popup.includes('aria-live="polite"'));
+  assert.ok(css.includes('animation:flexpass-rating-bloom'));
+  assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
+  for(const color of ['var(--burgundy)','var(--teal)','var(--teal-dark)','var(--ivory)','var(--paper)']){
+    assert.ok(css.includes(color),color);
+  }
+  assert.ok(!css.includes('.home-page'));
+  assert.ok(!css.includes('.auth-photo-stage'));
+});
+
+test('business feedback uses authenticated existing review data and per-service summaries',()=>{
+  assert.ok(types.includes(" | 'feedback' | 'notifications';"));
+  assert.ok(dashboard.includes("['feedback','Client feedback','activity']"));
+  assert.ok(dashboard.includes("get<PartnerFeedbackData>('/partner/reviews')"));
+  assert.ok(dashboard.includes("if(section==='feedback')return data.partnerFeedback?"));
+  assert.ok(dashboard.includes("onSection('feedback')"));
+  assert.ok(dashboard.includes("'/api/partner/reviews/export'"));
+  assert.ok(dashboard.includes('ratingForService(s.id)'));
+  assert.ok(feedback.includes('feedback.services.map'));
+  assert.ok(feedback.includes("feedback.reviews.filter(item=>String(item.service_id)===service)"));
+  assert.ok(feedback.includes('item.comment||'));
+  assert.ok(feedback.includes('onClick={()=>void exportFeedback()}'));
+  assert.ok(!feedback.includes("Math.random("));
+});

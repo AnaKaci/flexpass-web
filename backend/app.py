@@ -226,6 +226,35 @@ class Audit(Base):
     detail = Column(Text, default='')
     created_at = Column(DateTime, default=now)
 
+class Notification(Base):
+    __tablename__ = 'notifications'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    kind = Column(String(40), nullable=False)
+    title = Column(String(140), nullable=False)
+    message = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=now, nullable=False)
+    read_at = Column(DateTime)
+
+class CheckinCode(Base):
+    __tablename__ = 'checkin_codes'
+    id = Column(Integer, primary_key=True)
+    booking_id = Column(Integer, ForeignKey('bookings.id'), nullable=False, unique=True)
+    code_hash = Column(String(64), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    attempts = Column(Integer, default=0, nullable=False)
+    used_at = Column(DateTime)
+
+class ServiceReview(Base):
+    __tablename__ = 'service_reviews'
+    id = Column(Integer, primary_key=True)
+    booking_id = Column(Integer, ForeignKey('bookings.id'), nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    service_id = Column(Integer, ForeignKey('services.id'), nullable=False)
+    rating = Column(Integer, nullable=False)
+    comment = Column(String(500), nullable=False)
+    created_at = Column(DateTime, default=now, nullable=False)
+
 class ClientRegistrationBody(BaseModel):
     full_name: str = Field(min_length=2, max_length=160)
     email: str = Field(min_length=5, max_length=200)
@@ -301,6 +330,20 @@ class SlotBody(BaseModel):
     service_id: int
     start_at: datetime
     capacity: int = Field(ge=1)
+class BulkSlotsBody(BaseModel):
+    service_id: int
+    start_at: datetime
+    capacity: int = Field(ge=1, le=100)
+    count: int = Field(ge=1, le=12)
+    frequency: str = Field(pattern='^(daily|weekly)$')
+
+class CheckinVerificationBody(BaseModel):
+    code: str = Field(pattern=r'^\d{8}$')
+
+class ReviewBody(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    comment: str = Field(min_length=10, max_length=500)
+
 class AdjustBody(BaseModel):
     user_id: int
     amount: int
@@ -408,6 +451,22 @@ def balance(s,uid):
     return int(s.scalar(select(func.coalesce(func.sum(Ledger.amount),0)).where(Ledger.user_id==uid)) or 0)
 
 def audit(s,actor,action,detail): s.add(Audit(actor_id=actor, action=action, detail=detail))
+
+def notify_user(s, user_id, kind, title, message):
+    s.add(Notification(user_id=user_id, kind=kind, title=title, message=message))
+
+def notify_partner(s, partner_id, kind, title, message):
+    users=s.scalars(select(User).where(User.partner_id==partner_id, User.role=='partner', User.membership_status=='ACTIVE')).all()
+    for user in users:
+        notify_user(s,user.id,kind,title,message)
+
+def notify_admins(s, kind, title, message):
+    admins=s.scalars(select(User).where(User.role=='admin',User.membership_status=='ACTIVE')).all()
+    for admin in admins:
+        notify_user(s,admin.id,kind,title,message)
+
+def checkin_digest(booking_id,code):
+    return hmac.new(SECRET.encode(), f'check-in:{booking_id}:{code}'.encode(), hashlib.sha256).hexdigest()
 
 def lock_transaction(s):
     # SQLite serialize writers before reading capacity/balance; PostgreSQL: row locks below.
@@ -538,7 +597,7 @@ def employee_summary(u=Depends(roles('employee','client'))):
 
 def booking_view(s,b):
     sv=s.get(Service,b.service_id);p=s.get(Partner,b.partner_id);sl=s.get(Slot,b.slot_id);u=s.get(User,b.user_id)
-    return {'id':b.id,'reference':b.reference,'service':sv.name,'partner':p.name,'partner_id':b.partner_id,'user':u.full_name,'email':u.email,'start_at':iso(sl.start_at),'credits':b.credits_snapshot,'payout_cents':b.payout_snapshot_cents,'status':b.status,'created_at':iso(b.created_at),'checked_in_at':iso(b.checked_in_at),'zone':p.zone}
+    return {'id':b.id,'reference':b.reference,'service':sv.name,'partner':p.name,'partner_id':b.partner_id,'user':u.full_name,'email':u.email,'start_at':iso(sl.start_at),'credits':b.credits_snapshot,'payout_cents':b.payout_snapshot_cents,'status':b.status,'created_at':iso(b.created_at),'checked_in_at':iso(b.checked_in_at),'zone':p.zone, 'reviewed':bool(s.scalar(select(ServiceReview.id).where(ServiceReview.booking_id==b.id)))}
 
 @app.get('/api/client/bookings')
 @app.get('/api/employee/bookings')
@@ -581,6 +640,10 @@ def make_booking(body:BookBody,req:Request,u=Depends(roles('employee','client'))
             if key: s.add(BookingRequest(user_id=u.id,idempotency_key=key,slot_id=sl.id,booking_id=b.id))
             s.add(Ledger(user_id=u.id,booking_id=b.id,kind='DEBIT',amount=-service.credits,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Booking {b.reference}'))
             audit(s,u.id,'BOOKING_CREATED',b.reference)
+            notify_user(s,u.id,'BOOKING_CREATED','Booking confirmed',
+                        f'Your reservation {b.reference} is confirmed.')
+            notify_partner(s,b.partner_id,'NEW_BOOKING','New reservation',
+                           f'New reservation {b.reference} requires attendance check-in.')
             s.commit(); return booking_view(s,b)
         except HTTPException:
             s.rollback();raise
@@ -601,6 +664,10 @@ def cancel_booking(booking_id:int,u=Depends(roles('employee','client'))):
             b.status='CANCELLED';b.cancelled_at=now();sl.reserved-=1
             s.add(Ledger(user_id=b.user_id,booking_id=b.id,kind='REFUND',amount=b.credits_snapshot,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Cancellation {b.reference}'))
             audit(s,u.id,'BOOKING_CANCELLED',b.reference)
+            notify_user(s,u.id,'BOOKING_CANCELLED','Booking cancelled',
+                        f'Reservation {b.reference} was cancelled and credits returned.')
+            notify_partner(s,b.partner_id,'BOOKING_CANCELLED','Reservation cancelled',
+                           f'Reservation {b.reference} was cancelled.')
             s.commit();return {'status':'CANCELLED','refunded':b.credits_snapshot}
         except HTTPException:s.rollback();raise
         except Exception:s.rollback();raise
@@ -650,6 +717,8 @@ def request_client_order(body:ClientOrderBody,u=Depends(roles('employee','client
                               currency=item.currency,status='PENDING')
             s.add(order);s.flush()
             audit(s,u.id,'CLIENT_ORDER_REQUESTED',f'Order {order.id}: {item.name}')
+            notify_admins(s,'ORDER_REQUESTED','Client order needs review',
+                          f'Order #{order.id} is pending independent payment verification.')
             s.commit()
             return client_order_view(s,order)
         except HTTPException:s.rollback();raise
@@ -731,6 +800,8 @@ def admin_confirm_client_order(order_id:int,body:ConfirmOrderBody,u=Depends(role
                          source='PERSONAL',period=now().strftime('%Y-%m'),actor_id=u.id,
                          reason=f'Credit product order {order.id}: {ref}'))
             audit(s,u.id,'CLIENT_ORDER_CONFIRMED',f'Order {order.id}; ref={ref}')
+            notify_user(s,account.id,'ORDER_CONFIRMED','Credits added',
+                        f'Order #{order.id} is confirmed. {order.credits_snapshot} credits were added to your wallet.')
             s.commit()
             return client_order_view(s,order)
         except HTTPException:s.rollback();raise
@@ -756,7 +827,10 @@ def checkin(booking_id:int,u=Depends(roles('partner','admin'))):
             if u.role=='partner' and b.partner_id!=u.partner_id:raise HTTPException(403,'Not your partner booking')
             if b.status!='BOOKED':raise HTTPException(409,'Check-in already recorded or booking cancelled')
             b.status='CHECKED_IN';b.checked_in_at=now();b.checked_in_by=u.id
-            audit(s,u.id,'CHECK_IN',b.reference);s.commit()
+            audit(s,u.id,'CHECK_IN',b.reference)
+            notify_user(s,b.user_id,'CHECK_IN','Visit confirmed',
+                        f'Attendance confirmed for reservation {b.reference}.')
+            s.commit()
             return {'status':'CHECKED_IN','reference':b.reference}
         except HTTPException:s.rollback();raise
         except Exception:s.rollback();raise
@@ -983,6 +1057,160 @@ def update_settlement(settlement_id:int,body:SettlementUpdate,u=Depends(roles('a
 def audit_log(u=Depends(roles('admin'))):
     with Session() as s:return [{'id':x.id,'action':x.action,'detail':x.detail,'actor_id':x.actor_id,'at':iso(x.created_at)} for x in s.scalars(select(Audit).order_by(Audit.id.desc()).limit(50)).all()]
 
+
+# Authenticated in-app notification inbox; entries are written in existing business transactions.
+@app.get('/api/notifications')
+def my_notifications(u=Depends(get_user)):
+    with Session() as s:
+        rows=s.scalars(select(Notification).where(Notification.user_id==u.id).order_by(Notification.id.desc()).limit(50)).all()
+        return [{'id':x.id,'kind':x.kind,'title':x.title,'message':x.message,
+                 'created_at':iso(x.created_at),'read_at':iso(x.read_at)} for x in rows]
+
+@app.post('/api/notifications/{notification_id}/read')
+def read_notification(notification_id:int,u=Depends(get_user)):
+    with Session() as s:
+        item=s.get(Notification,notification_id)
+        if not item or item.user_id!=u.id:raise HTTPException(404,'Notification not found')
+        if item.read_at is None:item.read_at=now()
+        s.commit()
+        return {'id':item.id,'read_at':iso(item.read_at)}
+
+# Eight-digit one-time attendance proof. The raw code never enters the DB or logs.
+CHECKIN_CODE_DURATION = timedelta(minutes=10)
+
+@app.post('/api/client/bookings/{booking_id}/checkin-code')
+def issue_checkin_code(booking_id:int,u=Depends(roles('employee','client'))):
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            b=s.scalar(select(Booking).where(Booking.id==booking_id).with_for_update())
+            if not b or b.user_id!=u.id:raise HTTPException(404,'Booking not found')
+            if b.status!='BOOKED':raise HTTPException(409,'Only active bookings can issue a code')
+            slot=s.get(Slot,b.slot_id)
+            if not slot or not (slot.start_at-timedelta(hours=2)<=now()<=slot.start_at+timedelta(hours=2)):
+                raise HTTPException(409,'Check-in code available only two hours before or after the session starts')
+            code=f'{secrets.randbelow(100000000):08d}'
+            item=s.scalar(select(CheckinCode).where(CheckinCode.booking_id==b.id).with_for_update())
+            if item is None:
+                item=CheckinCode(booking_id=b.id,code_hash=checkin_digest(b.id,code),
+                                 expires_at=now()+CHECKIN_CODE_DURATION,attempts=0)
+                s.add(item)
+            else:
+                if item.used_at:raise HTTPException(409,'Booking check-in already completed')
+                item.code_hash=checkin_digest(b.id,code)
+                item.expires_at=now()+CHECKIN_CODE_DURATION
+                item.attempts=0
+            s.commit()
+            return {'booking_id':b.id,'code':code,'expires_at':iso(item.expires_at)}
+        except HTTPException:s.rollback();raise
+        except Exception:s.rollback();raise
+
+@app.post('/api/partner/bookings/{booking_id}/verify-checkin')
+def verify_checkin_code(booking_id:int,body:CheckinVerificationBody,u=Depends(roles('partner','admin'))):
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            booking=s.scalar(select(Booking).where(Booking.id==booking_id).with_for_update())
+            if not booking:raise HTTPException(404,'Booking not found')
+            if u.role=='partner' and booking.partner_id!=u.partner_id:raise HTTPException(403,'Not your business booking')
+            if booking.status!='BOOKED':raise HTTPException(409,'Booking already processed')
+            proof=s.scalar(select(CheckinCode).where(CheckinCode.booking_id==booking.id).with_for_update())
+            if not proof or proof.used_at or proof.expires_at<=now() or proof.attempts>=5:
+                raise HTTPException(409,'Code expired, unavailable, or locked. Client must request a fresh code.')
+            if not hmac.compare_digest(proof.code_hash,checkin_digest(booking.id,body.code)):
+                proof.attempts+=1
+                s.commit() # wrong attempts must survive the rejected request
+                raise HTTPException(403,'Invalid check-in code')
+            proof.used_at=now()
+            booking.status='CHECKED_IN';booking.checked_in_at=now();booking.checked_in_by=u.id
+            notify_user(s,booking.user_id,'CHECK_IN','Visit confirmed',
+                        f'Attendance confirmed for booking {booking.reference}.')
+            audit(s,u.id,'CHECK_IN_CODE_VERIFIED',booking.reference)
+            s.commit()
+            return {'status':'CHECKED_IN','reference':booking.reference}
+        except HTTPException:s.rollback();raise
+        except Exception:s.rollback();raise
+
+@app.post('/api/client/bookings/{booking_id}/review')
+def review_booking(booking_id:int,body:ReviewBody,u=Depends(roles('employee','client'))):
+    comment=body.comment.strip()
+    if len(comment)<10:raise HTTPException(422,'Review text must contain at least 10 characters')
+    with Session() as s:
+        b=s.get(Booking,booking_id)
+        if not b or b.user_id!=u.id:raise HTTPException(404,'Booking not found')
+        if b.status!='CHECKED_IN':raise HTTPException(409,'Review is available only after confirmed attendance')
+        if s.scalar(select(ServiceReview.id).where(ServiceReview.booking_id==booking_id)):
+            raise HTTPException(409,'This booking has already been reviewed')
+        review=ServiceReview(booking_id=b.id,user_id=u.id,service_id=b.service_id,
+                             rating=body.rating,comment=comment)
+        s.add(review);s.flush()
+        audit(s,u.id,'SERVICE_REVIEW_CREATED',f'Booking {b.reference}')
+        s.commit()
+        return {'id':review.id,'rating':review.rating,'comment':review.comment}
+
+@app.get('/api/services/{service_id}/reviews')
+def service_reviews(service_id:int,u=Depends(get_user)):
+    with Session() as s:
+        if not s.get(Service,service_id):raise HTTPException(404,'Service not found')
+        rows=s.scalars(select(ServiceReview).where(ServiceReview.service_id==service_id)
+                       .order_by(ServiceReview.id.desc()).limit(50)).all()
+        return {'count':s.scalar(select(func.count(ServiceReview.id)).where(ServiceReview.service_id==service_id)),
+                'reviews':[{'id':x.id,'rating':x.rating,'comment':x.comment,'created_at':iso(x.created_at)} for x in rows]}
+
+@app.post('/api/partner/slots/bulk')
+def create_bulk_slots(body:BulkSlotsBody,u=Depends(roles('partner'))):
+    first=body.start_at.replace(tzinfo=None)
+    delta=timedelta(days=1 if body.frequency=='daily' else 7)
+    starts=[first+i*delta for i in range(body.count)]
+    if starts[0]<=now():raise HTTPException(422,'First class must be in the future')
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            sv=s.scalar(select(Service).where(Service.id==body.service_id).with_for_update())
+            if not sv or sv.partner_id!=u.partner_id:raise HTTPException(403,'Not your service')
+            existing=set(s.scalars(select(Slot.start_at).where(Slot.service_id==sv.id,Slot.start_at.in_(starts))).all())
+            created=0
+            for start in starts:
+                if start in existing:continue
+                s.add(Slot(service_id=sv.id,start_at=start,capacity=body.capacity,reserved=0))
+                created+=1
+            audit(s,u.id,'BULK_SLOTS_CREATED',f'Service {sv.id}; created {created}; duplicates {body.count-created}')
+            s.commit()
+            return {'created':created,'skipped':body.count-created}
+        except HTTPException:s.rollback();raise
+        except Exception:s.rollback();raise
+
+@app.get('/api/admin/analytics')
+def admin_analytics(u=Depends(roles('admin'))):
+    with Session() as s:
+        bookings=s.scalars(select(Booking)).all()
+        orders=s.scalars(select(ClientOrder)).all()
+        services={x.id:x for x in s.scalars(select(Service)).all()}
+        partners={x.id:x for x in s.scalars(select(Partner)).all()}
+        labels=[]
+        today=now()
+        for offset in range(5,-1,-1):
+            yr=today.year
+            mo=today.month-offset
+            while mo<=0:mo+=12;yr-=1
+            labels.append(f'{yr}-{mo:02d}')
+        monthly=[{'period':month,'bookings':sum(bool(b.created_at and b.created_at.strftime('%Y-%m')==month) for b in bookings),
+                  'visits':sum(bool(b.checked_in_at and b.checked_in_at.strftime('%Y-%m')==month) for b in bookings),
+                  'orders':sum(bool(o.created_at and o.created_at.strftime('%Y-%m')==month) for o in orders)}
+                 for month in labels]
+        by_group={}
+        for b in bookings:
+            sv=services.get(b.service_id)
+            if sv:by_group[sv.group_name]=by_group.get(sv.group_name,0)+1
+        by_partner={}
+        for b in bookings:
+            if b.status!='CHECKED_IN':continue
+            partner=partners.get(b.partner_id)
+            if partner:by_partner[partner.id]=by_partner.get(partner.id,0)+1
+        top_partners=sorted([{'name':partners[pid].name,'visits':visits} for pid,visits in by_partner.items()],
+                             key=lambda row:(-row['visits'],row['name']))[:5]
+        return {'monthly':monthly,'categories':[{'name':name,'bookings':count} for name,count in sorted(by_group.items())],
+                'partners':top_partners}
 
 # Fictional pilot catalog. Disabled by default; enable only with explicit operator opt-in.
 # Idempotent by deterministic DEMO business/product/service names and future slot dates.
@@ -1217,10 +1445,10 @@ def index():
 # Serve dashboard deep links on a full-page refresh, not only after client-side navigation.
 # Keep the supported sections explicit so unrelated paths still correctly return 404.
 DASHBOARD_SECTIONS = {
-    'client': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet'},
-    'employee': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet'},  # legacy alias
-    'partner': {'overview', 'calendar', 'reservations', 'services', 'settlements'},
-    'admin': {'overview', 'clients', 'partners', 'products', 'orders', 'settlements', 'audit'},
+    'client': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet', 'notifications'},
+    'employee': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet', 'notifications'},  # legacy alias
+    'partner': {'overview', 'calendar', 'reservations', 'services', 'settlements', 'notifications'},
+    'admin': {'overview', 'clients', 'partners', 'products', 'orders', 'settlements', 'audit', 'analytics', 'notifications'},
 }
 
 @app.get('/client/{section}')

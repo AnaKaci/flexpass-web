@@ -147,6 +147,47 @@
     transition:opacity 300ms ease-in-out,visibility 0s;
   }
 }
+/* Keep the toggle before the official logo in the expanded sidebar.
+   The same control sits above the FP monogram in the narrow icon rail. */
+.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-heading{
+  justify-content:flex-start;
+  gap:10px;
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close{
+  width:36px;
+  height:36px;
+  border-radius:11px;
+  border:1px solid rgba(245,239,228,.34);
+  background:rgba(245,239,228,.055);
+  color:var(--ivory,#F5EFE4);
+  box-shadow:inset 0 1px rgba(255,255,255,.035);
+  transition:background-color 180ms ease,border-color 180ms ease,transform 180ms ease;
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close svg{
+  display:block;
+  stroke-width:1.65;
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close:hover{
+  background:rgba(245,239,228,.13);
+  border-color:rgba(245,239,228,.55);
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close:active{
+  transform:scale(.96);
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close:focus-visible{
+  outline:2px solid var(--ivory,#F5EFE4);
+  outline-offset:3px;
+}
+@media(min-width:761px){
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-sidebar-heading{
+    justify-content:center;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-sidebar-close{
+    width:36px;
+    height:36px;
+  }
+}
+
 @media(prefers-reduced-motion:reduce){
   .dashboard-app-shell .dashboard-sidebar,
   .dashboard-app-shell .dashboard-sidebar .side-text,

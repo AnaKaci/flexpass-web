@@ -25,6 +25,8 @@ test('collapsed layout puts the menu toggle above the logo and X styling stays o
   assert.ok(styles.includes('flex-direction:column;'));
   assert.ok(styles.includes('.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close{'));
   assert.ok(styles.includes('border-radius:11px;'));
+  assert.match(styles,/\.dashboard-app-shell \.dashboard-sidebar \.dashboard-sidebar-heading\{\s*justify-content:flex-start;\s*gap:18px;/);
+  assert.match(styles,/@media\(min-width:761px\)\{\s*\.dashboard-app-shell\.sidebar-collapsed \.dashboard-sidebar \.dashboard-sidebar-heading\{\s*justify-content:center;\s*gap:13px;/);
   assert.ok(styles.includes('stroke-width:1.65;'));
   assert.ok(styles.includes('color:var(--ivory,#F5EFE4);'));
   assert.ok(styles.includes(':focus-visible'));

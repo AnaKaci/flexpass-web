@@ -50,12 +50,13 @@ const menu:Record<Role,Array<[Section,string,IconName]>>={
 function Table({columns,rows}:{columns:string[];rows:ReactNode[][]}){return <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(col=><th key={col}>{col}</th>)}</tr></thead><tbody>{rows.length?rows.map((row,i)=><tr key={i}>{row.map((cell,k)=><td key={k} data-label={columns[k]}>{cell}</td>)}</tr>):<tr><td colSpan={columns.length} className="muted">No records yet.</td></tr>}</tbody></table></div>}
 function BookingTable({bookings,role,action,onCode,onReview,onVerify}:{bookings:Booking[];role:'employee'|'partner';action:(book:Booking)=>void;onCode?:(book:Booking)=>void;onReview?:(book:Booking)=>void;onVerify?:(book:Booking)=>void}){
   return <Table columns={['Experience','Date / venue','Credits','Status','Action']} rows={bookings.map(b=>[
-    <><b>{b.service}</b><br/><small>{b.reference}</small></>,<><b>{dateTime(b.start_at)}</b><br/><small>{b.partner}</small></>,`${b.credits} credits`,<StatusTag status={b.status}/>,<div className="stack" style={{gap:6}}>
+    <><b>{b.service}</b><br/><small>{b.reference}</small></>,<><b>{dateTime(b.start_at)}</b><br/><small>{b.partner}</small></>,`${b.credits} credits`,<StatusTag status={b.status}/>,<div className="booking-action-slot">
       {b.status==='BOOKED'&&<button className={`btn ${role==='employee'?'btn-outline':'btn-primary'} btn-sm`} onClick={()=>action(b)}>{role==='employee'?'Cancel':'Confirm arrival'}</button>}
       {b.status==='BOOKED'&&role==='employee'&&onCode&&Math.abs(new Date(b.start_at).getTime()-Date.now())<=7200000&&<button className="btn btn-tertiary btn-sm" onClick={()=>onCode(b)}>Get check-in code</button>}
       {b.status==='CHECKED_IN'&&role==='employee'&&onReview&&!b.reviewed&&<button className="btn btn-tertiary btn-sm" onClick={()=>onReview(b)}>Review visit</button>}
+      {b.status==='CHECKED_IN'&&role==='employee'&&b.reviewed&&<span className="booking-action-state">Reviewed</span>}
       {b.status==='BOOKED'&&role==='partner'&&onVerify&&<button className="btn btn-tertiary btn-sm" onClick={()=>onVerify(b)}>Verify code</button>}
-      {b.status==='CANCELLED'&&'—'}
+      {b.status==='CANCELLED'&&<span className="booking-action-empty">—</span>}
     </div>,
   ])}/>;
 }

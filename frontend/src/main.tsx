@@ -20,6 +20,7 @@ import './credit-shop.css';
 import './home-story.css';
 import './lumina-responsive.css';
 import './auth-login.css';
+import './admin-overview-insights.css';
 import './dashboard-gradient.css';
 import './sidebar-motion.css';
 

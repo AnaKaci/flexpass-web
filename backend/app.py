@@ -1438,10 +1438,10 @@ def index():
 # Serve dashboard deep links on a full-page refresh, not only after client-side navigation.
 # Keep the supported sections explicit so unrelated paths still correctly return 404.
 DASHBOARD_SECTIONS = {
-    'client': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet'},
-    'employee': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet'},  # legacy alias
-    'partner': {'overview', 'calendar', 'reservations', 'services', 'settlements'},
-    'admin': {'overview', 'clients', 'partners', 'products', 'orders', 'settlements', 'audit'},
+    'client': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet', 'notifications'},
+    'employee': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet', 'notifications'},  # legacy alias
+    'partner': {'overview', 'calendar', 'reservations', 'services', 'settlements', 'notifications'},
+    'admin': {'overview', 'clients', 'partners', 'products', 'orders', 'settlements', 'audit', 'analytics', 'notifications'},
 }
 
 @app.get('/client/{section}')

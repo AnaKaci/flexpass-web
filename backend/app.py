@@ -226,6 +226,35 @@ class Audit(Base):
     detail = Column(Text, default='')
     created_at = Column(DateTime, default=now)
 
+class Notification(Base):
+    __tablename__ = 'notifications'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    kind = Column(String(40), nullable=False)
+    title = Column(String(140), nullable=False)
+    message = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=now, nullable=False)
+    read_at = Column(DateTime)
+
+class CheckinCode(Base):
+    __tablename__ = 'checkin_codes'
+    id = Column(Integer, primary_key=True)
+    booking_id = Column(Integer, ForeignKey('bookings.id'), nullable=False, unique=True)
+    code_hash = Column(String(64), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    attempts = Column(Integer, default=0, nullable=False)
+    used_at = Column(DateTime)
+
+class ServiceReview(Base):
+    __tablename__ = 'service_reviews'
+    id = Column(Integer, primary_key=True)
+    booking_id = Column(Integer, ForeignKey('bookings.id'), nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    service_id = Column(Integer, ForeignKey('services.id'), nullable=False)
+    rating = Column(Integer, nullable=False)
+    comment = Column(String(500), nullable=False)
+    created_at = Column(DateTime, default=now, nullable=False)
+
 class ClientRegistrationBody(BaseModel):
     full_name: str = Field(min_length=2, max_length=160)
     email: str = Field(min_length=5, max_length=200)
@@ -301,6 +330,20 @@ class SlotBody(BaseModel):
     service_id: int
     start_at: datetime
     capacity: int = Field(ge=1)
+class BulkSlotsBody(BaseModel):
+    service_id: int
+    start_at: datetime
+    capacity: int = Field(ge=1, le=100)
+    count: int = Field(ge=1, le=12)
+    frequency: str = Field(pattern='^(daily|weekly)$')
+
+class CheckinVerificationBody(BaseModel):
+    code: str = Field(pattern=r'^\d{8}$')
+
+class ReviewBody(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    comment: str = Field(min_length=10, max_length=500)
+
 class AdjustBody(BaseModel):
     user_id: int
     amount: int
@@ -408,6 +451,17 @@ def balance(s,uid):
     return int(s.scalar(select(func.coalesce(func.sum(Ledger.amount),0)).where(Ledger.user_id==uid)) or 0)
 
 def audit(s,actor,action,detail): s.add(Audit(actor_id=actor, action=action, detail=detail))
+
+def notify_user(s, user_id, kind, title, message):
+    s.add(Notification(user_id=user_id, kind=kind, title=title, message=message))
+
+def notify_partner(s, partner_id, kind, title, message):
+    users=s.scalars(select(User).where(User.partner_id==partner_id, User.role=='partner', User.membership_status=='ACTIVE')).all()
+    for user in users:
+        notify_user(s,user.id,kind,title,message)
+
+def checkin_digest(booking_id,code):
+    return hmac.new(SECRET.encode(), f'check-in:{booking_id}:{code}'.encode(), hashlib.sha256).hexdigest()
 
 def lock_transaction(s):
     # SQLite serialize writers before reading capacity/balance; PostgreSQL: row locks below.

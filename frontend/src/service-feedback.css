@@ -7,9 +7,9 @@
 .flexpass-rating-label span{color:var(--burgundy)}
 .flexpass-stars{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:50px}
 .flexpass-star{display:inline-flex;align-items:center;justify-content:center;width:49px;height:49px;padding:6px;cursor:pointer;border:0;background:transparent;color:#a9bec1;border-radius:11px;transition:color .17s ease,transform .2s cubic-bezier(.2,1.6,.5,1)}
-.flexpass-star svg{width:100%;height:100%;display:block;fill:transparent;stroke:currentColor;stroke-width:1.45;stroke-linejoin:round;transition:fill .17s ease,stroke .17s ease}
+.flexpass-star svg{width:100%;height:100%;display:block;fill:var(--mist);stroke:var(--mist);stroke-width:1.45;stroke-linejoin:round;transition:fill .17s ease,stroke .17s ease}
 .flexpass-star.is-selected{color:var(--burgundy)}
-.flexpass-star.is-selected svg{fill:var(--blush);stroke:var(--burgundy);animation:flexpass-rating-bloom .3s cubic-bezier(.24,1.55,.5,1) backwards}
+.flexpass-star.is-selected svg{fill:var(--burgundy);stroke:var(--burgundy);animation:flexpass-rating-bloom .3s cubic-bezier(.24,1.55,.5,1) backwards}
 .flexpass-star:hover,.flexpass-star:focus-visible{transform:translateY(-3px) scale(1.13)}
 .flexpass-star:focus-visible{outline:2px solid var(--burgundy);outline-offset:1px}
 .flexpass-star:active{transform:scale(.96)}

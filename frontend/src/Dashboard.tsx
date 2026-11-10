@@ -9,6 +9,7 @@ import {ActionDialog} from './Forms';
 import {PartnerCalendar} from './PartnerCalendar';
 import {ClientExplore} from './ClientExplore';
 import {ClientOverview} from './ClientOverview';
+import {AdminOverviewInsights} from './AdminOverviewInsights';
 import {CreditShop} from './CreditShop';
 import {ProfileMenu} from './ProfileMenu';
 import {UIIcon} from './UIIcon';
@@ -161,6 +162,7 @@ function AdminView({section,data,onSection,onForm,onGenerate,onConfirmOrder,onRe
         <div className="notice"><strong>Payment verification</strong><p>Bank transfers are confirmed outside FlexPass. Record an order as paid only after independent verification of the actual incoming funds.</p></div>
       </div>
     </div>
+    <AdminOverviewInsights clients={data.clients} partners={data.partners} audit={data.audit} onSection={onSection}/>
   </>;
   if(section==='companies')return <><Heading title="Companies" subtitle="Track employer accounts and HR contacts." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'company'})}>+ Add company</button>}/><Panel title="Registered companies"><Table columns={['Company','HR email','Employees','Status']} rows={data.companies.map(c=>[<b>{c.name}</b>,c.hr_email,c.employees,<StatusTag status={c.status}/>])}/></Panel></>;
   if(section==='partners')return <><Heading title="Business partners" subtitle="Register businesses and invite their managers by email." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'partner-invite'})}>+ Register business</button>}/><Panel title="Registered partners"><Table columns={['Business','Location','Contact accounts','Status']} rows={data.partners.map(p=>[<b>{p.name}</b>,p.zone,<div>{p.accounts.length?p.accounts.map(a=><div key={a.id}><small>{a.email} ({a.status})</small>{a.status==='INVITED'&&<button className="btn btn-outline btn-sm" style={{marginLeft:8}} onClick={()=>onResendInvitation(a.id)}>Send activation email</button>}</div>):'No contact'}</div>,<StatusTag status={p.status}/>])}/></Panel></>;

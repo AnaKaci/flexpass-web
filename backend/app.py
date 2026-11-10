@@ -460,6 +460,11 @@ def notify_partner(s, partner_id, kind, title, message):
     for user in users:
         notify_user(s,user.id,kind,title,message)
 
+def notify_admins(s, kind, title, message):
+    admins=s.scalars(select(User).where(User.role=='admin',User.membership_status=='ACTIVE')).all()
+    for admin in admins:
+        notify_user(s,admin.id,kind,title,message)
+
 def checkin_digest(booking_id,code):
     return hmac.new(SECRET.encode(), f'check-in:{booking_id}:{code}'.encode(), hashlib.sha256).hexdigest()
 
@@ -712,6 +717,8 @@ def request_client_order(body:ClientOrderBody,u=Depends(roles('employee','client
                               currency=item.currency,status='PENDING')
             s.add(order);s.flush()
             audit(s,u.id,'CLIENT_ORDER_REQUESTED',f'Order {order.id}: {item.name}')
+            notify_admins(s,'ORDER_REQUESTED','Client order needs review',
+                          f'Order #{order.id} is pending independent payment verification.')
             s.commit()
             return client_order_view(s,order)
         except HTTPException:s.rollback();raise

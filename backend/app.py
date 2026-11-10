@@ -597,7 +597,7 @@ def employee_summary(u=Depends(roles('employee','client'))):
 
 def booking_view(s,b):
     sv=s.get(Service,b.service_id);p=s.get(Partner,b.partner_id);sl=s.get(Slot,b.slot_id);u=s.get(User,b.user_id)
-    return {'id':b.id,'reference':b.reference,'service':sv.name,'partner':p.name,'partner_id':b.partner_id,'user':u.full_name,'email':u.email,'start_at':iso(sl.start_at),'credits':b.credits_snapshot,'payout_cents':b.payout_snapshot_cents,'status':b.status,'created_at':iso(b.created_at),'checked_in_at':iso(b.checked_in_at),'zone':p.zone}
+    return {'id':b.id,'reference':b.reference,'service':sv.name,'partner':p.name,'partner_id':b.partner_id,'user':u.full_name,'email':u.email,'start_at':iso(sl.start_at),'credits':b.credits_snapshot,'payout_cents':b.payout_snapshot_cents,'status':b.status,'created_at':iso(b.created_at),'checked_in_at':iso(b.checked_in_at),'zone':p.zone, 'reviewed':bool(s.scalar(select(ServiceReview.id).where(ServiceReview.booking_id==b.id)))}
 
 @app.get('/api/client/bookings')
 @app.get('/api/employee/bookings')

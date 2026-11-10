@@ -21,6 +21,7 @@ import './home-story.css';
 import './lumina-responsive.css';
 import './auth-login.css';
 import './dashboard-gradient.css';
+import './sidebar-motion.css';
 
 // Hash routing avoids GitHub Pages 404 responses on client-side routes.
 const Router = pagesPreview ? HashRouter : BrowserRouter;

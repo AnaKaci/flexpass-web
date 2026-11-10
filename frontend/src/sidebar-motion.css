@@ -1,0 +1,159 @@
+/* Smooth sidebar motion, adapted from the supplied animated navigation example.
+   All FlexPass colors, Inter typography, existing menu items, artwork and profile
+   controls remain defined in their original stylesheets. */
+.dashboard-app-shell .dashboard-sidebar{
+  overflow:visible;
+  transition:width 300ms ease-in-out,min-width 300ms ease-in-out,padding 300ms ease-in-out;
+  animation:none;
+}
+.dashboard-app-shell .dashboard-sidebar .side-nav{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-brand-link .official-brand-logo-monogram{
+  display:none;
+}
+.dashboard-app-shell .dashboard-sidebar .side-link{
+  transition:background-color 180ms ease,color 180ms ease,padding 300ms ease-in-out;
+}
+.dashboard-app-shell .dashboard-sidebar .side-text{
+  transition:opacity 180ms ease-in-out,max-width 300ms ease-in-out;
+  max-width:190px;
+  overflow:hidden;
+  white-space:nowrap;
+}
+.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close{
+  transition:background-color 180ms ease,border-color 180ms ease;
+}
+@media(min-width:761px){
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar{
+    width:76px;
+    min-width:76px;
+    padding-inline:10px;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-sidebar-heading{
+    flex-direction:column;
+    justify-content:center;
+    gap:5px;
+    min-height:98px;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-brand-link{
+    flex:0 0 auto;
+    justify-content:center;
+    padding:0;
+    width:44px;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-brand-link .official-brand-logo-full{
+    display:none;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-brand-link .official-brand-logo-monogram{
+    display:block;
+    width:37px;
+    height:37px;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-sidebar-close{
+    flex:none;
+    width:34px;
+    height:34px;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .side-label{
+    margin:0;
+    padding:0;
+    height:0;
+    opacity:0;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .side-link{
+    justify-content:center;
+    gap:0;
+    min-height:46px;
+    padding:11px 0;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .side-ico{
+    flex:none;
+    width:21px;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .side-text{
+    max-width:0;
+    width:0;
+    opacity:0;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .sidebar-client-quote{
+    max-height:0;
+    min-height:0;
+    margin:0;
+    padding:0;
+    opacity:0;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .sidebar-bottom{
+    min-width:0;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .sidebar-profile-trigger{
+    justify-content:center;
+    min-height:58px;
+    gap:0;
+    padding:6px 0;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .sidebar-profile-trigger-text,
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .sidebar-profile-chevron{
+    display:none;
+  }
+  .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .sidebar-profile-popover{
+    left:calc(100% + 13px);
+    right:auto;
+    bottom:0;
+    width:248px;
+    max-width:calc(100vw - 100px);
+  }
+}
+@media(max-width:760px){
+  .dashboard-app-shell .dashboard-sidebar{
+    width:min(288px,88vw);
+    min-width:0;
+    transform:translate3d(-105%,0,0);
+    visibility:hidden;
+    pointer-events:none;
+    transition:transform 300ms ease-in-out,visibility 0s linear 300ms;
+    animation:none;
+    will-change:transform;
+  }
+  .dashboard-app-shell.sidebar-expanded .dashboard-sidebar{
+    transform:translate3d(0,0,0);
+    visibility:visible;
+    pointer-events:auto;
+    transition:transform 300ms ease-in-out,visibility 0s;
+  }
+  .dashboard-app-shell .dashboard-sidebar .dashboard-brand-link .official-brand-logo-monogram{
+    display:none;
+  }
+  .dashboard-app-shell .dashboard-sidebar .side-nav{flex:1 1 auto}
+  .dashboard-app-shell .dashboard-sidebar-backdrop{
+    display:block;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity 300ms ease-in-out,visibility 0s linear 300ms;
+  }
+  .dashboard-app-shell .dashboard-sidebar-backdrop.is-visible{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transition:opacity 300ms ease-in-out,visibility 0s;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .dashboard-app-shell .dashboard-sidebar,
+  .dashboard-app-shell .dashboard-sidebar .side-text,
+  .dashboard-app-shell .dashboard-sidebar .side-link,
+  .dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close,
+  .dashboard-app-shell .dashboard-sidebar-backdrop{
+    transition:none;
+    animation:none;
+  }
+}

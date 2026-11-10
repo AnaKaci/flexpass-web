@@ -97,23 +97,23 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
   function checkIn(b:Booking){if(!window.confirm(`Confirm arrival for ${b.user} (${b.reference})? This action cannot be repeated.`))return;void mutate(`/partner/bookings/${b.id}/checkin`)}
   if(!user)return null;
   return <div className={`app-shell dashboard-app-shell ${sidebarOpen?'sidebar-expanded':'sidebar-collapsed'}`}>
-    {isNarrowScreen&&sidebarOpen&&<button type="button" className="dashboard-sidebar-backdrop" aria-label="Close navigation menu" onClick={()=>setSidebarOpen(false)}/>}
-    {sidebarOpen&&<aside id="dashboard-sidebar" className={`sidebar dashboard-sidebar ${role==='client'?'dashboard-client-sidebar':''}`} aria-label={`${role} navigation`}>
+    {isNarrowScreen&&<button type="button" className={`dashboard-sidebar-backdrop ${sidebarOpen?'is-visible':''}`} aria-label="Close navigation menu" aria-hidden={!sidebarOpen} disabled={!sidebarOpen} onClick={()=>setSidebarOpen(false)}/>}
+    <aside id="dashboard-sidebar" className={`sidebar dashboard-sidebar ${role==='client'?'dashboard-client-sidebar':''}`} aria-label={`${role} navigation`} aria-hidden={isNarrowScreen&&!sidebarOpen}>
       <div className="dashboard-sidebar-heading">
-        <Link className="logo dashboard-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone="ivory" decorative/></Link>
-        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(false)} aria-label="Collapse sidebar" title="Collapse sidebar"><UIIcon name="close" size={18}/></button>
+        <Link className="logo dashboard-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone="ivory" decorative/><BrandLogo variant="monogram" tone="ivory" decorative/></Link>
+        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(open=>!open)} aria-label={sidebarOpen?"Collapse sidebar":"Expand sidebar"} aria-expanded={sidebarOpen} aria-controls="dashboard-sidebar" title={sidebarOpen?"Collapse sidebar":"Expand sidebar"}><UIIcon name={sidebarOpen?"close":"menu"} size={18}/></button>
       </div>
       <div className="side-label">{role==='client'?'YOUR MEMBERSHIP':role[0].toUpperCase()+role.slice(1)+' workspace'}</div>
       <nav className="side-nav" aria-label={`${role} workspace`}>
-        {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} aria-current={name===section?'page':undefined} onClick={()=>changeSection(name)}><span className="side-ico"><UIIcon name={icon} size={19}/></span><span className="side-text">{label}</span></button>)}
+        {menu[role].map(([name,label,icon])=><button key={name} className={`side-link ${name===section?'active':''}`} aria-label={label} title={!sidebarOpen&&!isNarrowScreen?label:undefined} aria-current={name===section?'page':undefined} onClick={()=>changeSection(name)}><span className="side-ico"><UIIcon name={icon} size={19}/></span><span className="side-text">{label}</span></button>)}
       </nav>
       {role==='client'&&<div className="sidebar-client-quote"><span>MORE EXPERIENCES.<br/>MORE YOU.</span><p>Your everyday,<br/>beautifully reimagined.</p></div>}
       <div className="sidebar-bottom">
         <ProfileMenu user={user} onSignOut={()=>{signOut();navigate('/')}}/>
       </div>
-    </aside>}
+    </aside>
     <div className="dash-main dashboard-main">
-      {!sidebarOpen&&<div className="dashboard-nav-opener">
+      {isNarrowScreen&&!sidebarOpen&&<div className="dashboard-nav-opener">
         <button type="button" className="dashboard-menu-toggle dashboard-menu-icon-only" aria-label="Show sidebar" aria-controls="dashboard-sidebar" aria-expanded={false} onClick={()=>setSidebarOpen(true)} title="Show sidebar">
           <UIIcon name="menu" size={19}/>
         </button>

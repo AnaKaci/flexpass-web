@@ -2,6 +2,7 @@ import type {AdminPartner,AuditRow,ClientRecord,Section} from './types';
 import {dateTime} from './api';
 import {Panel,StatusTag} from './App';
 import {UIIcon} from './UIIcon';
+import {LogMiniChart} from './LogMiniChart';
 
 interface Props{
   clients:ClientRecord[];
@@ -51,6 +52,7 @@ export function AdminOverviewInsights({clients,partners,audit,onSection}:Props){
       </Panel>
     </div>
     <Panel title="Recent recorded activity" action={<button type="button" className="btn btn-tertiary btn-sm" onClick={()=>onSection('audit')}>Audit log <UIIcon name="arrow" size={15}/></button>}>
+      <LogMiniChart title="Recent audit events" timestamps={audit.map(item=>item.at)} unit="events"/>
       {recentAudit.length?<ol className="admin-insights-activity">{recentAudit.map(item=><li key={item.id}>
         <span className="admin-insights-activity-marker" aria-hidden="true"><UIIcon name="activity" size={17}/></span>
         <div className="admin-insights-activity-copy"><strong>{item.action.replace(/_/g,' ')}</strong><span>{item.detail}</span></div>

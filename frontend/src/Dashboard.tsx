@@ -149,7 +149,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     {isNarrowScreen&&<button type="button" className={`dashboard-sidebar-backdrop ${sidebarOpen?'is-visible':''}`} aria-label="Close navigation menu" aria-hidden={!sidebarOpen} disabled={!sidebarOpen} onClick={()=>setSidebarOpen(false)}/>}
     <aside id="dashboard-sidebar" className={`sidebar dashboard-sidebar ${role==='client'?'dashboard-client-sidebar':''}`} aria-label={`${role} navigation`} aria-hidden={isNarrowScreen&&!sidebarOpen}>
       <div className="dashboard-sidebar-heading">
-        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(open=>!open)} aria-label={sidebarOpen?"Collapse sidebar":"Expand sidebar"} aria-expanded={sidebarOpen} aria-controls="dashboard-sidebar" title={sidebarOpen?"Collapse sidebar":"Expand sidebar"}><UIIcon name={sidebarOpen?"close":"menu"} size={sidebarOpen?16:18}/></button>
+        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(open=>!open)} aria-label={sidebarOpen?"Collapse sidebar":"Expand sidebar"} aria-expanded={sidebarOpen} aria-controls="dashboard-sidebar" title={sidebarOpen?"Collapse sidebar":"Expand sidebar"}><UIIcon name="menu" size={18}/></button>
         <Link className="logo dashboard-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone="ivory" decorative/><BrandLogo variant="monogram" tone="ivory" decorative/></Link>
       </div>
       <div className="side-label">{role==='client'?'YOUR MEMBERSHIP':role[0].toUpperCase()+role.slice(1)+' workspace'}</div>
@@ -161,7 +161,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
         <ProfileMenu user={user} onSignOut={()=>{signOut();navigate('/')}}/>
       </div>
     </aside>
-    <div className="dash-main dashboard-main">
+    <div className="dash-main dashboard-main" onClick={()=>{if(sidebarOpen&&!isNarrowScreen)setSidebarOpen(false)}}>
       {isNarrowScreen&&!sidebarOpen&&<div className="dashboard-nav-opener">
         <button type="button" className="dashboard-menu-toggle dashboard-menu-icon-only" aria-label="Show sidebar" aria-controls="dashboard-sidebar" aria-expanded={false} onClick={()=>setSidebarOpen(true)} title="Show sidebar">
           <UIIcon name="menu" size={19}/>

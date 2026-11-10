@@ -11,7 +11,7 @@ export interface LoginResult { token:string; user:User; }
 export interface AppInfo { app:string; preview:boolean; seeded:boolean; demo_mode:boolean; groups:Group[]; zones:string[]; subcategories:Record<Group,string[]>; tagline:string; bank_transfer?:{demo_enabled:boolean;configured:boolean;bank_name:string;beneficiary:string;iban:string}; }
 export interface Slot {id:number; start_at:string; capacity:number; available:number; reserved?:number; }
 export interface Service {id:number; name:string; group:Group; subcategory:string; description:string; credits:number; duration_minutes:number; partner:string; partner_id:number; zone:string; slots:Slot[]; }
-export interface Booking {id:number; reference:string; service:string; partner:string; partner_id:number; user:string; email:string; start_at:string; credits:number; payout_cents:number; status:Status; created_at:string; checked_in_at:string|null; zone:string; }
+export interface Booking {id:number; reference:string; service:string; partner:string; partner_id:number; user:string; email:string; start_at:string; credits:number; payout_cents:number; status:Status; created_at:string; checked_in_at:string|null; zone:string; reviewed?:boolean; }
 export interface EmployeeSummary {company:string; plan:string; monthly_credits:number; balance:number; active_bookings:number; visits:number; personal_account:boolean; }
 export interface LedgerRow {id:number; kind:string; amount:number; period:string; created_at:string; reason:string; booking_id:number|null; }
 export interface PartnerSummary {partner:string; zone:string; services:number; bookings:number; checkins:number; pending:number; earnings_cents:number; }

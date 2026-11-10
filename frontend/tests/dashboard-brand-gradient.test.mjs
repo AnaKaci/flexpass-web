@@ -25,5 +25,6 @@ test('dashboard background is not covered by ivory content or mobile navigation 
   assert.ok(css.includes('background:transparent;'));
   assert.ok(dashboard.includes('className="dash-main dashboard-main"'));
   const names=[...entry.matchAll(/import '\.\/(.*?)\.css';/g)].map(m=>m[1]);
-  assert.equal(names.at(-1),'dashboard-gradient','gradient CSS must load after other page styles');
+  assert.ok(names.indexOf('dashboard-gradient')>names.indexOf('auth-login'),'gradient must load after global and auth styles');
+  assert.deepEqual(names.slice(-2),['dashboard-gradient','sidebar-motion'],'only scoped sidebar motion may follow dashboard gradient');
 });

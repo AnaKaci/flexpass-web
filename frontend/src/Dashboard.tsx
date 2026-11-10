@@ -100,8 +100,8 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     {isNarrowScreen&&<button type="button" className={`dashboard-sidebar-backdrop ${sidebarOpen?'is-visible':''}`} aria-label="Close navigation menu" aria-hidden={!sidebarOpen} disabled={!sidebarOpen} onClick={()=>setSidebarOpen(false)}/>}
     <aside id="dashboard-sidebar" className={`sidebar dashboard-sidebar ${role==='client'?'dashboard-client-sidebar':''}`} aria-label={`${role} navigation`} aria-hidden={isNarrowScreen&&!sidebarOpen}>
       <div className="dashboard-sidebar-heading">
+        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(open=>!open)} aria-label={sidebarOpen?"Collapse sidebar":"Expand sidebar"} aria-expanded={sidebarOpen} aria-controls="dashboard-sidebar" title={sidebarOpen?"Collapse sidebar":"Expand sidebar"}><UIIcon name={sidebarOpen?"close":"menu"} size={sidebarOpen?16:18}/></button>
         <Link className="logo dashboard-brand-link" to="/" aria-label="FlexPass home"><BrandLogo variant="full" tone="ivory" decorative/><BrandLogo variant="monogram" tone="ivory" decorative/></Link>
-        <button type="button" className="dashboard-sidebar-close" onClick={()=>setSidebarOpen(open=>!open)} aria-label={sidebarOpen?"Collapse sidebar":"Expand sidebar"} aria-expanded={sidebarOpen} aria-controls="dashboard-sidebar" title={sidebarOpen?"Collapse sidebar":"Expand sidebar"}><UIIcon name={sidebarOpen?"close":"menu"} size={18}/></button>
       </div>
       <div className="side-label">{role==='client'?'YOUR MEMBERSHIP':role[0].toUpperCase()+role.slice(1)+' workspace'}</div>
       <nav className="side-nav" aria-label={`${role} workspace`}>

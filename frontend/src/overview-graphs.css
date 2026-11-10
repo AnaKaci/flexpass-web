@@ -1,0 +1,116 @@
+/* Business and Admin overview charts only. Uses the existing FlexPass brand tokens,
+   Panel styling, Inter text, and existing mini-chart motion. */
+.flexpass-overview-graphs{
+  margin:20px 0;
+  min-width:0;
+}
+.flexpass-overview-graphs-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.7fr) minmax(260px,.85fr);
+  gap:18px;
+  align-items:stretch;
+}
+.flexpass-overview-graphs-grid>.panel{
+  min-width:0;
+}
+.flexpass-overview-trends{
+  display:grid;
+  gap:10px;
+  align-items:stretch;
+  min-width:0;
+}
+.flexpass-overview-trends.two{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.flexpass-overview-trends.three{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.flexpass-overview-trends .flexpass-mini-chart{
+  min-width:0;
+  margin:0;
+  height:100%;
+}
+.flexpass-overview-trends .flexpass-mini-chart-intro{
+  gap:7px;
+}
+.flexpass-overview-trends .flexpass-mini-chart-total strong{
+  font-size:23px;
+}
+.flexpass-overview-trends .flexpass-mini-chart-bars{
+  height:78px;
+}
+.flexpass-overview-graphs-description{
+  font:400 11px/1.6 'Inter',sans-serif;
+  color:var(--warm-gray);
+  margin:0 0 17px;
+}
+.flexpass-overview-breakdown{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.flexpass-overview-breakdown-row{
+  min-width:0;
+}
+.flexpass-overview-breakdown-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:7px;
+  font:500 11px/1.5 'Inter',sans-serif;
+  color:var(--teal-dark);
+}
+.flexpass-overview-breakdown-heading span{
+  overflow-wrap:anywhere;
+}
+.flexpass-overview-breakdown-heading strong{
+  flex:none;
+  color:var(--teal);
+  font-variant-numeric:tabular-nums;
+  font-weight:700;
+}
+.flexpass-overview-breakdown-track{
+  width:100%;
+  height:8px;
+  border-radius:99px;
+  background:var(--mist);
+  overflow:hidden;
+}
+.flexpass-overview-breakdown-track>span{
+  display:block;
+  width:var(--flexpass-bar-fill);
+  height:100%;
+  border-radius:inherit;
+  background:var(--teal);
+  transform-origin:left center;
+  animation:flexpass-overview-bar-appear .58s cubic-bezier(.2,.8,.2,1) both;
+}
+.flexpass-overview-breakdown-row:nth-child(2) .flexpass-overview-breakdown-track>span{background:var(--burgundy)}
+.flexpass-overview-breakdown-row:nth-child(3) .flexpass-overview-breakdown-track>span{background:var(--warm-gray)}
+.flexpass-overview-breakdown-row:nth-child(4) .flexpass-overview-breakdown-track>span{background:var(--teal-dark)}
+.flexpass-overview-graphs-empty{
+  color:var(--warm-gray);
+  font:400 12px/1.6 'Inter',sans-serif;
+  margin:0;
+}
+@keyframes flexpass-overview-bar-appear{
+  from{transform:scaleX(0);opacity:.5}
+  to{transform:scaleX(1);opacity:1}
+}
+@media(max-width:1370px){
+  .flexpass-overview-graphs-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:900px){
+  .flexpass-overview-trends.three{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .flexpass-overview-graphs{margin:14px 0}
+  .flexpass-overview-graphs-grid{gap:14px}
+  .flexpass-overview-trends.two,
+  .flexpass-overview-trends.three{grid-template-columns:minmax(0,1fr)}
+  .flexpass-overview-trends .flexpass-mini-chart-bars{height:64px}
+}
+@media(prefers-reduced-motion:reduce){
+  .flexpass-overview-breakdown-track>span{animation:none}
+}

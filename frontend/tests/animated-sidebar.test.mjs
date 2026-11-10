@@ -12,6 +12,9 @@ test('desktop sidebar stays mounted to animate both expanding and collapsing',()
   assert.ok(!dashboard.includes('{sidebarOpen&&<aside'));
   assert.ok(dashboard.includes('setSidebarOpen(open=>!open)'));
   assert.ok(dashboard.includes('sidebar-expanded'));
+  assert.ok(dashboard.includes('className="dash-main dashboard-main" onClick={()=>{if(sidebarOpen&&!isNarrowScreen)setSidebarOpen(false)}}'));
+  assert.ok(dashboard.includes('name="menu" size={18}'));
+  assert.ok(!dashboard.includes('name={sidebarOpen?"close":"menu"}'));
   assert.ok(dashboard.includes('sidebar-collapsed'));
   assert.ok(motion.includes('width 300ms ease-in-out'));
   assert.ok(motion.includes('.dashboard-app-shell.sidebar-collapsed .dashboard-sidebar'));
@@ -26,6 +29,7 @@ test('mobile sidebar slides in and out while backdrop fades',()=>{
   assert.ok(motion.includes('transform:translate3d(0,0,0)'));
   assert.ok(motion.includes('transition:transform 300ms ease-in-out'));
   assert.ok(motion.includes('.dashboard-sidebar-backdrop.is-visible'));
+  assert.ok(dashboard.includes('onClick={()=>setSidebarOpen(false)}/>')); // mobile backdrop click
   assert.ok(motion.includes('prefers-reduced-motion:reduce'));
 });
 

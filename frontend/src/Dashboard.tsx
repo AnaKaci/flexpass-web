@@ -92,14 +92,14 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     const get=<T,>(path:string)=>request<T>(path,token);
     async function load(){
       if(role==='client'){
-        const [summary,bookings,ledger,catalog,products,orders,featuredCatalog]=await Promise.all([get<EmployeeSummary>('/client/summary'),get<Booking[]>('/client/bookings'),get<LedgerRow[]>('/client/ledger'),get<Service[]>(`/catalog?group=${category}`),get<CreditProduct[]>('/client/products'),get<ClientOrder[]>('/client/orders'),get<Service[]>('/catalog')]);
-        if(valid)setData({...emptyData,employeeSummary:summary,bookings,ledger,catalog,products,orders,featuredCatalog});
+        const [summary,bookings,ledger,catalog,products,orders,featuredCatalog,notifications]=await Promise.all([get<EmployeeSummary>('/client/summary'),get<Booking[]>('/client/bookings'),get<LedgerRow[]>('/client/ledger'),get<Service[]>(`/catalog?group=${category}`),get<CreditProduct[]>('/client/products'),get<ClientOrder[]>('/client/orders'),get<Service[]>('/catalog'),get<NotificationRow[]>('/notifications')]);
+        if(valid)setData({...emptyData,employeeSummary:summary,bookings,ledger,catalog,products,orders,featuredCatalog,notifications});
       }else if(role==='partner'){
-        const [summary,bookings,services,settlements]=await Promise.all([get<PartnerSummary>('/partner/summary'),get<Booking[]>('/partner/bookings'),get<PartnerService[]>('/partner/services'),get<Settlement[]>('/settlements')]);
-        if(valid)setData({...emptyData,partnerSummary:summary,bookings,partnerServices:services,settlements});
+        const [summary,bookings,services,settlements,notifications]=await Promise.all([get<PartnerSummary>('/partner/summary'),get<Booking[]>('/partner/bookings'),get<PartnerService[]>('/partner/services'),get<Settlement[]>('/settlements'),get<NotificationRow[]>('/notifications')]);
+        if(valid)setData({...emptyData,partnerSummary:summary,bookings,partnerServices:services,settlements,notifications});
       }else{
-        const [summary,companies,partners,employees,plans,invoices,settlements,audit,products,orders,clients]=await Promise.all([get<AdminSummary>('/admin/summary'),get<Company[]>('/admin/companies'),get<AdminPartner[]>('/admin/partners'),get<Employee[]>('/admin/employees'),get<Plan[]>('/admin/plans'),get<Invoice[]>('/admin/invoices'),get<Settlement[]>('/settlements'),get<AuditRow[]>('/admin/audit'),get<CreditProduct[]>('/admin/client-products'),get<ClientOrder[]>('/admin/client-orders'),get<ClientRecord[]>('/admin/clients')]);
-        if(valid)setData({...emptyData,adminSummary:summary,companies,partners,employees,plans,invoices,settlements,audit,products,orders,clients});
+        const [summary,companies,partners,employees,plans,invoices,settlements,audit,products,orders,clients,notifications,adminAnalytics]=await Promise.all([get<AdminSummary>('/admin/summary'),get<Company[]>('/admin/companies'),get<AdminPartner[]>('/admin/partners'),get<Employee[]>('/admin/employees'),get<Plan[]>('/admin/plans'),get<Invoice[]>('/admin/invoices'),get<Settlement[]>('/settlements'),get<AuditRow[]>('/admin/audit'),get<CreditProduct[]>('/admin/client-products'),get<ClientOrder[]>('/admin/client-orders'),get<ClientRecord[]>('/admin/clients'),get<NotificationRow[]>('/notifications'),get<AdminAnalytics>('/admin/analytics')]);
+        if(valid)setData({...emptyData,adminSummary:summary,companies,partners,employees,plans,invoices,settlements,audit,products,orders,clients,notifications,adminAnalytics});
       }
     }
     load().catch((e:Error)=>{if(valid)setError(e.message)}).finally(()=>{if(valid)setLoading(false)});
@@ -112,6 +112,37 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
   async function resendInvitation(id:number){if(!window.confirm('Send a one-time activation link to this invited business account?'))return;try{await post(`/admin/invitations/${id}/resend`,token,{});notify('Activation invitation sent.');refresh();}catch(err){notify((err as Error).message,true)}}
   async function setupDemoAccounts(){if(clientDemoPassword.length<20||businessDemoPassword.length<20||clientDemoPassword===businessDemoPassword){notify('Use two different passwords of at least 20 characters.',true);return}setDemoSetupBusy(true);try{const result=await post<{created_client:number;activated_business:number;client_existing:number;business_existing:number}>('/admin/demo/accounts/setup',token,{client_password:clientDemoPassword,business_password:businessDemoPassword});notify(`Demo setup: ${result.created_client} client created, ${result.activated_business} business activated. Existing accounts were not reset.`);setClientDemoPassword('');setBusinessDemoPassword('');setShowDemoSetup(false);refresh()}catch(err){notify((err as Error).message,true)}finally{setDemoSetupBusy(false)}}
   async function confirmPurchase(order:ClientOrder){const reference=window.prompt(`Verify receipt of payment before confirming order #${order.id}. Enter its real payment reference:`);if(!reference)return;await mutate(`/admin/client-orders/${order.id}/confirm`,{payment_reference:reference});}
+  async function issueCode(b:Booking){
+    try{
+      const result=await post<{code:string;expires_at:string}>(`/client/bookings/${b.id}/checkin-code`,token,{});
+      window.alert(`Show this one-time code to the business staff: ${result.code}\\nExpires: ${dateTime(result.expires_at)}. Do not share it elsewhere.`);
+    }catch(err){notify((err as Error).message,true)}
+  }
+  async function verifyCode(b:Booking){
+    const code=window.prompt(`Enter the 8-digit code shown by the client for booking ${b.reference}:`);
+    if(code===null)return;
+    if(!/^\\d{8}$/.test(code.trim())){notify('Enter an eight-digit check-in code.',true);return}
+    try{
+      await post(`/partner/bookings/${b.id}/verify-checkin`,token,{code:code.trim()});
+      notify('Visit verified successfully.');refresh();
+    }catch(err){notify((err as Error).message,true)}
+  }
+  async function leaveReview(b:Booking){
+    const raw=window.prompt('Rate your completed experience from 1 to 5:');
+    if(raw===null)return;
+    const rating=Number(raw);
+    if(!Number.isInteger(rating)||rating<1||rating>5){notify('Choose a whole-number rating between 1 and 5.',true);return}
+    const comment=window.prompt('Write a brief review (minimum 10 characters):');
+    if(comment===null)return;
+    if(comment.trim().length<10){notify('Review must contain at least 10 characters.',true);return}
+    try{
+      await post(`/client/bookings/${b.id}/review`,token,{rating,comment:comment.trim()});
+      notify('Your experience review was submitted.');refresh();
+    }catch(err){notify((err as Error).message,true)}
+  }
+  async function readNotification(id:number){
+    try{await post(`/notifications/${id}/read`,token,{});refresh()}catch(err){notify((err as Error).message,true)}
+  }
   function checkIn(b:Booking){if(!window.confirm(`Confirm arrival for ${b.user} (${b.reference})? This action cannot be repeated.`))return;void mutate(`/partner/bookings/${b.id}/checkin`)}
   if(!user)return null;
   return <div className={`app-shell dashboard-app-shell ${sidebarOpen?'sidebar-expanded':'sidebar-collapsed'}`}>

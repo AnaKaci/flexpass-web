@@ -1,0 +1,21 @@
+/* FlexPass post-login workspaces only.
+   Use the six-stop gradient requested for the dashboard content, with exclusively
+   approved FlexPass palette colors from the existing brand system.
+   Do not affect homepage, authentication, sidebar, or card surfaces. */
+.dashboard-app-shell .dashboard-main{
+  background:linear-gradient(
+    270deg,
+    var(--ivory) 0%,
+    var(--paper) 20%,
+    var(--blush) 40%,
+    var(--mist) 60%,
+    var(--blush) 80%,
+    var(--ivory) 100%
+  );
+  min-height:100vh;
+  min-height:100dvh;
+}
+.dashboard-app-shell .dashboard-main .dash-content,
+.dashboard-app-shell .dashboard-main .dashboard-nav-opener{
+  background:transparent;
+}

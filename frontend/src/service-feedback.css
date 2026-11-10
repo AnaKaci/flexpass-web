@@ -1,0 +1,55 @@
+/* FlexPass rating interactions and partner feedback; no global theme changes. */
+.flexpass-rating-dialog{display:flex;flex-direction:column;gap:17px;padding:4px 0 0}
+.flexpass-feedback-kicker{font:700 10px/1.5 'Inter',sans-serif;letter-spacing:.16em;color:var(--burgundy)}
+.flexpass-feedback-intro{margin:0;font-size:13px;line-height:1.7;color:var(--warm-gray)}
+.flexpass-rating-pick{display:flex;flex-direction:column;align-items:center;gap:7px;padding:20px 12px 16px;border:1px solid var(--hairline);border-radius:16px;background:linear-gradient(135deg,var(--paper),var(--ivory))}
+.flexpass-rating-label{font:600 12px/1.4 'Inter',sans-serif;color:var(--teal-dark)}
+.flexpass-rating-label span{color:var(--burgundy)}
+.flexpass-stars{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:50px}
+.flexpass-star{display:inline-flex;align-items:center;justify-content:center;width:49px;height:49px;padding:6px;cursor:pointer;border:0;background:transparent;color:#a9bec1;border-radius:11px;transition:color .17s ease,transform .2s cubic-bezier(.2,1.6,.5,1)}
+.flexpass-star svg{width:100%;height:100%;display:block;fill:transparent;stroke:currentColor;stroke-width:1.45;stroke-linejoin:round;transition:fill .17s ease,stroke .17s ease}
+.flexpass-star.is-selected{color:var(--burgundy)}
+.flexpass-star.is-selected svg{fill:var(--blush);stroke:var(--burgundy);animation:flexpass-rating-bloom .3s cubic-bezier(.24,1.55,.5,1) backwards}
+.flexpass-star:hover,.flexpass-star:focus-visible{transform:translateY(-3px) scale(1.13)}
+.flexpass-star:focus-visible{outline:2px solid var(--burgundy);outline-offset:1px}
+.flexpass-star:active{transform:scale(.96)}
+.flexpass-rating-caption{min-height:20px;font:500 12px/1.5 'Inter',sans-serif;color:var(--teal);text-align:center}
+.flexpass-feedback-note-label{font:600 12px/1.4 'Inter',sans-serif;color:var(--teal-dark)}
+.flexpass-feedback-note-label span{font-weight:400;color:var(--warm-gray)}
+.flexpass-feedback-textarea{width:100%;min-height:102px;resize:vertical;border:1px solid rgba(16,86,92,.3);border-radius:12px;background:var(--paper);padding:12px 14px;color:var(--teal-dark);font:400 12px/1.6 'Inter',sans-serif}
+.flexpass-feedback-textarea:focus{outline:2px solid var(--teal);outline-offset:2px}
+.flexpass-feedback-help{display:flex;justify-content:space-between;gap:12px;font:400 10px/1.45 'Inter',sans-serif;color:var(--warm-gray)}
+.flexpass-feedback-help span:last-child{flex:none;font-variant-numeric:tabular-nums}
+.flexpass-feedback-error{margin:0;color:var(--burgundy);font-size:12px}
+.flexpass-rating-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;padding-top:4px}
+.flexpass-rating-actions .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+@keyframes flexpass-rating-bloom{0%{opacity:.65;transform:scale(.65) rotate(-10deg)}62%{opacity:1;transform:scale(1.18) rotate(3deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+.flexpass-stars-readonly{min-height:24px;gap:0;justify-content:flex-start}
+.flexpass-stars-readonly .flexpass-star{width:25px;height:25px;padding:2px;pointer-events:none}
+.flexpass-stars-readonly .flexpass-star.is-selected svg{animation:none}
+.flexpass-partner-feedback{display:flex;flex-direction:column;gap:18px;min-width:0}
+.flexpass-feedback-summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:18px}
+.flexpass-feedback-summary .panel{min-width:0}
+.flexpass-feedback-average{font:500 47px/1.1 'Bodoni Moda',Georgia,serif;color:var(--teal);letter-spacing:-.055em;margin:4px 0 8px}
+.flexpass-feedback-average small{font:400 13px/1.4 'Inter',sans-serif;letter-spacing:0;color:var(--warm-gray)}
+.flexpass-feedback-summary p{margin:10px 0 0;color:var(--warm-gray);font-size:12px}
+.flexpass-feedback-services{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:9px}
+.flexpass-feedback-service{min-width:0;text-align:left;display:flex;flex-direction:column;gap:4px;border:1px solid var(--hairline);background:var(--paper);color:var(--teal-dark);border-radius:12px;padding:12px;cursor:pointer;transition:border-color .18s,background .18s}
+.flexpass-feedback-service:hover,.flexpass-feedback-service.is-current{border-color:var(--teal);background:var(--ivory)}
+.flexpass-feedback-service span{font-weight:600;font-size:12px;overflow-wrap:anywhere}
+.flexpass-feedback-service strong{font-size:14px;color:var(--teal)}
+.flexpass-feedback-service small{font-size:10px;color:var(--warm-gray)}
+.flexpass-feedback-filter{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--warm-gray)}
+.flexpass-feedback-filter select{max-width:190px;font-size:11px}
+.flexpass-feedback-review-list{display:flex;flex-direction:column}
+.flexpass-feedback-review{border-top:1px solid var(--hairline);padding:15px 0}
+.flexpass-feedback-review:first-child{border-top:0;padding-top:5px}
+.flexpass-feedback-review-header{display:flex;justify-content:space-between;gap:14px;align-items:center}
+.flexpass-feedback-review-header>div:first-child{display:flex;flex-direction:column;gap:3px}
+.flexpass-feedback-review-header strong{font-size:12px;color:var(--teal-dark)}
+.flexpass-feedback-review-header small{font-size:11px;color:var(--warm-gray)}
+.flexpass-feedback-review p{font-size:12px;line-height:1.65;color:var(--warm-gray);margin:7px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.flexpass-feedback-empty,.flexpass-feedback-more{color:var(--warm-gray);font-size:12px;line-height:1.6}
+@media(max-width:760px){.flexpass-feedback-summary{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:500px){.flexpass-stars{gap:0}.flexpass-star{width:45px;height:45px}.flexpass-rating-actions .btn{flex:1 1 auto}.flexpass-feedback-review-header{align-items:flex-start;flex-direction:column;gap:7px}}
+@media(prefers-reduced-motion:reduce){.flexpass-star,.flexpass-star svg,.flexpass-feedback-service{transition:none!important;animation:none!important}}

@@ -151,7 +151,7 @@
    The same control sits above the FP monogram in the narrow icon rail. */
 .dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-heading{
   justify-content:flex-start;
-  gap:10px;
+  gap:18px;
 }
 .dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close{
   width:36px;
@@ -181,6 +181,7 @@
 @media(min-width:761px){
   .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-sidebar-heading{
     justify-content:center;
+    gap:13px;
   }
   .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-sidebar-close{
     width:36px;

@@ -60,10 +60,10 @@ test('Donut and comparisons keep real status and category totals available in te
   assert.ok(overview.includes('items[0].count/total*100'));
   assert.ok(overview.includes('(items[0].count+items[1].count)/total*100'));
   assert.ok(overview.includes('role="listitem" className="flexpass-overview-donut-legend-row"'));
-  assert.ok(overview.includes('item.label} {item.count}'));
+  assert.ok(overview.includes('item.label} ${item.count}'));
   assert.ok(overview.includes('role="list" aria-label="Recorded counts by category"'));
   assert.ok(overview.includes('role="img" aria-label={'));
-  assert.ok(overview.includes('width:var(--flexpass-bar-fill)'));
+  assert.ok(css.includes('width:var(--flexpass-bar-fill)'));
 });
 
 test('Overview visualization changes do not alter other screens or the shared Notifications list',()=>{

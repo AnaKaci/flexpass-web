@@ -151,7 +151,7 @@
    The same control sits above the FP monogram in the narrow icon rail. */
 .dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-heading{
   justify-content:flex-start;
-  gap:18px;
+  gap:24px;
 }
 .dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close{
   width:36px;
@@ -181,11 +181,48 @@
 @media(min-width:761px){
   .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-sidebar-heading{
     justify-content:center;
-    gap:13px;
+    gap:24px;
+    min-height:101px;
   }
   .dashboard-app-shell.sidebar-collapsed .dashboard-sidebar .dashboard-sidebar-close{
     width:36px;
     height:36px;
+  }
+}
+
+/* Smaller editorial quote gives every Client navigation item more room.
+   Retains the original Inter/Cormorant fonts and approved brand colors. */
+.dashboard-app-shell.sidebar-expanded .dashboard-client-sidebar .sidebar-client-quote{
+  padding:12px 12px 11px;
+}
+.dashboard-app-shell.sidebar-expanded .dashboard-client-sidebar .sidebar-client-quote > span{
+  font:600 9px/1.35 'Inter',sans-serif;
+  letter-spacing:.13em;
+}
+.dashboard-app-shell.sidebar-expanded .dashboard-client-sidebar .sidebar-client-quote > p{
+  margin:8px 0 0;
+  font:italic 400 19px/1.15 'Cormorant Garamond',Georgia,serif;
+}
+/* Prioritize visible navigation on laptop-height and phone-height screens. */
+@media(max-height:840px){
+  .dashboard-app-shell.sidebar-expanded .dashboard-sidebar{
+    gap:8px;
+  }
+  .dashboard-app-shell.sidebar-expanded .dashboard-sidebar .side-label{
+    padding-top:8px;
+    padding-bottom:2px;
+    margin-bottom:0;
+  }
+  .dashboard-app-shell.sidebar-expanded .dashboard-sidebar .sidebar-bottom{
+    padding-top:8px;
+  }
+  .dashboard-app-shell.sidebar-expanded .dashboard-client-sidebar .sidebar-client-quote{
+    padding:9px 10px;
+  }
+  .dashboard-app-shell.sidebar-expanded .dashboard-client-sidebar .sidebar-client-quote > p{
+    margin-top:6px;
+    font-size:18px;
+    line-height:1.12;
   }
 }
 

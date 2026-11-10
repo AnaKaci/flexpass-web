@@ -1187,9 +1187,9 @@ def admin_analytics(u=Depends(roles('admin'))):
             mo=today.month-offset
             while mo<=0:mo+=12;yr-=1
             labels.append(f'{yr}-{mo:02d}')
-        monthly=[{'period':month,'bookings':sum(b.created_at and b.created_at.strftime('%Y-%m')==month for b in bookings),
-                  'visits':sum(b.checked_in_at and b.checked_in_at.strftime('%Y-%m')==month for b in bookings),
-                  'orders':sum(o.created_at and o.created_at.strftime('%Y-%m')==month for o in orders)}
+        monthly=[{'period':month,'bookings':sum(bool(b.created_at and b.created_at.strftime('%Y-%m')==month) for b in bookings),
+                  'visits':sum(bool(b.checked_in_at and b.checked_in_at.strftime('%Y-%m')==month) for b in bookings),
+                  'orders':sum(bool(o.created_at and o.created_at.strftime('%Y-%m')==month) for o in orders)}
                  for month in labels]
         by_group={}
         for b in bookings:

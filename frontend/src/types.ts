@@ -3,7 +3,7 @@ export type Group = 'fitness' | 'sport' | 'wellness' | 'glow' | 'kids-family';
 export type Status = 'BOOKED' | 'CHECKED_IN' | 'CANCELLED';
 export type ClientSection = 'overview' | 'discover' | 'bookings' | 'wallet' | 'shop' | 'orders' | 'notifications';
 export type EmployeeSection = ClientSection;
-export type PartnerSection = 'overview' | 'calendar' | 'reservations' | 'services' | 'settlements' | 'notifications';
+export type PartnerSection = 'overview' | 'calendar' | 'reservations' | 'services' | 'settlements' | 'feedback' | 'notifications';
 export type AdminSection = 'clients' | 'overview' | 'companies' | 'partners' | 'employees' | 'plans' | 'products' | 'orders' | 'invoices' | 'settlements' | 'audit' | 'analytics' | 'notifications';
 export type Section = EmployeeSection | PartnerSection | AdminSection;
 export interface User { id:number; full_name:string; email:string; role:Role; company_id:number|null; partner_id:number|null; plan_id:number|null; status:string; }
@@ -15,6 +15,9 @@ export interface Booking {id:number; reference:string; service:string; partner:s
 export interface EmployeeSummary {company:string; plan:string; monthly_credits:number; balance:number; active_bookings:number; visits:number; personal_account:boolean; }
 export interface LedgerRow {id:number; kind:string; amount:number; period:string; created_at:string; reason:string; booking_id:number|null; }
 export interface PartnerSummary {partner:string; zone:string; services:number; bookings:number; checkins:number; pending:number; earnings_cents:number; }
+export interface PartnerReview {id:number;service_id:number;service:string;rating:number;comment:string;created_at:string;}
+export interface PartnerReviewSummary {id:number;name:string;count:number;average_rating:number|null;}
+export interface PartnerFeedbackData {count:number;average_rating:number|null;has_more:boolean;services:PartnerReviewSummary[];reviews:PartnerReview[];}
 export interface PartnerService {id:number; name:string; group:Group; subcategory:string; credits:number; payout_cents:number; active:boolean; slots:Slot[]; }
 export interface AdminSummary {companies:number; employees:number; clients:number; orders_pending:number; partners:number; services:number; bookings:number; visits:number; credits_issued:number; partner_payables_cents:number; }
 export interface Company {id:number; name:string; hr_email:string; status:string; employees:number; }

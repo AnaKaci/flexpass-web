@@ -91,3 +91,60 @@ def test_bulk_slots_are_owned_bounded_and_idempotent_on_replay():
     assert entries.status_code==200
     matches=[sv for sv in entries.json() if sv['id']==ids['service']]
     assert len(matches)==1 and len(matches[0]['slots'])==5
+
+def test_optional_review_comment_and_business_feedback_are_tenant_scoped():
+    ids,client,staff,other,admin=setup_accounts()
+    booking=api.post('/api/bookings',headers=client,json={'slot_id':ids['slot']})
+    assert booking.status_code==200,booking.text
+    booking_id=booking.json()['id']
+    assert api.post(f'/api/client/bookings/{booking_id}/review',headers=client,json={'rating':4}).status_code==409
+    assert api.post(f'/api/partner/bookings/{booking_id}/checkin',headers=staff,json={}).status_code==200
+
+    assert api.post(f'/api/client/bookings/{booking_id}/review',headers=client,json={'rating':0}).status_code==422
+    review=api.post(f'/api/client/bookings/{booking_id}/review',headers=client,json={'rating':4})
+    assert review.status_code==200,review.text
+    assert review.json()['comment']==''
+    assert api.post(f'/api/client/bookings/{booking_id}/review',headers=client,json={'rating':5}).status_code==409
+
+    owned=api.get('/api/partner/reviews',headers=staff)
+    assert owned.status_code==200,owned.text
+    report=owned.json()
+    matching=[item for item in report['reviews'] if item['service_id']==ids['service']]
+    assert len(matching)==1 and matching[0]['rating']==4 and matching[0]['comment']==''
+    summary=[item for item in report['services'] if item['id']==ids['service']]
+    assert len(summary)==1 and summary[0]['count']==1 and summary[0]['average_rating']==4
+    assert report['average_rating']==4
+
+    outsider=api.get('/api/partner/reviews',headers=other)
+    assert outsider.status_code==200,outsider.text
+    assert all(item['service_id']!=ids['service'] for item in outsider.json()['reviews'])
+    assert all(item['id']!=ids['service'] for item in outsider.json()['services'])
+    assert api.get('/api/partner/reviews',headers=client).status_code==403
+    assert api.get('/api/partner/reviews/export',headers=client).status_code==403
+    assert api.get('/api/partner/reviews',headers=admin).status_code==403
+
+    exported=api.get('/api/partner/reviews/export',headers=staff)
+    assert exported.status_code==200 and 'text/csv' in exported.headers['content-type']
+    assert 'Feature Pilates' in exported.text
+    assert 'Feature Client' not in exported.text
+    assert 'feature.client.' not in exported.text
+    other_csv=api.get('/api/partner/reviews/export',headers=other)
+    assert other_csv.status_code==200
+    assert 'Feature Pilates' not in other_csv.text
+
+
+def test_partner_feedback_csv_sanitizes_formula_like_comments():
+    ids,client,staff,other,_admin=setup_accounts()
+    response=api.post('/api/bookings',headers=client,json={'slot_id':ids['slot']})
+    assert response.status_code==200,response.text
+    booking_id=response.json()['id']
+    assert api.post(f'/api/partner/bookings/{booking_id}/checkin',headers=staff,json={}).status_code==200
+    review=api.post(f'/api/client/bookings/{booking_id}/review',headers=client,
+                    json={'rating':5,'comment':'=SUM(1,2)'})
+    assert review.status_code==200,review.text
+    csv_response=api.get('/api/partner/reviews/export',headers=staff)
+    assert csv_response.status_code==200
+    assert "'=SUM(1,2)" in csv_response.text
+    # The normal API preserves the original feedback without spreadsheet escaping.
+    rows=api.get('/api/partner/reviews',headers=staff).json()['reviews']
+    assert any(row['comment']=='=SUM(1,2)' for row in rows)

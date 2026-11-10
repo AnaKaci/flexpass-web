@@ -1,7 +1,7 @@
 import {useCallback,useEffect,useState} from 'react';
 import type {ReactNode} from 'react';
 import {Link,useNavigate,useParams} from 'react-router-dom';
-import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,NotificationRow,AdminAnalytics,AdminSummary,Company,AdminPartner,CreditProduct,ClientOrder,ClientRecord,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog,User} from './types';
+import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,PartnerFeedbackData,NotificationRow,AdminAnalytics,AdminSummary,Company,AdminPartner,CreditProduct,ClientOrder,ClientRecord,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog,User} from './types';
 import {dateTime,icons,labels,money,month,post,request} from './api';
 import {Heading,Panel,Stat,StatusTag,useApp} from './App';
 import {BookingDialog} from './ServicesPage';
@@ -10,6 +10,8 @@ import {PartnerCalendar} from './PartnerCalendar';
 import {ClientExplore} from './ClientExplore';
 import {ClientOverview} from './ClientOverview';
 import {AdminOverviewInsights} from './AdminOverviewInsights';
+import {RatingPopup} from './RatingPopup';
+import {PartnerFeedback} from './PartnerFeedback';
 import {CreditShop} from './CreditShop';
 import {ProfileMenu} from './ProfileMenu';
 import {UIIcon} from './UIIcon';
@@ -23,6 +25,7 @@ interface AllData {
   bookings:Booking[];
   ledger:LedgerRow[];
   partnerServices:PartnerService[];
+  partnerFeedback?:PartnerFeedbackData;
   companies:Company[];
   partners:AdminPartner[];
   employees:Employee[];
@@ -41,7 +44,7 @@ interface AllData {
 const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],partners:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[],featuredCatalog:[],products:[],orders:[],clients:[],notifications:[]};
 const menu:Record<Role,Array<[Section,string,IconName]>>={
   client:[['overview','Overview','overview'],['shop','Credit shop','credit'],['discover','Explore experiences','compass'],['orders','My orders','receipt'],['bookings','My bookings','calendar'],['wallet','My wallet','wallet'],['notifications','Notifications','activity']],
-  partner:[['overview','Overview','overview'],['calendar','Booking calendar','calendar'],['reservations','Reservations','list'],['services','My services','layers'],['settlements','Settlements','wallet'],['notifications','Notifications','activity']],
+  partner:[['overview','Overview','overview'],['calendar','Booking calendar','calendar'],['reservations','Reservations','list'],['services','My services','layers'],['settlements','Settlements','wallet'],['feedback','Client feedback','activity'],['notifications','Notifications','receipt']],
   admin:[['overview','Overview','overview'],['clients','Clients','users'],['partners','Business partners','store'],['products','Credit products','credit'],['orders','Client orders','receipt'],['settlements','Partner settlements','wallet'],['analytics','Analytics','activity'],['audit','Audit log','shield'],['notifications','Notifications','receipt']],
 };
 function Table({columns,rows}:{columns:string[];rows:ReactNode[][]}){return <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(col=><th key={col}>{col}</th>)}</tr></thead><tbody>{rows.length?rows.map((row,i)=><tr key={i}>{row.map((cell,k)=><td key={k} data-label={columns[k]}>{cell}</td>)}</tr>):<tr><td colSpan={columns.length} className="muted">No records yet.</td></tr>}</tbody></table></div>}
@@ -67,7 +70,7 @@ function NotificationView({items,onRead}:{items:NotificationRow[];onRead:(id:num
   </>;
 }
 const ERROR_MESSAGE='Could not load this dashboard. Check the API server and sign in again.';
-export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,info}=useApp();const navigate=useNavigate();const {section:routeSection}=useParams<{section:string}>();const section:Section=menu[role].some(([slug])=>slug===routeSection)?routeSection as Section:'overview';const [data,setData]=useState<AllData>(emptyData);const [category,setCategory]=useState<Group>('fitness');const [selectedService,setSelectedService]=useState<Service|null>(null);const [form,setForm]=useState<FormDialog|null>(null);const [revision,setRevision]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [showDemoSetup,setShowDemoSetup]=useState(false);const [clientDemoPassword,setClientDemoPassword]=useState('');const [businessDemoPassword,setBusinessDemoPassword]=useState('');const [demoSetupBusy,setDemoSetupBusy]=useState(false);const [isNarrowScreen,setIsNarrowScreen]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(max-width:760px)').matches);const [sidebarOpen,setSidebarOpen]=useState(()=>typeof window==='undefined'||!window.matchMedia('(max-width:760px)').matches);const refresh=useCallback(()=>setRevision(x=>x+1),[]);
+export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,info}=useApp();const navigate=useNavigate();const {section:routeSection}=useParams<{section:string}>();const section:Section=menu[role].some(([slug])=>slug===routeSection)?routeSection as Section:'overview';const [data,setData]=useState<AllData>(emptyData);const [category,setCategory]=useState<Group>('fitness');const [selectedService,setSelectedService]=useState<Service|null>(null);const [reviewBooking,setReviewBooking]=useState<Booking|null>(null);const [form,setForm]=useState<FormDialog|null>(null);const [revision,setRevision]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [showDemoSetup,setShowDemoSetup]=useState(false);const [clientDemoPassword,setClientDemoPassword]=useState('');const [businessDemoPassword,setBusinessDemoPassword]=useState('');const [demoSetupBusy,setDemoSetupBusy]=useState(false);const [isNarrowScreen,setIsNarrowScreen]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(max-width:760px)').matches);const [sidebarOpen,setSidebarOpen]=useState(()=>typeof window==='undefined'||!window.matchMedia('(max-width:760px)').matches);const refresh=useCallback(()=>setRevision(x=>x+1),[]);
   useEffect(()=>{
     const media=window.matchMedia('(max-width:760px)');
     const onChange=()=>{setIsNarrowScreen(media.matches);setSidebarOpen(!media.matches)};
@@ -95,8 +98,8 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
         const [summary,bookings,ledger,catalog,products,orders,featuredCatalog,notifications]=await Promise.all([get<EmployeeSummary>('/client/summary'),get<Booking[]>('/client/bookings'),get<LedgerRow[]>('/client/ledger'),get<Service[]>(`/catalog?group=${category}`),get<CreditProduct[]>('/client/products'),get<ClientOrder[]>('/client/orders'),get<Service[]>('/catalog'),get<NotificationRow[]>('/notifications')]);
         if(valid)setData({...emptyData,employeeSummary:summary,bookings,ledger,catalog,products,orders,featuredCatalog,notifications});
       }else if(role==='partner'){
-        const [summary,bookings,services,settlements,notifications]=await Promise.all([get<PartnerSummary>('/partner/summary'),get<Booking[]>('/partner/bookings'),get<PartnerService[]>('/partner/services'),get<Settlement[]>('/settlements'),get<NotificationRow[]>('/notifications')]);
-        if(valid)setData({...emptyData,partnerSummary:summary,bookings,partnerServices:services,settlements,notifications});
+        const [summary,bookings,services,settlements,notifications,partnerFeedback]=await Promise.all([get<PartnerSummary>('/partner/summary'),get<Booking[]>('/partner/bookings'),get<PartnerService[]>('/partner/services'),get<Settlement[]>('/settlements'),get<NotificationRow[]>('/notifications'),get<PartnerFeedbackData>('/partner/reviews')]);
+        if(valid)setData({...emptyData,partnerSummary:summary,bookings,partnerServices:services,settlements,notifications,partnerFeedback});
       }else{
         const [summary,companies,partners,employees,plans,invoices,settlements,audit,products,orders,clients,notifications,adminAnalytics]=await Promise.all([get<AdminSummary>('/admin/summary'),get<Company[]>('/admin/companies'),get<AdminPartner[]>('/admin/partners'),get<Employee[]>('/admin/employees'),get<Plan[]>('/admin/plans'),get<Invoice[]>('/admin/invoices'),get<Settlement[]>('/settlements'),get<AuditRow[]>('/admin/audit'),get<CreditProduct[]>('/admin/client-products'),get<ClientOrder[]>('/admin/client-orders'),get<ClientRecord[]>('/admin/clients'),get<NotificationRow[]>('/notifications'),get<AdminAnalytics>('/admin/analytics')]);
         if(valid)setData({...emptyData,adminSummary:summary,companies,partners,employees,plans,invoices,settlements,audit,products,orders,clients,notifications,adminAnalytics});
@@ -127,18 +130,13 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
       notify('Visit verified successfully.');refresh();
     }catch(err){notify((err as Error).message,true)}
   }
-  async function leaveReview(b:Booking){
-    const raw=window.prompt('Rate your completed experience from 1 to 5:');
-    if(raw===null)return;
-    const rating=Number(raw);
-    if(!Number.isInteger(rating)||rating<1||rating>5){notify('Choose a whole-number rating between 1 and 5.',true);return}
-    const comment=window.prompt('Write a brief review (minimum 10 characters):');
-    if(comment===null)return;
-    if(comment.trim().length<10){notify('Review must contain at least 10 characters.',true);return}
-    try{
-      await post(`/client/bookings/${b.id}/review`,token,{rating,comment:comment.trim()});
-      notify('Your experience review was submitted.');refresh();
-    }catch(err){notify((err as Error).message,true)}
+  function leaveReview(booking:Booking){setReviewBooking(booking)}
+  async function submitReview(rating:number,comment:string){
+    if(!reviewBooking)throw new Error('No completed booking was selected.');
+    await post(`/client/bookings/${reviewBooking.id}/review`,token,{rating,comment});
+    setReviewBooking(null);
+    notify('Your review was submitted.');
+    refresh();
   }
   async function readNotification(id:number){
     try{await post(`/notifications/${id}/read`,token,{});refresh()}catch(err){notify((err as Error).message,true)}
@@ -175,6 +173,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
         {role==='admin'&&section!=='notifications'&&data.adminSummary&&<AdminView section={section} data={data} onSection={changeSection} onForm={setForm} onGenerate={()=>{void mutate(`/admin/settlements/generate?period=${month()}`)}} onConfirmOrder={confirmPurchase} onResendInvitation={resendInvitation} onOpenDemoSetup={()=>setShowDemoSetup(v=>!v)}/>}
       </>}</main></div>
     {selectedService&&<BookingDialog service={selectedService} onClose={()=>setSelectedService(null)} onBooked={()=>{changeSection('bookings');refresh()}}/>}
+    {reviewBooking&&<RatingPopup booking={reviewBooking} onClose={()=>setReviewBooking(null)} onSubmit={submitReview}/>}
     {form&&<ActionDialog dialog={form} data={data} onClose={()=>setForm(null)} onSuccess={()=>{setForm(null);notify('Change saved.');refresh()}}/>}
   </div>;
 }
@@ -189,9 +188,27 @@ function EmployeeView({user,section,data,onSection,onBooking,onService,onPurchas
 }
 function PartnerView({section,data,onSection,onBooking,onVerify,onForm}:{section:Section;data:AllData;onSection:(v:Section)=>void;onBooking:(b:Booking)=>void;onVerify:(b:Booking)=>void;onForm:(f:FormDialog)=>void}){const s=data.partnerSummary!;const {token,notify}=useApp();
   async function exportPayouts(){try{const response=await fetch('/api/partner/payouts/export',{headers:{Authorization:`Bearer ${token}`}});if(!response.ok)throw new Error('Payout export failed');const blob=await response.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='flexpass-partner-payouts.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(err){notify((err as Error).message,true)}}
+  async function exportFeedback(){
+    try{
+      const response=await fetch('/api/partner/reviews/export',{headers:{Authorization:`Bearer ${token}`}});
+      if(!response.ok)throw new Error('Feedback export failed');
+      const blob=await response.blob();
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement('a');
+      link.href=url;link.download='flexpass-business-feedback.csv';link.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch(err){notify((err as Error).message,true)}
+  }
+  function ratingForService(serviceId:number){
+    const current=data.partnerFeedback?.services.find(item=>item.id===serviceId);
+    return current?.count&&current.average_rating!==null
+      ?`${current.average_rating.toFixed(1)} / 5 · ${current.count} reviews`
+      :'No ratings yet';
+  }
+  if(section==='feedback')return data.partnerFeedback?<PartnerFeedback feedback={data.partnerFeedback} onExport={exportFeedback}/>:null;
   if(section==='overview')return <><Heading title="Partner overview" subtitle={`Welcome to ${s.partner} · ${s.zone}`}/><SummaryCards items={[["◇","Active services",s.services],["▤","Total reservations",s.bookings],["✓","Confirmed visits",s.checkins],["◉","Earned (all time)",money(s.earnings_cents),"Confirmed attendance only"]]}/><div className="dash-grid"><Panel title="Reservations" action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('calendar')}>Open calendar →</button>}><BookingTable bookings={data.bookings.slice(0,6)} role="partner" action={onBooking} onVerify={onVerify}/></Panel><div className="stack"><Panel title="Partner guidance"><p>Check the guest name and booking reference, then confirm arrival once.</p><div className="notice">You can only see your partner organization’s bookings. Settlements use confirmed attendance.</div></Panel><div className="callout-gradient"><h2>Manage your sessions</h2><p>Publish services and available class times.</p><button className="btn btn-outline" onClick={()=>onSection('services')}>Manage services →</button></div></div></div></>;
   if(section==='reservations')return <><Heading title="Reservations" subtitle="Check guests in and review attendance."/><Panel title="All partner bookings"><BookingTable bookings={data.bookings} role="partner" action={onBooking} onVerify={onVerify}/></Panel></>;
-  if(section==='services')return <><Heading title="My services" subtitle="Manage approved offerings and publish class slots." action={<button className="btn btn-primary" onClick={()=>onForm({kind:'service'})}>+ New service</button>}/><div className="notice notice-gap">Active price changes need Admin approval in production. Publishing new services here is for the pilot.</div><Panel title="Your services"><Table columns={['Service','Category','Credits','Slots','Action']} rows={data.partnerServices.map(s=>[<b>{s.name}</b>,labels[s.group],`${s.credits} credits`,`${s.slots.length} slots`,<div className="stack" style={{gap:6}}><button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'slot',id:s.id})}>Add slot +</button><button className="btn btn-tertiary btn-sm" onClick={()=>onForm({kind:'slot-bulk',id:s.id})}>Repeat slots</button></div>])}/></Panel></>;
+  if(section==='services')return <><Heading title="My services" subtitle="Manage approved offerings and publish class slots." action={<div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}><button className="btn btn-outline btn-sm" onClick={()=>onSection('feedback')}>View client feedback</button><button className="btn btn-primary" onClick={()=>onForm({kind:'service'})}>+ New service</button></div>}/><div className="notice notice-gap">Active price changes need Admin approval in production. Publishing new services here is for the pilot.</div><Panel title="Your services"><Table columns={['Service','Category','Credits','Client rating','Slots','Action']} rows={data.partnerServices.map(s=>[<b>{s.name}</b>,labels[s.group],`${s.credits} credits`,ratingForService(s.id),`${s.slots.length} slots`,<div className="stack" style={{gap:6}}><button className="btn btn-outline btn-sm" onClick={()=>onForm({kind:'slot',id:s.id})}>Add slot +</button><button className="btn btn-tertiary btn-sm" onClick={()=>onForm({kind:'slot-bulk',id:s.id})}>Repeat slots</button></div>])}/></Panel></>;
   if(section==='settlements')return <><Heading title="Settlement reports" subtitle="Monthly payouts based on confirmed attendance."/><div className="notice notice-gap">Bank transfers are processed outside the app. Admin maintains settlement statuses.</div><Panel title="Settlement history" action={<button className="btn btn-outline btn-sm" onClick={()=>void exportPayouts()}>Export CSV ↗</button>}><Table columns={['Period','Visits','Amount','Status','Invoice ref.']} rows={data.settlements.map(s=>[s.period,s.bookings,money(s.amount_cents),<StatusTag status={s.status}/>,s.invoice_reference||'—'])}/></Panel></>;
   return null;
 }

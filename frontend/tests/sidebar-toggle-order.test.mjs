@@ -27,13 +27,25 @@ test('collapsed layout puts the menu toggle above the logo and styling stays on-
   assert.ok(styles.includes('flex-direction:column;'));
   assert.ok(styles.includes('.dashboard-app-shell .dashboard-sidebar .dashboard-sidebar-close{'));
   assert.ok(styles.includes('border-radius:11px;'));
-  assert.match(styles,/\.dashboard-app-shell \.dashboard-sidebar \.dashboard-sidebar-heading\{\s*justify-content:flex-start;\s*gap:18px;/);
-  assert.match(styles,/@media\(min-width:761px\)\{\s*\.dashboard-app-shell\.sidebar-collapsed \.dashboard-sidebar \.dashboard-sidebar-heading\{\s*justify-content:center;\s*gap:13px;/);
+  assert.match(styles,/\.dashboard-app-shell \.dashboard-sidebar \.dashboard-sidebar-heading\{\s*justify-content:flex-start;\s*gap:24px;/);
+  assert.match(styles,/@media\(min-width:761px\)\{\s*\.dashboard-app-shell\.sidebar-collapsed \.dashboard-sidebar \.dashboard-sidebar-heading\{\s*justify-content:center;\s*gap:24px;\s*min-height:101px;/);
   assert.ok(styles.includes('stroke-width:1.65;'));
   assert.ok(styles.includes('color:var(--ivory,#F5EFE4);'));
   assert.ok(styles.includes(':focus-visible'));
   assert.ok(styles.includes('prefers-reduced-motion:reduce'));
   assert.ok(dashboard.includes('className="side-nav"'));
   assert.ok(dashboard.includes('<ProfileMenu user={user}'));
+  assert.ok(!styles.includes('.home-page'));
+});
+
+test('compact Client quote gives sidebar navigation room without losing brand or scrolling fallback',()=>{
+  assert.ok(styles.includes('.dashboard-app-shell.sidebar-expanded .dashboard-client-sidebar .sidebar-client-quote{'));
+  assert.ok(styles.includes("font:italic 400 19px/1.15 'Cormorant Garamond',Georgia,serif;"));
+  assert.ok(styles.includes("font:600 9px/1.35 'Inter',sans-serif;"));
+  assert.ok(styles.includes('@media(max-height:840px){'));
+  assert.ok(styles.includes('font-size:18px;'));
+  assert.ok(styles.includes('.dashboard-app-shell.sidebar-expanded .dashboard-sidebar .side-label{'));
+  assert.ok(styles.includes('overflow-y:auto;'));
+  assert.ok(!styles.includes('font-family:'));
   assert.ok(!styles.includes('.home-page'));
 });

@@ -52,3 +52,11 @@ test('business feedback uses authenticated existing review data and per-service 
   assert.ok(feedback.includes('onClick={()=>void exportFeedback()}'));
   assert.ok(!feedback.includes("Math.random("));
 });
+
+test('rating stars are solid-filled with distinct idle and selected FlexPass colors',()=>{
+  assert.ok(css.includes('fill:var(--mist);stroke:var(--mist);'), 'unselected stars should have a muted solid fill');
+  assert.ok(css.includes('fill:var(--burgundy);stroke:var(--burgundy);'), 'selected/hovered stars should have a burgundy solid fill');
+  assert.ok(!css.includes('fill:transparent;'), 'no hollow star outlines');
+  assert.ok(css.includes('animation:flexpass-rating-bloom'), 'retain existing star animation');
+  assert.ok(popup.includes("filled?'is-selected':''"), 'preserve rating-dependent star selection');
+});

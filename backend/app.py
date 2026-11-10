@@ -635,6 +635,10 @@ def make_booking(body:BookBody,req:Request,u=Depends(roles('employee','client'))
             if key: s.add(BookingRequest(user_id=u.id,idempotency_key=key,slot_id=sl.id,booking_id=b.id))
             s.add(Ledger(user_id=u.id,booking_id=b.id,kind='DEBIT',amount=-service.credits,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Booking {b.reference}'))
             audit(s,u.id,'BOOKING_CREATED',b.reference)
+            notify_user(s,u.id,'BOOKING_CREATED','Booking confirmed',
+                        f'Your reservation {b.reference} is confirmed.')
+            notify_partner(s,b.partner_id,'NEW_BOOKING','New reservation',
+                           f'New reservation {b.reference} requires attendance check-in.')
             s.commit(); return booking_view(s,b)
         except HTTPException:
             s.rollback();raise
@@ -655,6 +659,10 @@ def cancel_booking(booking_id:int,u=Depends(roles('employee','client'))):
             b.status='CANCELLED';b.cancelled_at=now();sl.reserved-=1
             s.add(Ledger(user_id=b.user_id,booking_id=b.id,kind='REFUND',amount=b.credits_snapshot,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Cancellation {b.reference}'))
             audit(s,u.id,'BOOKING_CANCELLED',b.reference)
+            notify_user(s,u.id,'BOOKING_CANCELLED','Booking cancelled',
+                        f'Reservation {b.reference} was cancelled and credits returned.')
+            notify_partner(s,b.partner_id,'BOOKING_CANCELLED','Reservation cancelled',
+                           f'Reservation {b.reference} was cancelled.')
             s.commit();return {'status':'CANCELLED','refunded':b.credits_snapshot}
         except HTTPException:s.rollback();raise
         except Exception:s.rollback();raise
@@ -785,6 +793,8 @@ def admin_confirm_client_order(order_id:int,body:ConfirmOrderBody,u=Depends(role
                          source='PERSONAL',period=now().strftime('%Y-%m'),actor_id=u.id,
                          reason=f'Credit product order {order.id}: {ref}'))
             audit(s,u.id,'CLIENT_ORDER_CONFIRMED',f'Order {order.id}; ref={ref}')
+            notify_user(s,account.id,'ORDER_CONFIRMED','Credits added',
+                        f'Order #{order.id} is confirmed. {order.credits_snapshot} credits were added to your wallet.')
             s.commit()
             return client_order_view(s,order)
         except HTTPException:s.rollback();raise
@@ -810,7 +820,10 @@ def checkin(booking_id:int,u=Depends(roles('partner','admin'))):
             if u.role=='partner' and b.partner_id!=u.partner_id:raise HTTPException(403,'Not your partner booking')
             if b.status!='BOOKED':raise HTTPException(409,'Check-in already recorded or booking cancelled')
             b.status='CHECKED_IN';b.checked_in_at=now();b.checked_in_by=u.id
-            audit(s,u.id,'CHECK_IN',b.reference);s.commit()
+            audit(s,u.id,'CHECK_IN',b.reference)
+            notify_user(s,b.user_id,'CHECK_IN','Visit confirmed',
+                        f'Attendance confirmed for reservation {b.reference}.')
+            s.commit()
             return {'status':'CHECKED_IN','reference':b.reference}
         except HTTPException:s.rollback();raise
         except Exception:s.rollback();raise

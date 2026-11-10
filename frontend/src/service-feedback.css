@@ -53,3 +53,29 @@
 @media(max-width:760px){.flexpass-feedback-summary{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:500px){.flexpass-stars{gap:0}.flexpass-star{width:45px;height:45px}.flexpass-rating-actions .btn{flex:1 1 auto}.flexpass-feedback-review-header{align-items:flex-start;flex-direction:column;gap:7px}}
 @media(prefers-reduced-motion:reduce){.flexpass-star,.flexpass-star svg,.flexpass-feedback-service{transition:none!important;animation:none!important}}
+
+/* Booking history: actions stay vertically centered and never collapse to an empty cell after review. */
+.dashboard-app-shell .booking-action-slot{
+  min-height:38px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:6px;
+}
+.dashboard-app-shell .booking-action-state{
+  display:inline-flex;
+  align-items:center;
+  min-height:38px;
+  color:var(--warm-gray);
+  font:600 12px/1.4 'Inter',sans-serif;
+  white-space:nowrap;
+}
+.dashboard-app-shell .booking-action-empty{
+  display:inline-flex;
+  align-items:center;
+  min-height:38px;
+  color:var(--warm-gray);
+  font:500 12px/1.4 'Inter',sans-serif;
+  opacity:.65;
+}

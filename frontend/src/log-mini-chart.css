@@ -1,0 +1,162 @@
+/* FlexPass miniature activity charts, adapted from the 21st.dev mini-chart interaction.
+   Scoped to record/history screens; original brand fonts and colors are retained. */
+.flexpass-mini-chart{
+  border:1px solid var(--hairline);
+  border-radius:15px;
+  background:linear-gradient(120deg,var(--paper),var(--ivory));
+  padding:13px 16px 10px;
+  margin:0 0 16px;
+  min-width:0;
+}
+.flexpass-mini-chart-intro{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.flexpass-mini-chart-intro>div:first-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.flexpass-mini-chart-eyebrow{
+  color:var(--burgundy);
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font:700 9px/1.4 'Inter',sans-serif;
+}
+.flexpass-mini-chart-intro strong{
+  color:var(--teal-dark);
+  font:600 12px/1.5 'Inter',sans-serif;
+}
+.flexpass-mini-chart-intro small{
+  color:var(--warm-gray);
+  font:400 10px/1.5 'Inter',sans-serif;
+}
+.flexpass-mini-chart-total{
+  display:flex;
+  align-items:baseline;
+  flex:none;
+  gap:6px;
+  color:var(--teal);
+  font-variant-numeric:tabular-nums;
+}
+.flexpass-mini-chart-total strong{
+  font:500 27px/1.05 'Bodoni Moda',Georgia,serif;
+  color:var(--teal);
+}
+.flexpass-mini-chart-total span{
+  font:500 10px/1.3 'Inter',sans-serif;
+  color:var(--warm-gray);
+}
+.flexpass-mini-chart-bars{
+  height:69px;
+  width:100%;
+  min-width:0;
+  margin-top:10px;
+  display:flex;
+  align-items:stretch;
+  gap:4px;
+  padding-top:8px;
+  border-bottom:1px solid var(--hairline);
+}
+.flexpass-mini-chart-column{
+  position:relative;
+  display:flex;
+  flex:1 1 0;
+  min-width:0;
+  height:100%;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-end;
+  border-radius:5px 5px 0 0;
+  cursor:crosshair;
+  outline-offset:2px;
+}
+.flexpass-mini-chart-bar{
+  display:block;
+  width:100%;
+  height:var(--log-mini-height);
+  min-height:3px;
+  background:var(--mist);
+  border-radius:5px 5px 0 0;
+  transform-origin:bottom center;
+  animation:flexpass-log-rise .56s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay:var(--log-mini-delay);
+  transition:background-color .18s ease,filter .18s ease;
+}
+.flexpass-mini-chart-column.has-events .flexpass-mini-chart-bar{background:var(--teal)}
+.flexpass-mini-chart-column.has-events:last-child .flexpass-mini-chart-bar{background:var(--burgundy)}
+.flexpass-mini-chart-column:hover .flexpass-mini-chart-bar,
+.flexpass-mini-chart-column:focus-visible .flexpass-mini-chart-bar{
+  background:var(--burgundy);
+  filter:brightness(1.06);
+}
+.flexpass-mini-chart-column:focus-visible{outline:2px solid var(--burgundy)}
+.flexpass-mini-chart-tooltip{
+  position:absolute;
+  z-index:2;
+  left:50%;
+  bottom:calc(var(--log-mini-height) + 9px);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+  border-radius:7px;
+  padding:4px 7px;
+  font:500 10px/1.2 'Inter',sans-serif;
+  color:var(--paper);
+  background:var(--teal-dark);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translate(-50%,4px);
+  transition:opacity .15s ease,transform .15s ease,visibility .15s;
+}
+.flexpass-mini-chart-tooltip b{font-size:11px;font-variant-numeric:tabular-nums}
+.flexpass-mini-chart-column:first-child .flexpass-mini-chart-tooltip{
+  left:0;transform:translate(0,4px)
+}
+.flexpass-mini-chart-column:last-child .flexpass-mini-chart-tooltip{
+  left:auto;right:0;transform:translate(0,4px)
+}
+.flexpass-mini-chart-column:hover .flexpass-mini-chart-tooltip,
+.flexpass-mini-chart-column:focus-visible .flexpass-mini-chart-tooltip{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%,0);
+}
+.flexpass-mini-chart-column:first-child:hover .flexpass-mini-chart-tooltip,
+.flexpass-mini-chart-column:first-child:focus-visible .flexpass-mini-chart-tooltip,
+.flexpass-mini-chart-column:last-child:hover .flexpass-mini-chart-tooltip,
+.flexpass-mini-chart-column:last-child:focus-visible .flexpass-mini-chart-tooltip{
+  transform:translate(0,0);
+}
+.flexpass-mini-chart-axis{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:5px;
+  color:var(--warm-gray);
+  font:400 10px/1.3 'Inter',sans-serif;
+}
+@keyframes flexpass-log-rise{from{transform:scaleY(.08);opacity:.35}to{transform:scaleY(1);opacity:1}}
+/* Three small monthly trends fit beside each other without changing the Admin analytics table. */
+.flexpass-mini-chart-group{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.flexpass-mini-chart-group .flexpass-mini-chart{
+  margin-bottom:15px;
+}
+@media(max-width:960px){
+  .flexpass-mini-chart-group{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:480px){
+  .flexpass-mini-chart{padding:12px 11px 8px}
+  .flexpass-mini-chart-bars{gap:2px;height:59px}
+  .flexpass-mini-chart-intro small{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .flexpass-mini-chart-bar,.flexpass-mini-chart-tooltip{
+    animation:none!important;
+    transition:none!important;
+  }
+}

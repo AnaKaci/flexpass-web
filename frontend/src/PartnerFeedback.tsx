@@ -3,6 +3,7 @@ import type {PartnerFeedbackData} from './types';
 import {Heading,Panel} from './App';
 import {dateTime} from './api';
 import {FlexPassStars} from './RatingPopup';
+import {LogMiniChart} from './LogMiniChart';
 
 export function PartnerFeedback({feedback,onExport}:{feedback:PartnerFeedbackData;onExport:()=>Promise<void>}){
   const [service,setService]=useState('all');
@@ -42,6 +43,7 @@ export function PartnerFeedback({feedback,onExport}:{feedback:PartnerFeedbackDat
         {feedback.services.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
       </select>
     </label>}>
+      <LogMiniChart title="Review submissions" timestamps={rows.map(item=>item.created_at)} unit="reviews"/>
       {rows.length?<div className="flexpass-feedback-review-list">
         {rows.map(item=><article className="flexpass-feedback-review" key={item.id}>
           <div className="flexpass-feedback-review-header">

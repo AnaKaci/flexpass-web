@@ -196,6 +196,23 @@ function PartnerView({section,data,onSection,onBooking,onVerify,onForm}:{section
   return null;
 }
 function AdminView({section,data,onSection,onForm,onGenerate,onConfirmOrder,onResendInvitation,onOpenDemoSetup}:{section:Section;data:AllData;onSection:(v:Section)=>void;onForm:(f:FormDialog)=>void;onGenerate:()=>void;onConfirmOrder:(o:ClientOrder)=>void;onResendInvitation:(id:number)=>void;onOpenDemoSetup:()=>void}){const s=data.adminSummary!;
+  if(section==='analytics'){
+    const report=data.adminAnalytics;
+    return <><Heading title="Platform analytics" subtitle="Actual reservations, attendance, client orders and business activity from FlexPass records."/>
+      <Panel title="Last six months">
+        <Table columns={['Month','Bookings created','Visits confirmed','Client orders']} rows={(report?.monthly||[]).map(item=>[item.period,item.bookings,item.visits,item.orders])}/>
+      </Panel>
+      <div className="dash-grid">
+        <Panel title="Reservations by category">
+          <Table columns={['Experience category','Bookings']} rows={(report?.categories||[]).map(item=>[labels[item.name as Group]||item.name,item.bookings])}/>
+        </Panel>
+        <Panel title="Business partners by confirmed visits">
+          <Table columns={['Business','Visits']} rows={(report?.partners||[]).map(item=>[item.name,item.visits])}/>
+        </Panel>
+      </div>
+      <div className="notice notice-gap">Figures use existing booking and order records. These are activity counts, not payment or profitability claims.</div>
+    </>;
+  }
   if(section==='overview')return <>
     <Heading title="Operations at a glance" subtitle="Client purchases, partner reservations and actions that need review." action={<button className="btn btn-outline btn-sm" onClick={()=>onSection('orders')}>Review orders <UIIcon name="arrow" size={16}/></button>}/>
     <SummaryCards items={[["","Clients",s.clients,"Personal and legacy accounts"],["","Partners",s.partners,"Registered business partners"],["","Pending client orders",s.orders_pending,"Review payments before crediting"],["","Bookings",s.bookings,"All reservation statuses"]]}/>

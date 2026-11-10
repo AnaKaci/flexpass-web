@@ -49,8 +49,8 @@ function BookingTable({bookings,role,action,onCode,onReview,onVerify}:{bookings:
   return <Table columns={['Experience','Date / venue','Credits','Status','Action']} rows={bookings.map(b=>[
     <><b>{b.service}</b><br/><small>{b.reference}</small></>,<><b>{dateTime(b.start_at)}</b><br/><small>{b.partner}</small></>,`${b.credits} credits`,<StatusTag status={b.status}/>,<div className="stack" style={{gap:6}}>
       {b.status==='BOOKED'&&<button className={`btn ${role==='employee'?'btn-outline':'btn-primary'} btn-sm`} onClick={()=>action(b)}>{role==='employee'?'Cancel':'Confirm arrival'}</button>}
-      {b.status==='BOOKED'&&role==='employee'&&onCode&&<button className="btn btn-tertiary btn-sm" onClick={()=>onCode(b)}>Get check-in code</button>}
-      {b.status==='CHECKED_IN'&&role==='employee'&&onReview&&<button className="btn btn-tertiary btn-sm" onClick={()=>onReview(b)}>Review visit</button>}
+      {b.status==='BOOKED'&&role==='employee'&&onCode&&Math.abs(new Date(b.start_at).getTime()-Date.now())<=7200000&&<button className="btn btn-tertiary btn-sm" onClick={()=>onCode(b)}>Get check-in code</button>}
+      {b.status==='CHECKED_IN'&&role==='employee'&&onReview&&!b.reviewed&&<button className="btn btn-tertiary btn-sm" onClick={()=>onReview(b)}>Review visit</button>}
       {b.status==='BOOKED'&&role==='partner'&&onVerify&&<button className="btn btn-tertiary btn-sm" onClick={()=>onVerify(b)}>Verify code</button>}
       {b.status==='CANCELLED'&&'—'}
     </div>,
@@ -115,7 +115,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
   async function issueCode(b:Booking){
     try{
       const result=await post<{code:string;expires_at:string}>(`/client/bookings/${b.id}/checkin-code`,token,{});
-      window.alert(`Show this one-time code to the business staff: ${result.code}\\nExpires: ${dateTime(result.expires_at)}. Do not share it elsewhere.`);
+      window.alert(`Show this one-time code to the business staff: ${result.code}\nExpires: ${dateTime(result.expires_at)}. Do not share it elsewhere.`);
     }catch(err){notify((err as Error).message,true)}
   }
   async function verifyCode(b:Booking){

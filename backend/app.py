@@ -1038,6 +1038,160 @@ def audit_log(u=Depends(roles('admin'))):
     with Session() as s:return [{'id':x.id,'action':x.action,'detail':x.detail,'actor_id':x.actor_id,'at':iso(x.created_at)} for x in s.scalars(select(Audit).order_by(Audit.id.desc()).limit(50)).all()]
 
 
+# Authenticated in-app notification inbox; entries are written in existing business transactions.
+@app.get('/api/notifications')
+def my_notifications(u=Depends(get_user)):
+    with Session() as s:
+        rows=s.scalars(select(Notification).where(Notification.user_id==u.id).order_by(Notification.id.desc()).limit(50)).all()
+        return [{'id':x.id,'kind':x.kind,'title':x.title,'message':x.message,
+                 'created_at':iso(x.created_at),'read_at':iso(x.read_at)} for x in rows]
+
+@app.post('/api/notifications/{notification_id}/read')
+def read_notification(notification_id:int,u=Depends(get_user)):
+    with Session() as s:
+        item=s.get(Notification,notification_id)
+        if not item or item.user_id!=u.id:raise HTTPException(404,'Notification not found')
+        if item.read_at is None:item.read_at=now()
+        s.commit()
+        return {'id':item.id,'read_at':iso(item.read_at)}
+
+# Eight-digit one-time attendance proof. The raw code never enters the DB or logs.
+CHECKIN_CODE_DURATION = timedelta(minutes=10)
+
+@app.post('/api/client/bookings/{booking_id}/checkin-code')
+def issue_checkin_code(booking_id:int,u=Depends(roles('employee','client'))):
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            b=s.scalar(select(Booking).where(Booking.id==booking_id).with_for_update())
+            if not b or b.user_id!=u.id:raise HTTPException(404,'Booking not found')
+            if b.status!='BOOKED':raise HTTPException(409,'Only active bookings can issue a code')
+            slot=s.get(Slot,b.slot_id)
+            if not slot or not (slot.start_at-timedelta(hours=2)<=now()<=slot.start_at+timedelta(hours=2)):
+                raise HTTPException(409,'Check-in code available only two hours before or after the session starts')
+            code=f'{secrets.randbelow(100000000):08d}'
+            item=s.scalar(select(CheckinCode).where(CheckinCode.booking_id==b.id).with_for_update())
+            if item is None:
+                item=CheckinCode(booking_id=b.id,code_hash=checkin_digest(b.id,code),
+                                 expires_at=now()+CHECKIN_CODE_DURATION,attempts=0)
+                s.add(item)
+            else:
+                if item.used_at:raise HTTPException(409,'Booking check-in already completed')
+                item.code_hash=checkin_digest(b.id,code)
+                item.expires_at=now()+CHECKIN_CODE_DURATION
+                item.attempts=0
+            s.commit()
+            return {'booking_id':b.id,'code':code,'expires_at':iso(item.expires_at)}
+        except HTTPException:s.rollback();raise
+        except Exception:s.rollback();raise
+
+@app.post('/api/partner/bookings/{booking_id}/verify-checkin')
+def verify_checkin_code(booking_id:int,body:CheckinVerificationBody,u=Depends(roles('partner','admin'))):
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            booking=s.scalar(select(Booking).where(Booking.id==booking_id).with_for_update())
+            if not booking:raise HTTPException(404,'Booking not found')
+            if u.role=='partner' and booking.partner_id!=u.partner_id:raise HTTPException(403,'Not your business booking')
+            if booking.status!='BOOKED':raise HTTPException(409,'Booking already processed')
+            proof=s.scalar(select(CheckinCode).where(CheckinCode.booking_id==booking.id).with_for_update())
+            if not proof or proof.used_at or proof.expires_at<=now() or proof.attempts>=5:
+                raise HTTPException(409,'Code expired, unavailable, or locked. Client must request a fresh code.')
+            if not hmac.compare_digest(proof.code_hash,checkin_digest(booking.id,body.code)):
+                proof.attempts+=1
+                s.commit() # wrong attempts must survive the rejected request
+                raise HTTPException(403,'Invalid check-in code')
+            proof.used_at=now()
+            booking.status='CHECKED_IN';booking.checked_in_at=now();booking.checked_in_by=u.id
+            notify_user(s,booking.user_id,'CHECK_IN','Visit confirmed',
+                        f'Attendance confirmed for booking {booking.reference}.')
+            audit(s,u.id,'CHECK_IN_CODE_VERIFIED',booking.reference)
+            s.commit()
+            return {'status':'CHECKED_IN','reference':booking.reference}
+        except HTTPException:s.rollback();raise
+        except Exception:s.rollback();raise
+
+@app.post('/api/client/bookings/{booking_id}/review')
+def review_booking(booking_id:int,body:ReviewBody,u=Depends(roles('employee','client'))):
+    comment=body.comment.strip()
+    if len(comment)<10:raise HTTPException(422,'Review text must contain at least 10 characters')
+    with Session() as s:
+        b=s.get(Booking,booking_id)
+        if not b or b.user_id!=u.id:raise HTTPException(404,'Booking not found')
+        if b.status!='CHECKED_IN':raise HTTPException(409,'Review is available only after confirmed attendance')
+        if s.scalar(select(ServiceReview.id).where(ServiceReview.booking_id==booking_id)):
+            raise HTTPException(409,'This booking has already been reviewed')
+        review=ServiceReview(booking_id=b.id,user_id=u.id,service_id=b.service_id,
+                             rating=body.rating,comment=comment)
+        s.add(review);s.flush()
+        audit(s,u.id,'SERVICE_REVIEW_CREATED',f'Booking {b.reference}')
+        s.commit()
+        return {'id':review.id,'rating':review.rating,'comment':review.comment}
+
+@app.get('/api/services/{service_id}/reviews')
+def service_reviews(service_id:int,u=Depends(get_user)):
+    with Session() as s:
+        if not s.get(Service,service_id):raise HTTPException(404,'Service not found')
+        rows=s.scalars(select(ServiceReview).where(ServiceReview.service_id==service_id)
+                       .order_by(ServiceReview.id.desc()).limit(50)).all()
+        return {'count':s.scalar(select(func.count(ServiceReview.id)).where(ServiceReview.service_id==service_id)),
+                'reviews':[{'id':x.id,'rating':x.rating,'comment':x.comment,'created_at':iso(x.created_at)} for x in rows]}
+
+@app.post('/api/partner/slots/bulk')
+def create_bulk_slots(body:BulkSlotsBody,u=Depends(roles('partner'))):
+    first=body.start_at.replace(tzinfo=None)
+    delta=timedelta(days=1 if body.frequency=='daily' else 7)
+    starts=[first+i*delta for i in range(body.count)]
+    if starts[0]<=now():raise HTTPException(422,'First class must be in the future')
+    with Session() as s:
+        try:
+            lock_transaction(s)
+            sv=s.scalar(select(Service).where(Service.id==body.service_id).with_for_update())
+            if not sv or sv.partner_id!=u.partner_id:raise HTTPException(403,'Not your service')
+            existing=set(s.scalars(select(Slot.start_at).where(Slot.service_id==sv.id,Slot.start_at.in_(starts))).all())
+            created=0
+            for start in starts:
+                if start in existing:continue
+                s.add(Slot(service_id=sv.id,start_at=start,capacity=body.capacity,reserved=0))
+                created+=1
+            audit(s,u.id,'BULK_SLOTS_CREATED',f'Service {sv.id}; created {created}; duplicates {body.count-created}')
+            s.commit()
+            return {'created':created,'skipped':body.count-created}
+        except HTTPException:s.rollback();raise
+        except Exception:s.rollback();raise
+
+@app.get('/api/admin/analytics')
+def admin_analytics(u=Depends(roles('admin'))):
+    with Session() as s:
+        bookings=s.scalars(select(Booking)).all()
+        orders=s.scalars(select(ClientOrder)).all()
+        services={x.id:x for x in s.scalars(select(Service)).all()}
+        partners={x.id:x for x in s.scalars(select(Partner)).all()}
+        labels=[]
+        today=now()
+        for offset in range(5,-1,-1):
+            yr=today.year
+            mo=today.month-offset
+            while mo<=0:mo+=12;yr-=1
+            labels.append(f'{yr}-{mo:02d}')
+        monthly=[{'period':month,'bookings':sum(b.created_at and b.created_at.strftime('%Y-%m')==month for b in bookings),
+                  'visits':sum(b.checked_in_at and b.checked_in_at.strftime('%Y-%m')==month for b in bookings),
+                  'orders':sum(o.created_at and o.created_at.strftime('%Y-%m')==month for o in orders)}
+                 for month in labels]
+        by_group={}
+        for b in bookings:
+            sv=services.get(b.service_id)
+            if sv:by_group[sv.group_name]=by_group.get(sv.group_name,0)+1
+        by_partner={}
+        for b in bookings:
+            if b.status!='CHECKED_IN':continue
+            partner=partners.get(b.partner_id)
+            if partner:by_partner[partner.id]=by_partner.get(partner.id,0)+1
+        top_partners=sorted([{'name':partners[pid].name,'visits':visits} for pid,visits in by_partner.items()],
+                             key=lambda row:(-row['visits'],row['name']))[:5]
+        return {'monthly':monthly,'categories':[{'name':name,'bookings':count} for name,count in sorted(by_group.items())],
+                'partners':top_partners}
+
 # Fictional pilot catalog. Disabled by default; enable only with explicit operator opt-in.
 # Idempotent by deterministic DEMO business/product/service names and future slot dates.
 SHOWCASE_BUSINESSES = (

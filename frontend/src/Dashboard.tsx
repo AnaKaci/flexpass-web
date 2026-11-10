@@ -1,7 +1,7 @@
 import {useCallback,useEffect,useState} from 'react';
 import type {ReactNode} from 'react';
 import {Link,useNavigate,useParams} from 'react-router-dom';
-import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,AdminSummary,Company,AdminPartner,CreditProduct,ClientOrder,ClientRecord,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog,User} from './types';
+import type {Role,Section,Booking,LedgerRow,EmployeeSummary,PartnerSummary,PartnerService,NotificationRow,AdminAnalytics,AdminSummary,Company,AdminPartner,CreditProduct,ClientOrder,ClientRecord,Employee,Plan,Invoice,Settlement,AuditRow,Service,Group,FormDialog,User} from './types';
 import {dateTime,icons,labels,money,month,post,request} from './api';
 import {Heading,Panel,Stat,StatusTag,useApp} from './App';
 import {BookingDialog} from './ServicesPage';
@@ -35,20 +35,37 @@ interface AllData {
   clients:ClientRecord[];
   products:CreditProduct[];
   orders:ClientOrder[];
+  notifications:NotificationRow[];
+  adminAnalytics?:AdminAnalytics;
 }
-const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],partners:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[],featuredCatalog:[],products:[],orders:[],clients:[]};
+const emptyData:AllData={bookings:[],ledger:[],partnerServices:[],companies:[],partners:[],employees:[],plans:[],invoices:[],settlements:[],audit:[],catalog:[],featuredCatalog:[],products:[],orders:[],clients:[],notifications:[]};
 const menu:Record<Role,Array<[Section,string,IconName]>>={
-  client:[['overview','Overview','overview'],['shop','Credit shop','credit'],['discover','Explore experiences','compass'],['orders','My orders','receipt'],['bookings','My bookings','calendar'],['wallet','My wallet','wallet']],
-  partner:[['overview','Overview','overview'],['calendar','Booking calendar','calendar'],['reservations','Reservations','list'],['services','My services','layers'],['settlements','Settlements','wallet']],
-  admin:[['overview','Overview','overview'],['clients','Clients','users'],['partners','Business partners','store'],['products','Credit products','credit'],['orders','Client orders','receipt'],['settlements','Partner settlements','wallet'],['audit','Audit log','shield']],
+  client:[['overview','Overview','overview'],['shop','Credit shop','credit'],['discover','Explore experiences','compass'],['orders','My orders','receipt'],['bookings','My bookings','calendar'],['wallet','My wallet','wallet'],['notifications','Notifications','activity']],
+  partner:[['overview','Overview','overview'],['calendar','Booking calendar','calendar'],['reservations','Reservations','list'],['services','My services','layers'],['settlements','Settlements','wallet'],['notifications','Notifications','activity']],
+  admin:[['overview','Overview','overview'],['clients','Clients','users'],['partners','Business partners','store'],['products','Credit products','credit'],['orders','Client orders','receipt'],['settlements','Partner settlements','wallet'],['analytics','Analytics','activity'],['audit','Audit log','shield'],['notifications','Notifications','receipt']],
 };
 function Table({columns,rows}:{columns:string[];rows:ReactNode[][]}){return <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(col=><th key={col}>{col}</th>)}</tr></thead><tbody>{rows.length?rows.map((row,i)=><tr key={i}>{row.map((cell,k)=><td key={k} data-label={columns[k]}>{cell}</td>)}</tr>):<tr><td colSpan={columns.length} className="muted">No records yet.</td></tr>}</tbody></table></div>}
-function BookingTable({bookings,role,action}:{bookings:Booking[];role:'employee'|'partner';action:(book:Booking)=>void}){
+function BookingTable({bookings,role,action,onCode,onReview,onVerify}:{bookings:Booking[];role:'employee'|'partner';action:(book:Booking)=>void;onCode?:(book:Booking)=>void;onReview?:(book:Booking)=>void;onVerify?:(book:Booking)=>void}){
   return <Table columns={['Experience','Date / venue','Credits','Status','Action']} rows={bookings.map(b=>[
-    <><b>{b.service}</b><br/><small>{b.reference}</small></>,<><b>{dateTime(b.start_at)}</b><br/><small>{b.partner}</small></>,`${b.credits} credits`,<StatusTag status={b.status}/>,b.status==='BOOKED'?<button className={`btn ${role==='employee'?'btn-outline':'btn-primary'} btn-sm`} onClick={()=>action(b)}>{role==='employee'?'Cancel':'Confirm arrival'}</button>:'—',
+    <><b>{b.service}</b><br/><small>{b.reference}</small></>,<><b>{dateTime(b.start_at)}</b><br/><small>{b.partner}</small></>,`${b.credits} credits`,<StatusTag status={b.status}/>,<div className="stack" style={{gap:6}}>
+      {b.status==='BOOKED'&&<button className={`btn ${role==='employee'?'btn-outline':'btn-primary'} btn-sm`} onClick={()=>action(b)}>{role==='employee'?'Cancel':'Confirm arrival'}</button>}
+      {b.status==='BOOKED'&&role==='employee'&&onCode&&<button className="btn btn-tertiary btn-sm" onClick={()=>onCode(b)}>Get check-in code</button>}
+      {b.status==='CHECKED_IN'&&role==='employee'&&onReview&&<button className="btn btn-tertiary btn-sm" onClick={()=>onReview(b)}>Review visit</button>}
+      {b.status==='BOOKED'&&role==='partner'&&onVerify&&<button className="btn btn-tertiary btn-sm" onClick={()=>onVerify(b)}>Verify code</button>}
+      {b.status==='CANCELLED'&&'—'}
+    </div>,
   ])}/>;
 }
 function SummaryCards({items}:{items:Array<[string,string,string|number,string?]>}){return <div className="stats">{items.map(([icon,label,value,small])=><Stat key={label} icon={icon} label={label} value={value} small={small}/>)}</div>}
+function NotificationView({items,onRead}:{items:NotificationRow[];onRead:(id:number)=>void}){
+  return <><Heading title="Notifications" subtitle="Booking, attendance, and credit updates for your account."/>
+    <Panel title="Recent notifications"><Table columns={['When','Notification','Status']} rows={items.map(n=>[
+      dateTime(n.created_at),
+      <><b>{n.title}</b><small style={{display:'block'}}>{n.message}</small></>,
+      n.read_at?'Read':<button className="btn btn-outline btn-sm" onClick={()=>onRead(n.id)}>Mark as read</button>
+    ])}/></Panel>
+  </>;
+}
 const ERROR_MESSAGE='Could not load this dashboard. Check the API server and sign in again.';
 export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,info}=useApp();const navigate=useNavigate();const {section:routeSection}=useParams<{section:string}>();const section:Section=menu[role].some(([slug])=>slug===routeSection)?routeSection as Section:'overview';const [data,setData]=useState<AllData>(emptyData);const [category,setCategory]=useState<Group>('fitness');const [selectedService,setSelectedService]=useState<Service|null>(null);const [form,setForm]=useState<FormDialog|null>(null);const [revision,setRevision]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [showDemoSetup,setShowDemoSetup]=useState(false);const [clientDemoPassword,setClientDemoPassword]=useState('');const [businessDemoPassword,setBusinessDemoPassword]=useState('');const [demoSetupBusy,setDemoSetupBusy]=useState(false);const [isNarrowScreen,setIsNarrowScreen]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(max-width:760px)').matches);const [sidebarOpen,setSidebarOpen]=useState(()=>typeof window==='undefined'||!window.matchMedia('(max-width:760px)').matches);const refresh=useCallback(()=>setRevision(x=>x+1),[]);
   useEffect(()=>{

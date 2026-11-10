@@ -342,7 +342,7 @@ class CheckinVerificationBody(BaseModel):
 
 class ReviewBody(BaseModel):
     rating: int = Field(ge=1, le=5)
-    comment: str = Field(min_length=10, max_length=500)
+    comment: str = Field(default='', max_length=500)
 
 class AdjustBody(BaseModel):
     user_id: int
@@ -1133,8 +1133,7 @@ def verify_checkin_code(booking_id:int,body:CheckinVerificationBody,u=Depends(ro
 
 @app.post('/api/client/bookings/{booking_id}/review')
 def review_booking(booking_id:int,body:ReviewBody,u=Depends(roles('employee','client'))):
-    comment=body.comment.strip()
-    if len(comment)<10:raise HTTPException(422,'Review text must contain at least 10 characters')
+    comment=body.comment.strip()  # Rating is required; written feedback is optional.
     with Session() as s:
         b=s.get(Booking,booking_id)
         if not b or b.user_id!=u.id:raise HTTPException(404,'Booking not found')
@@ -1156,6 +1155,57 @@ def service_reviews(service_id:int,u=Depends(get_user)):
                        .order_by(ServiceReview.id.desc()).limit(50)).all()
         return {'count':s.scalar(select(func.count(ServiceReview.id)).where(ServiceReview.service_id==service_id)),
                 'reviews':[{'id':x.id,'rating':x.rating,'comment':x.comment,'created_at':iso(x.created_at)} for x in rows]}
+
+# Partner-only review reporting. Never accept a partner_id from the request:
+# identity and ownership are derived from the authenticated account.
+@app.get('/api/partner/reviews')
+def partner_reviews(u=Depends(roles('partner'))):
+    with Session() as s:
+        summaries=s.execute(
+            select(Service.id,Service.name,func.count(ServiceReview.id),func.avg(ServiceReview.rating))
+            .outerjoin(ServiceReview,ServiceReview.service_id==Service.id)
+            .where(Service.partner_id==u.partner_id)
+            .group_by(Service.id,Service.name).order_by(Service.name)
+        ).all()
+        recent=s.execute(
+            select(ServiceReview,Service.name)
+            .join(Service,Service.id==ServiceReview.service_id)
+            .where(Service.partner_id==u.partner_id)
+            .order_by(ServiceReview.created_at.desc(),ServiceReview.id.desc()).limit(100)
+        ).all()
+        count=sum(total for _sid,_name,total,_avg in summaries)
+        total_ratings=sum(total*(avg or 0) for _sid,_name,total,avg in summaries)
+        return {'count':count, 'average_rating':round(total_ratings/count,2) if count else None,
+                'has_more':count>len(recent),
+                'services':[{'id':sid,'name':name,'count':total,
+                             'average_rating':round(avg,2) if avg is not None else None}
+                            for sid,name,total,avg in summaries],
+                'reviews':[{'id':review.id,'service_id':review.service_id,'service':name,
+                            'rating':review.rating,'comment':review.comment,
+                            'created_at':iso(review.created_at)}
+                           for review,name in recent]}
+
+@app.get('/api/partner/reviews/export')
+def export_partner_reviews(u=Depends(roles('partner'))):
+    with Session() as s:
+        rows=s.execute(
+            select(ServiceReview,Service.name)
+            .join(Service,Service.id==ServiceReview.service_id)
+            .where(Service.partner_id==u.partner_id)
+            .order_by(ServiceReview.id.desc())
+        ).all()
+        out=io.StringIO()
+        writer=csv.writer(out)
+        writer.writerow(['Service','Rating (1-5)','Optional feedback','Submitted at (UTC)'])
+        for review,service_name in rows:
+            # Prevent formula execution when opening a CSV in spreadsheet software.
+            def safe_cell(value):
+                value=str(value)
+                return "'"+value if value.lstrip().startswith(('=','+','-','@')) else value
+            writer.writerow([safe_cell(service_name),review.rating,safe_cell(review.comment),iso(review.created_at)])
+        return Response(content=out.getvalue(),media_type='text/csv; charset=utf-8',
+                        headers={'Content-Disposition':'attachment; filename="flexpass-business-feedback.csv"',
+                                 'Cache-Control':'no-store'})
 
 @app.post('/api/partner/slots/bulk')
 def create_bulk_slots(body:BulkSlotsBody,u=Depends(roles('partner'))):
@@ -1447,7 +1497,7 @@ def index():
 DASHBOARD_SECTIONS = {
     'client': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet', 'notifications'},
     'employee': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet', 'notifications'},  # legacy alias
-    'partner': {'overview', 'calendar', 'reservations', 'services', 'settlements', 'notifications'},
+    'partner': {'overview', 'calendar', 'reservations', 'services', 'settlements', 'feedback', 'notifications'},
     'admin': {'overview', 'clients', 'partners', 'products', 'orders', 'settlements', 'audit', 'analytics', 'notifications'},
 }
 

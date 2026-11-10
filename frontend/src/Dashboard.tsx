@@ -94,7 +94,6 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
   async function setupDemoAccounts(){if(clientDemoPassword.length<20||businessDemoPassword.length<20||clientDemoPassword===businessDemoPassword){notify('Use two different passwords of at least 20 characters.',true);return}setDemoSetupBusy(true);try{const result=await post<{created_client:number;activated_business:number;client_existing:number;business_existing:number}>('/admin/demo/accounts/setup',token,{client_password:clientDemoPassword,business_password:businessDemoPassword});notify(`Demo setup: ${result.created_client} client created, ${result.activated_business} business activated. Existing accounts were not reset.`);setClientDemoPassword('');setBusinessDemoPassword('');setShowDemoSetup(false);refresh()}catch(err){notify((err as Error).message,true)}finally{setDemoSetupBusy(false)}}
   async function confirmPurchase(order:ClientOrder){const reference=window.prompt(`Verify receipt of payment before confirming order #${order.id}. Enter its real payment reference:`);if(!reference)return;await mutate(`/admin/client-orders/${order.id}/confirm`,{payment_reference:reference});}
   function checkIn(b:Booking){if(!window.confirm(`Confirm arrival for ${b.user} (${b.reference})? This action cannot be repeated.`))return;void mutate(`/partner/bookings/${b.id}/checkin`)}
-  const active=menu[role].find(row=>row[0]===section)||menu[role][0];
   if(!user)return null;
   return <div className={`app-shell dashboard-app-shell ${sidebarOpen?'sidebar-expanded':'sidebar-collapsed'}`}>
     {isNarrowScreen&&sidebarOpen&&<button type="button" className="dashboard-sidebar-backdrop" aria-label="Close navigation menu" onClick={()=>setSidebarOpen(false)}/>}
@@ -112,19 +111,12 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
         <ProfileMenu user={user} onSignOut={()=>{signOut();navigate('/')}}/>
       </div>
     </aside>}
-    <div className="dash-main dashboard-main"><header className={`dash-topbar dashboard-topbar ${role==='client'&&section==='discover'?'dashboard-topbar-client-explore':''}`}>
-      <div className="dashboard-topbar-left">
-        {!sidebarOpen&&<button type="button" className="dashboard-menu-toggle dashboard-menu-icon-only" aria-label="Show sidebar" aria-expanded={false} onClick={()=>setSidebarOpen(true)} title="Show sidebar">
+    <div className="dash-main dashboard-main">
+      {!sidebarOpen&&<div className="dashboard-nav-opener">
+        <button type="button" className="dashboard-menu-toggle dashboard-menu-icon-only" aria-label="Show sidebar" aria-controls="dashboard-sidebar" aria-expanded={false} onClick={()=>setSidebarOpen(true)} title="Show sidebar">
           <UIIcon name="menu" size={19}/>
-        </button>}
-        <div className="dashboard-page-identity">
-          {role==='client'&&section==='discover'
-            ?<><small>FLEXPASS <span className="dashboard-identity-divider" aria-hidden="true">/</span> CLIENT COLLECTION</small><b>Explore experiences</b></>
-            :<><small>FlexPass / {role}</small><b>{active[1]}</b></>}
-        </div>
-      </div>
-      <div className="flex-between"><span className="status">● &nbsp; Pilot environment</span></div>
-    </header>
+        </button>
+      </div>}
       <main className="dash-content">{loading?<div className="loading">Loading workspace...</div>:error?<div className="notice warn"><b>{ERROR_MESSAGE}</b><p>{error}</p><button className="btn btn-outline btn-sm" onClick={refresh}>Retry</button></div>:<>
         {role==='client'&&data.employeeSummary&&<EmployeeView user={user} section={section} data={data} onSection={setSection} onBooking={cancelBooking} onService={setSelectedService} onPurchase={requestPurchase} onDemoTransfer={demoBankTransfer} bank={info?.bank_transfer} category={category} onCategory={setCategory}/>}
         {role==='partner'&&data.partnerSummary&&(section==='calendar'?<PartnerCalendar initialBookings={data.bookings}/>:<PartnerView section={section} data={data} onSection={setSection} onBooking={checkIn} onForm={setForm}/>)}

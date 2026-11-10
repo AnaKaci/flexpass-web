@@ -168,3 +168,19 @@
   place-items:center;
   flex-shrink:0;
 }
+
+/* With the redundant topbar removed, show only a small navigation button when
+   a role's sidebar is collapsed. No banner, section title, or pilot badge. */
+.dashboard-app-shell .dashboard-nav-opener{
+  display:flex;
+  align-items:center;
+  width:100%;
+  padding:12px clamp(19px,2.7vw,38px) 0;
+  background:var(--ivory,#F5EFE4);
+}
+@media(max-width:760px){
+  .dashboard-app-shell .dashboard-nav-opener{padding:12px 20px 0}
+}
+@media(max-width:480px){
+  .dashboard-app-shell .dashboard-nav-opener{padding:10px 15px 0}
+}

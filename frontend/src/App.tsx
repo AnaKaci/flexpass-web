@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { PropsWithChildren, ReactNode, FormEvent } from 'react';
-import { Link, Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { AppInfo, LoginResult, Role, User } from './types';
 import { TOKEN_KEY, login, pagesPreview, post, request } from './api';
 import { ServicesPage } from './ServicesPage';
@@ -150,6 +150,7 @@ function StaticPage({kind}:{kind:'contact'|'privacy'|'terms'}){
   </main></PublicLayout>;
 }
 function Authenticated({role}:{role:Role}){const {user}=useApp();if(!user)return <Navigate to={role==='admin'?'/admin/login':role==='partner'?'/login/business':'/login/client'} replace/>;if(user.role!==role)return <Navigate to={`/${user.role}`} replace/>;return <Dashboard role={role}/>;}
+function EmployeeSectionRedirect(){const {section}=useParams<{section:string}>();return <Navigate to={`/client/${section||'overview'}`} replace/>;}
 function ProtectedServices(){const {user}=useApp();if(!user)return <Navigate to="/login/client" replace/>;if(user.role!=='client')return <Navigate to={`/${user.role}`} replace/>;return <PublicLayout><ServicesPage/></PublicLayout>}
 export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem(TOKEN_KEY)||'');const [user,setUser]=useState<User|null>(null);const [info,setInfo]=useState<AppInfo|null>(null);const [loading,setLoading]=useState(Boolean(sessionStorage.getItem(TOKEN_KEY)));const [message,setMessage]=useState<{body:string;error:boolean}|null>(null);
   useEffect(()=>{request<AppInfo>('/info').then(setInfo).catch(()=>{});},[]);
@@ -165,7 +166,10 @@ export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem
     <Route path="/services" element={<ProtectedServices/>}/>
     <Route path="/register/client" element={<ClientSignup/>}/><Route path="/register" element={<Register/>}/><Route path="/login" element={<Navigate to="/" replace/>}/><Route path="/login/client" element={<Login portal="client"/>}/><Route path="/login/business" element={<Login portal="partner"/>}/><Route path="/admin/login" element={<Login portal="admin"/>}/>
     <Route path="/contact" element={<StaticPage kind="contact"/>}/><Route path="/privacy" element={<StaticPage kind="privacy"/>}/><Route path="/terms" element={<StaticPage kind="terms"/>}/>
-    <Route path="/client" element={<Authenticated role="client"/>}/><Route path="/employee" element={<Authenticated role="client"/>}/><Route path="/partner" element={<Authenticated role="partner"/>}/><Route path="/admin" element={<Authenticated role="admin"/>}/><Route path="*" element={<Navigate to="/" replace/>}/>
+    <Route path="/client" element={<Navigate to="/client/overview" replace/>}/><Route path="/client/:section" element={<Authenticated role="client"/>}/>
+    <Route path="/employee" element={<Navigate to="/client/overview" replace/>}/><Route path="/employee/:section" element={<EmployeeSectionRedirect/>}/>
+    <Route path="/partner" element={<Navigate to="/partner/overview" replace/>}/><Route path="/partner/:section" element={<Authenticated role="partner"/>}/>
+    <Route path="/admin" element={<Navigate to="/admin/overview" replace/>}/><Route path="/admin/:section" element={<Authenticated role="admin"/>}/><Route path="*" element={<Navigate to="/" replace/>}/>
   </Routes>{message&&<div role="status" className={`toast-fixed ${message.error?'toast-error':''}`}>{message.body}</div>}</AppContext.Provider>;
 }
 export function StatusTag({status}:{status:string}){return <span className={`status status-${status}`}><span aria-hidden="true" className="status-dot"/>{status.replace(/_/g,' ')}</span>}

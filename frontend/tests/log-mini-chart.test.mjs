@@ -27,7 +27,6 @@ test('all existing time-stamped history views show mini charts with real records
     'timestamps={data.ledger.map(item=>item.created_at)}',
     'timestamps={data.orders.map(item=>item.created_at)}',
     'timestamps={data.bookings.map(item=>item.created_at)}',
-    'timestamps={items.map(item=>item.created_at)}',
     'timestamps={data.audit.map(item=>item.at)}',
     'timestamps={data.invoices.map(item=>item.period)}',
     'timestamps={data.settlements.map(item=>item.period)}',
@@ -57,4 +56,16 @@ test('mini chart is keyboard accessible, responsive and brand-scoped',()=>{
   }
   assert.ok(!css.includes('.home-page'));
   assert.ok(!css.includes('.auth-photo-stage'));
+});
+
+test('all notification pages retain their list without mini charts',()=>{
+  const start=dashboard.indexOf('function NotificationView(');
+  const end=dashboard.indexOf('const ERROR_MESSAGE=',start);
+  assert.ok(start!==-1&&end>start,'notification component should exist');
+  const notificationView=dashboard.slice(start,end);
+  assert.ok(notificationView.includes('<Panel title="Recent notifications"><Table columns='));
+  assert.ok(notificationView.includes("items.map(n=>["));
+  assert.ok(notificationView.includes("onRead(n.id)"));
+  assert.ok(!notificationView.includes('<LogMiniChart'),'Notification views should not include a chart');
+  assert.ok(!dashboard.includes('title="Notification activity"'));
 });

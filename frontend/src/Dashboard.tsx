@@ -64,7 +64,7 @@ function BookingTable({bookings,role,action,onCode,onReview,onVerify}:{bookings:
 function SummaryCards({items}:{items:Array<[string,string,string|number,string?]>}){return <div className="stats">{items.map(([icon,label,value,small])=><Stat key={label} icon={icon} label={label} value={value} small={small}/>)}</div>}
 function NotificationView({items,onRead}:{items:NotificationRow[];onRead:(id:number)=>void}){
   return <><Heading title="Notifications" subtitle="Booking, attendance, and credit updates for your account."/>
-    <Panel title="Recent notifications"><LogMiniChart title="Notification activity" timestamps={items.map(item=>item.created_at)} unit="notifications"/><Table columns={['When','Notification','Status']} rows={items.map(n=>[
+    <Panel title="Recent notifications"><Table columns={['When','Notification','Status']} rows={items.map(n=>[
       dateTime(n.created_at),
       <><b>{n.title}</b><small style={{display:'block'}}>{n.message}</small></>,
       n.read_at?'Read':<button className="btn btn-outline btn-sm" onClick={()=>onRead(n.id)}>Mark as read</button>

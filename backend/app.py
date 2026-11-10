@@ -1213,3 +1213,24 @@ def index():
     return HTMLResponse('<h1>FlexPass API running</h1><p>Start the React frontend: '
                         '<code>cd frontend &amp;&amp; npm install &amp;&amp; npm run dev</code></p>'
                         '<p>Visit <a href="http://127.0.0.1:5173/services?maxCredits=5">React demo</a>.</p>')
+
+# Serve dashboard deep links on a full-page refresh, not only after client-side navigation.
+# Keep the supported sections explicit so unrelated paths still correctly return 404.
+DASHBOARD_SECTIONS = {
+    'client': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet'},
+    'employee': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet'},  # legacy alias
+    'partner': {'overview', 'calendar', 'reservations', 'services', 'settlements'},
+    'admin': {'overview', 'clients', 'partners', 'products', 'orders', 'settlements', 'audit'},
+}
+
+@app.get('/client/{section}')
+@app.get('/employee/{section}')
+@app.get('/partner/{section}')
+@app.get('/admin/{section}')
+def dashboard_deep_link(section: str, request: Request):
+    role = request.url.path.split('/')[1]
+    if section not in DASHBOARD_SECTIONS[role]:
+        raise HTTPException(status_code=404, detail='Unknown dashboard section')
+    return index()
+
+

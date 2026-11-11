@@ -99,7 +99,6 @@ export function ClientOverview({user,summary,bookings,services,onSection,onServi
         <p>No bookable experiences are available in the catalog at the moment.</p>
         <button type="button" className="member-inline-link" onClick={()=>onSection('discover')}>Explore categories <UIIcon name="arrow" size={15}/></button>
       </div>}
-      <p className="member-overview-legal">Available credits and bookings reflect your account. Demo experiences are identified in the catalog where applicable; payment confirmation follows the existing FlexPass process.</p>
     </section>
   </div>;
 }

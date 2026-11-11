@@ -84,8 +84,8 @@ function Home(){
 }
 type LoginPortal = 'client'|'partner'|'admin';
 const portalNames:Record<LoginPortal,{title:string;eyebrow:string;description:string}>={
-  client:{title:'Client sign in',eyebrow:'01 / CLIENT ACCESS',description:'Explore experiences, purchase credit packages and manage your bookings.'},
-  partner:{title:'Business sign in',eyebrow:'02 / PARTNER ACCESS',description:'Manage approved services, sessions, attendance and settlements.'},
+  client:{title:'Client sign in',eyebrow:'CLIENT ACCESS',description:'Explore experiences, purchase credit packages and manage your bookings.'},
+  partner:{title:'Business sign in',eyebrow:'PARTNER ACCESS',description:'Manage approved services, sessions, attendance and settlements.'},
   admin:{title:'Admin sign in',eyebrow:'RESTRICTED / FLEXPASS OPERATIONS',description:'Authorized FlexPass administrators only.'}
 };
 function Login({portal}:{portal:LoginPortal}){const {signIn,notify,user,info}=useApp();const navigate=useNavigate();const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);const [formError,setFormError]=useState('');

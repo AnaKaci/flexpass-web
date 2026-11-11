@@ -422,3 +422,411 @@
 @media(prefers-reduced-motion:reduce){
   .member-overview .member-action,.member-overview .member-metric,.member-overview .member-recommendation-card{transition:none}
 }
+
+/* FLEXPASS / luxury member overview
+   Presentation-only update matching the approved wellness dashboard concept.
+   All account data, routes, states, click handlers and backend calls remain intact. */
+.member-overview{
+  max-width:1510px;
+  padding:5px 0 30px;
+  color:var(--teal-dark);
+}
+.member-overview .member-welcome{
+  margin:2px 0 27px;
+  min-height:118px;
+}
+.member-overview .member-kicker{
+  display:flex;
+  align-items:center;
+  gap:17px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.17em;
+  color:var(--burgundy);
+}
+.member-overview .member-welcome .member-kicker::after{
+  content:"";
+  display:inline-block;
+  width:42px;
+  height:1px;
+  background:#d8b98c;
+}
+.member-overview .member-welcome h1{
+  font-family:'Bodoni Moda',Georgia,serif;
+  font-weight:400;
+  font-size:clamp(40px,4.1vw,61px);
+  line-height:1.08;
+  letter-spacing:-.055em;
+  margin:12px 0 7px;
+  color:#104d51;
+}
+.member-overview .member-welcome p{
+  font-size:13px;
+  color:#56665f;
+  letter-spacing:.005em;
+}
+.member-overview .member-action{
+  min-height:47px;
+  border:1px solid #e2c995;
+  padding:12px 25px;
+  gap:21px;
+  box-shadow:0 7px 17px rgba(56,38,34,.16);
+  font-size:12px;
+  font-weight:600;
+  transition:transform .2s ease,background-color .2s ease,box-shadow .2s ease;
+}
+.member-overview .member-action:hover{
+  transform:translateY(-2px);
+  box-shadow:0 11px 23px rgba(56,38,34,.2);
+}
+.member-overview .member-action-teal{
+  background:linear-gradient(105deg,#073c41,#10565c);
+  color:#fffaf4;
+}
+.member-overview .member-action-burgundy{
+  background:linear-gradient(110deg,#a93059,#aa1350);
+  color:#fffaf4;
+}
+.member-overview .member-metrics{
+  gap:18px;
+  margin-bottom:27px;
+}
+.member-overview .member-metric{
+  position:relative;
+  isolation:isolate;
+  min-height:145px;
+  overflow:hidden;
+  padding:21px 26px 19px;
+  border-radius:16px;
+  border:1px solid rgba(187,156,143,.38);
+  background:linear-gradient(133deg,rgba(255,252,247,.94),rgba(255,246,241,.85));
+  box-shadow:0 12px 24px rgba(87,61,56,.13),inset 0 1px rgba(255,255,255,.76);
+  color:#173b3c;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.member-overview .member-metric:hover{
+  transform:translateY(-2px);
+  background:linear-gradient(133deg,#fffdf9,#faf0eb);
+  border-color:rgba(16,86,92,.45);
+  box-shadow:0 16px 29px rgba(87,61,56,.18);
+}
+.member-overview .member-metric-primary,
+.member-overview .member-metric-primary:hover{
+  border-color:rgba(237,223,181,.47);
+  background:
+    radial-gradient(ellipse 46% 110% at 82% 0%,rgba(89,154,145,.32),transparent 72%),
+    linear-gradient(118deg,#064247,#10565c 75%,#0b4245);
+  color:#fffaf3;
+  box-shadow:0 13px 26px rgba(13,62,63,.24),inset 0 1px rgba(255,255,255,.25);
+}
+.member-overview .member-metric-primary::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  width:220px;
+  height:136px;
+  right:-93px;
+  bottom:-100px;
+  border:1.5px solid rgba(225,194,132,.8);
+  border-radius:50%;
+  transform:rotate(-24deg);
+}
+.member-overview .member-metric-label{
+  font-weight:700;
+  letter-spacing:.16em;
+  color:#58615f;
+}
+.member-overview .member-metric-primary .member-metric-label{color:#f5efe4}
+.member-overview .member-metric-middle{
+  position:relative;
+  margin-top:12px;
+  align-items:center;
+}
+.member-overview .member-metric-middle strong{
+  font-family:'Bodoni Moda',Georgia,serif;
+  font-size:clamp(35px,3vw,47px);
+  font-weight:400;
+  line-height:1.07;
+  letter-spacing:-.04em;
+}
+.member-overview .member-metric-middle .member-metric-next{
+  font-size:clamp(29px,2.7vw,43px);
+}
+.member-overview .member-metric-middle>span{
+  color:#0b4a4d;
+  font-size:11px;
+  font-weight:600;
+}
+.member-overview .member-metric-primary .member-metric-middle>span{color:#fff4dc}
+.member-overview .member-metric>small{
+  margin-top:auto;
+  font-size:12px;
+  color:#59625f;
+}
+.member-overview .member-metric-primary>small{color:#fffaf3}
+
+.member-overview .member-highlights{
+  grid-template-columns:minmax(0,1.49fr) minmax(0,1fr);
+  gap:22px;
+  margin-bottom:30px;
+}
+.member-overview .member-bookings-panel,
+.member-overview .member-credit-invitation{
+  min-height:298px;
+  padding:24px 29px;
+  border-radius:17px;
+  box-shadow:0 14px 28px rgba(78,54,50,.14),inset 0 1px rgba(255,255,255,.75);
+}
+.member-overview .member-bookings-panel{
+  background:rgba(255,252,247,.86);
+  border:1px solid rgba(190,165,152,.48);
+  backdrop-filter:blur(5px);
+}
+.member-overview .member-panel-heading h2{
+  font-family:'Bodoni Moda',Georgia,serif;
+  font-size:clamp(29px,2.55vw,38px);
+  font-weight:400;
+  line-height:1.12;
+  letter-spacing:-.052em;
+  color:#243533;
+}
+.member-overview .member-inline-link{
+  gap:10px;
+  color:#0b5052;
+  font-size:12px;
+  font-weight:600;
+}
+.member-overview .member-booking-list{
+  border-top:1px solid #dfc6ab;
+  margin-top:22px;
+}
+.member-overview .member-booking-row{
+  grid-template-columns:78px minmax(0,1fr) 104px;
+  gap:18px;
+  padding:15px 0;
+  border-bottom:1px solid rgba(145,130,115,.23);
+}
+.member-overview .member-booking-date{
+  width:78px;
+  height:71px;
+  border-radius:10px;
+  background:linear-gradient(145deg,#e9eee6,#dce5da);
+  color:#243533;
+}
+.member-overview .member-booking-date strong{
+  font-family:'Bodoni Moda',Georgia,serif;
+  font-size:32px;
+  line-height:1;
+}
+.member-overview .member-booking-date span{
+  font-size:10px;
+  letter-spacing:.15em;
+}
+.member-overview .member-booking-time{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.105em;
+  color:#626460;
+}
+.member-overview .member-booking-summary h3{
+  font-family:'Bodoni Moda',Georgia,serif;
+  font-size:clamp(18px,1.55vw,23px);
+  font-weight:400;
+  line-height:1.24;
+  letter-spacing:-.035em;
+  margin:4px 0;
+  color:#263532;
+}
+.member-overview .member-booking-summary p{
+  font-size:11px;
+  color:#686762;
+}
+.member-overview .member-booking-state{
+  width:100%;
+  gap:9px;
+}
+.member-overview .member-booking-state span{
+  background:#e1e8dd;
+  border-radius:99px;
+  color:#2d5b56;
+  padding:7px 8px;
+  font-weight:600;
+}
+.member-overview .member-booking-state small{
+  align-self:flex-end;
+  padding-right:10px;
+  font-size:11px;
+  font-weight:600;
+}
+.member-overview .member-credit-invitation{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border:1px solid rgba(217,172,170,.43);
+  padding:27px 36px;
+  background-image:
+    linear-gradient(90deg,rgba(250,222,225,.98) 0%,rgba(250,222,225,.96) 40%,rgba(250,222,225,.72) 66%,rgba(249,225,225,.28) 100%),
+    url('/brand/home-invitation-yoga.webp');
+  background-position:center,right center;
+  background-size:cover,auto 100%;
+  background-repeat:no-repeat;
+}
+.member-overview .member-credit-invitation .member-kicker{
+  font-size:10px;
+  letter-spacing:.19em;
+}
+.member-overview .member-credit-invitation h2{
+  max-width:360px;
+  margin:23px 0 9px;
+  font:400 clamp(32px,3vw,46px)/1.02 'Bodoni Moda',Georgia,serif;
+  letter-spacing:-.047em;
+  color:#303633;
+}
+.member-overview .member-credit-invitation h2 em{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-weight:400;
+  font-style:italic;
+  font-size:1.09em;
+}
+.member-overview .member-credit-invitation p{
+  max-width:275px;
+  font-size:12px;
+  line-height:1.65;
+  color:#5b6260;
+  margin-bottom:20px;
+}
+.member-overview .member-credit-invitation .member-action{
+  padding-inline:24px;
+  min-height:46px;
+}
+
+.member-overview .member-recommendations{
+  margin-top:27px;
+}
+.member-overview .member-recommendations .member-panel-heading{
+  margin:0 4px 18px;
+}
+.member-overview .member-recommendations .member-panel-heading h2{
+  font-size:clamp(32px,3vw,44px);
+}
+.member-overview .member-recommendations .member-panel-heading p{
+  font-size:13px;
+  margin:7px 0 0;
+  color:#5d6862;
+}
+.member-overview .member-recommendations-grid{gap:16px}
+.member-overview .member-recommendation-card{
+  border-radius:15px;
+  border:1px solid rgba(198,169,153,.5);
+  background:#fffaf5;
+  box-shadow:0 12px 23px rgba(87,61,56,.14);
+  transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.member-overview .member-recommendation-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(16,86,92,.4);
+  box-shadow:0 17px 28px rgba(87,61,56,.2);
+}
+.member-overview .member-recommendation-art{
+  position:relative;
+  min-height:135px;
+  padding:16px 22px;
+  background-color:#c9dde2;
+  background-image:linear-gradient(0deg,rgba(201,221,226,.86),rgba(201,221,226,.06) 74%),url('/brand/hero-pilates.webp');
+  background-size:cover;
+  background-position:center,center 50%;
+}
+.member-overview .member-recommendation-art-2{
+  background-color:#e4ede5;
+  background-image:linear-gradient(0deg,rgba(228,237,229,.89),rgba(228,237,229,.03) 75%),url('/brand/hero-yoga.webp');
+}
+.member-overview .member-recommendation-art-3{
+  background-color:#f3dedf;
+  background-image:linear-gradient(0deg,rgba(243,222,223,.90),rgba(243,222,223,.03) 76%),url('/brand/hero-spa.webp');
+}
+.member-overview .member-recommendation-art-label{
+  font:italic 500 24px/1.1 'Cormorant Garamond',Georgia,serif;
+  color:#164f51;
+  text-shadow:0 1px rgba(255,255,255,.6);
+}
+.member-overview .member-recommendation-art-letter{
+  font-family:'Bodoni Moda',Georgia,serif;
+  font-size:56px;
+  font-weight:400;
+  color:#1a4e50;
+  opacity:.35;
+}
+.member-overview .member-recommendation-body{
+  padding:14px 21px 16px;
+  gap:9px;
+  background:rgba(255,251,246,.96);
+}
+.member-overview .member-recommendation-body h3{
+  font-size:clamp(20px,1.65vw,26px);
+  color:#2b3834;
+  letter-spacing:-.045em;
+}
+.member-overview .member-recommendation-details small{
+  font-size:11px;
+  color:#606962;
+}
+.member-overview .member-recommendation-details small:last-child{
+  font-weight:600;
+  color:#0f5356;
+}
+.member-overview .member-overview-legal{
+  margin:22px 5px 0;
+  font-size:10px;
+  font-style:italic;
+  color:#78736c;
+}
+.member-overview .member-recommendations-empty{
+  border-radius:13px;
+  box-shadow:0 9px 19px rgba(87,61,56,.1);
+}
+@media(max-width:1160px){
+  .member-overview .member-highlights{
+    grid-template-columns:minmax(0,1.4fr) minmax(260px,1fr);
+    gap:16px;
+  }
+  .member-overview .member-metric{padding:17px 19px}
+  .member-overview .member-booking-row{grid-template-columns:65px minmax(0,1fr) 91px;gap:11px}
+  .member-overview .member-booking-date{width:65px}
+  .member-overview .member-credit-invitation{padding:25px}
+}
+@media(max-width:950px){
+  .member-overview .member-welcome{min-height:0;align-items:flex-start;flex-direction:column;gap:19px}
+  .member-overview .member-highlights{grid-template-columns:minmax(0,1fr)}
+  .member-overview .member-credit-invitation{min-height:245px}
+}
+@media(max-width:760px){
+  .member-overview .member-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .member-overview .member-metric-primary{grid-column:span 2}
+  .member-overview .member-recommendations-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .member-overview .member-metric{min-height:132px}
+}
+@media(max-width:540px){
+  .member-overview .member-welcome h1{font-size:clamp(33px,9vw,46px)}
+  .member-overview .member-metrics{grid-template-columns:1fr}
+  .member-overview .member-metric-primary{grid-column:auto}
+  .member-overview .member-metric{min-height:129px}
+  .member-overview .member-bookings-panel,
+  .member-overview .member-credit-invitation{padding:20px}
+  .member-overview .member-panel-heading h2{font-size:27px}
+  .member-overview .member-booking-row{grid-template-columns:52px minmax(0,1fr) 65px;gap:9px}
+  .member-overview .member-booking-date{width:52px;height:64px}
+  .member-overview .member-booking-date strong{font-size:24px}
+  .member-overview .member-booking-state span{padding:7px 4px;font-size:9px}
+  .member-overview .member-booking-state small{padding:0;font-size:9px}
+  .member-overview .member-recommendations-grid{grid-template-columns:1fr}
+  .member-overview .member-credit-invitation{
+    background-image:
+      linear-gradient(90deg,rgba(250,222,225,.98),rgba(250,222,225,.83) 73%,rgba(250,222,225,.58)),
+      url('/brand/home-invitation-yoga.webp');
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .member-overview .member-action,
+  .member-overview .member-metric,
+  .member-overview .member-recommendation-card{transition:none}
+}

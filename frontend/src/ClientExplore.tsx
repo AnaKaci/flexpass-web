@@ -77,7 +77,7 @@ export function ClientExplore({
     <section className="client-explore-collection" id="client-explore-collection" aria-labelledby="client-explore-category-heading">
       <div className="client-explore-section-intro">
         <div>
-          <span className="client-explore-section-kicker">01 / DISCOVER</span>
+          <span className="client-explore-section-kicker">DISCOVER</span>
           <h2 id="client-explore-category-heading">Choose what moves you.</h2>
           <p>Explore experiences across our five collections.</p>
         </div>
@@ -115,7 +115,7 @@ export function ClientExplore({
 
       <div className="client-explore-results-heading">
         <div>
-          <span className="client-explore-section-kicker">02 / EXPERIENCE LIST</span>
+          <span className="client-explore-section-kicker">EXPERIENCE LIST</span>
           <h2>{hasSearch?'Search results':labels[category]} <em>{hasSearch?'for you':'experiences'}</em></h2>
         </div>
         <div className="client-explore-results-meta" role="status">

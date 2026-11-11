@@ -3,7 +3,7 @@ import type {User} from './types';
 import {UIIcon} from './UIIcon';
 
 /** Sidebar account menu. Hover on pointer devices; click/focus for touch and keyboard. */
-export function ProfileMenu({user,onSignOut}:{user:User;onSignOut:()=>void}){
+export function ProfileMenu({user,onSignOut,onProfile}:{user:User;onSignOut:()=>void;onProfile?:()=>void}){
   const [open,setOpen]=useState(false);
   const container=useRef<HTMLDivElement>(null);
   const trigger=useRef<HTMLButtonElement>(null);
@@ -35,13 +35,17 @@ export function ProfileMenu({user,onSignOut}:{user:User;onSignOut:()=>void}){
           </span>
         </div>
       </div>
+      {user.role==='client'&&onProfile&&<button type="button" className="sidebar-profile-go-profile" onClick={()=>{setOpen(false);onProfile()}} aria-label="Open my profile">
+        <UIIcon name="users" size={18}/>
+        <span>My profile</span>
+      </button>}
       <button type="button" className="sidebar-profile-sign-out" onClick={onSignOut}>
         <UIIcon name="log-out" size={18}/>
         <span>Sign out</span>
       </button>
     </div>}
     <button ref={trigger} type="button" className="sidebar-profile-trigger"
-      aria-label={`Account: ${user.full_name}. Show profile and sign out`}
+      aria-label={`Account: ${user.full_name}. ${user.role==='client'?'Show profile and sign out':'Show account options and sign out'}`}
       aria-expanded={open} aria-controls={open?'sidebar-account-menu':undefined}
       onClick={()=>setOpen(value=>!value)}>
       <span className="sidebar-profile-menu-avatar" aria-hidden="true">{user.full_name.slice(0,1).toUpperCase()}</span>

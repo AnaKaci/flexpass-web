@@ -153,6 +153,29 @@
   line-height:1.4;
   margin-top:3px;
 }
+/* Client account destination appears above the existing Sign out action. */
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-go-profile{
+  width:100%;
+  min-height:43px;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:9px 11px;
+  margin-top:5px;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  color:var(--teal,#10565C);
+  font:600 12px/1.4 'Inter',sans-serif;
+  text-align:left;
+  cursor:pointer;
+  transition:background-color 160ms ease;
+}
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-go-profile:hover,
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-go-profile:focus-visible{
+  background:var(--ivory,#F5EFE4);
+}
+.dashboard-app-shell .dashboard-sidebar .sidebar-profile-go-profile svg{flex:none}
 .dashboard-app-shell .dashboard-sidebar .sidebar-profile-sign-out{
   border:0;
   border-radius:7px;

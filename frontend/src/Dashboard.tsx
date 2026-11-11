@@ -9,6 +9,7 @@ import {ActionDialog} from './Forms';
 import {PartnerCalendar} from './PartnerCalendar';
 import {ClientExplore} from './ClientExplore';
 import {ClientOverview} from './ClientOverview';
+import {ClientProfile} from './ClientProfile';
 import {AdminOverviewInsights} from './AdminOverviewInsights';
 import {RatingPopup} from './RatingPopup';
 import {PartnerFeedback} from './PartnerFeedback';
@@ -73,7 +74,7 @@ function NotificationView({items,onRead}:{items:NotificationRow[];onRead:(id:num
   </>;
 }
 const ERROR_MESSAGE='Could not load this dashboard. Check the API server and sign in again.';
-export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,info}=useApp();const navigate=useNavigate();const {section:routeSection}=useParams<{section:string}>();const section:Section=menu[role].some(([slug])=>slug===routeSection)?routeSection as Section:'overview';const [data,setData]=useState<AllData>(emptyData);const [category,setCategory]=useState<Group>('fitness');const [selectedService,setSelectedService]=useState<Service|null>(null);const [reviewBooking,setReviewBooking]=useState<Booking|null>(null);const [form,setForm]=useState<FormDialog|null>(null);const [revision,setRevision]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [showDemoSetup,setShowDemoSetup]=useState(false);const [clientDemoPassword,setClientDemoPassword]=useState('');const [businessDemoPassword,setBusinessDemoPassword]=useState('');const [demoSetupBusy,setDemoSetupBusy]=useState(false);const [isNarrowScreen,setIsNarrowScreen]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(max-width:760px)').matches);const [sidebarOpen,setSidebarOpen]=useState(()=>typeof window==='undefined'||!window.matchMedia('(max-width:760px)').matches);const refresh=useCallback(()=>setRevision(x=>x+1),[]);
+export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,info}=useApp();const navigate=useNavigate();const {section:routeSection}=useParams<{section:string}>();const section:Section=(menu[role].some(([slug])=>slug===routeSection)||(role==='client'&&routeSection==='profile'))?routeSection as Section:'overview';const [data,setData]=useState<AllData>(emptyData);const [category,setCategory]=useState<Group>('fitness');const [selectedService,setSelectedService]=useState<Service|null>(null);const [reviewBooking,setReviewBooking]=useState<Booking|null>(null);const [form,setForm]=useState<FormDialog|null>(null);const [revision,setRevision]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [showDemoSetup,setShowDemoSetup]=useState(false);const [clientDemoPassword,setClientDemoPassword]=useState('');const [businessDemoPassword,setBusinessDemoPassword]=useState('');const [demoSetupBusy,setDemoSetupBusy]=useState(false);const [isNarrowScreen,setIsNarrowScreen]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(max-width:760px)').matches);const [sidebarOpen,setSidebarOpen]=useState(()=>typeof window==='undefined'||!window.matchMedia('(max-width:760px)').matches);const refresh=useCallback(()=>setRevision(x=>x+1),[]);
   useEffect(()=>{
     const media=window.matchMedia('(max-width:760px)');
     const onChange=()=>{setIsNarrowScreen(media.matches);setSidebarOpen(!media.matches)};
@@ -92,8 +93,8 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
     document.body.style.overflow='hidden';
     return()=>{document.body.style.overflow=before};
   },[isNarrowScreen,sidebarOpen]);
-  function changeSection(next:Section){if(menu[role].some(([slug])=>slug===next)&&next!==section)navigate(`/${role}/${next}`);if(isNarrowScreen)setSidebarOpen(false)}
-  useEffect(()=>{if(routeSection&&!menu[role].some(([slug])=>slug===routeSection))navigate(`/${role}/overview`,{replace:true});},[navigate,role,routeSection]);
+  function changeSection(next:Section){if((menu[role].some(([slug])=>slug===next)||(role==='client'&&next==='profile'))&&next!==section)navigate(`/${role}/${next}`);if(isNarrowScreen)setSidebarOpen(false)}
+  useEffect(()=>{if(routeSection&&!menu[role].some(([slug])=>slug===routeSection)&&!(role==='client'&&routeSection==='profile'))navigate(`/${role}/overview`,{replace:true});},[navigate,role,routeSection]);
   useEffect(()=>{let valid=true;setLoading(true);setError('');
     const get=<T,>(path:string)=>request<T>(path,token);
     async function load(){
@@ -159,7 +160,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
       </nav>
       {role==='client'&&<div className="sidebar-client-quote"><span>MORE EXPERIENCES.<br/>MORE YOU.</span><p>Your everyday,<br/>beautifully reimagined.</p></div>}
       <div className="sidebar-bottom">
-        <ProfileMenu user={user} onSignOut={()=>{signOut();navigate('/')}}/>
+        <ProfileMenu user={user} onProfile={role==='client'?()=>changeSection('profile'):undefined} onSignOut={()=>{signOut();navigate('/')}}/>
       </div>
     </aside>
     <div className="dash-main dashboard-main" onClick={()=>{if(sidebarOpen&&!isNarrowScreen)setSidebarOpen(false)}}>
@@ -182,6 +183,7 @@ export function Dashboard({role}:{role:Role}){const {user,token,signOut,notify,i
 }
 function EmployeeView({user,section,data,onSection,onBooking,onService,onPurchase,onDemoTransfer,bank,category,onCategory,onCode,onReview}:{user:User;section:Section;data:AllData;onSection:(v:Section)=>void;onBooking:(b:Booking)=>void;onService:(s:Service)=>void;onPurchase:(p:CreditProduct)=>void;onDemoTransfer:(o:ClientOrder)=>void;bank?:{demo_enabled:boolean;configured:boolean;bank_name:string;beneficiary:string;iban:string};category:Group;onCategory:(v:Group)=>void;onCode:(b:Booking)=>void;onReview:(b:Booking)=>void}){const s=data.employeeSummary!;
   if(section==='overview')return <ClientOverview user={user} summary={s} bookings={data.bookings} services={data.featuredCatalog} onSection={onSection} onService={onService}/>;
+  if(section==='profile')return <ClientProfile user={user} summary={s} bookings={data.bookings} orders={data.orders} ledger={data.ledger} onSection={onSection}/>;
   if(section==='wallet')return <><Heading title="My wallet" subtitle="A history of credits, purchases and refunds."/><SummaryCards items={[["✦","Available credits",s.balance,"Updated after confirmed purchases and bookings"]]}/><Panel title="Credit transactions"><LogMiniChart title="Wallet entry history" timestamps={data.ledger.map(item=>item.created_at)} unit="transactions"/><Table columns={['Date','Type','Credits','Details']} rows={data.ledger.map(l=>[dateTime(l.created_at),<StatusTag status={l.kind}/>,<b className={l.amount>=0?'positive':'negative'}>{l.amount>0?'+':''}{l.amount}</b>,l.reason])}/></Panel></>;
   if(section==='shop')return <CreditShop products={data.products} balance={s.balance} onPurchase={onPurchase}/>;
   if(section==='orders')return <><Heading title="My purchases" subtitle="Review bank-transfer instructions and payment status."/><div className="notice notice-gap">{bank?.demo_enabled?'DEMO BANK ONLY — no real banking information, transfers or funds. Simulated credits are for testing.':bank?.configured?'Bank transfer instructions are provided for review. Sending money does not automatically credit your wallet.':'Bank transfer instructions are not configured. Do not send money. Contact FlexPass.'}</div><Panel title="Order history"><LogMiniChart title="Order activity" timestamps={data.orders.map(item=>item.created_at)} unit="orders"/><Table columns={['Package','Amount','Transfer instructions','Status / action']} rows={data.orders.map(o=>[<><b>{o.product}</b><small style={{display:'block'}}>{o.credits} credits</small></>,money(o.amount_cents),<div><b>{bank?.bank_name||'Bank unavailable'}</b><small style={{display:'block'}}>Beneficiary: {bank?.beneficiary||'Not configured'}</small><small style={{display:'block'}}>IBAN: {bank?.iban||'Not configured'}</small><small style={{display:'block'}}>Reference: {o.bank_reference||`FP-ORDER-${String(o.id).padStart(6,'0')}`}</small></div>,<div><StatusTag status={o.status}/>{o.status==='PENDING' && bank?.demo_enabled &&<button className="btn btn-primary btn-sm" onClick={()=>onDemoTransfer(o)} style={{marginTop:12}}>Simulate bank payment →</button>}</div>])}/></Panel><div className="notice notice-gap">DEMO_PAID records a fictional bank payment and demo credits only. PENDING means no confirmed payment. CONFIRMED requires Admin verification of a real external transfer.</div></>;

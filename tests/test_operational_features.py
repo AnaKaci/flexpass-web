@@ -148,3 +148,86 @@ def test_partner_feedback_csv_sanitizes_formula_like_comments():
     # The normal API preserves the original feedback without spreadsheet escaping.
     rows=api.get('/api/partner/reviews',headers=staff).json()['reviews']
     assert any(row['comment']=='=SUM(1,2)' for row in rows)
+
+
+def test_client_can_add_and_edit_optional_profile_fields_after_registration():
+    ids,client,staff,other,admin=setup_accounts()
+    original=api.get('/api/client/profile',headers=client)
+    assert original.status_code==200,original.text
+    assert original.json()['birthday'] is None
+    assert original.json()['avatar_data'] is None
+    assert original.json()['full_name']=='Feature Client'
+    update={'full_name':'Updated Client Name','birthday':'2003-04-12','phone':'+355 69 222 2222',
+            'city':'Tirana','country':'Albania','about':'I enjoy wellness and sport.'}
+    response=api.patch('/api/client/profile',headers=client,json=update)
+    assert response.status_code==200,response.text
+    assert all(response.json()[k]==value for k,value in update.items())
+    refreshed=api.get('/api/client/profile',headers=client)
+    assert refreshed.status_code==200
+    assert refreshed.json()['city']=='Tirana'
+    assert refreshed.json()['full_name']=='Updated Client Name'
+    assert api.get('/api/auth/me',headers=client).json()['full_name']=='Updated Client Name'
+    assert 'password' not in str(refreshed.json()).lower()
+    # Clearing optional details must work without altering the registered account.
+    response=api.patch('/api/client/profile',headers=client,json={
+        'full_name':'Updated Client Name','birthday':None,'phone':'','city':'','country':'','about':''})
+    assert response.status_code==200
+    assert response.json()['birthday'] is None and response.json()['phone']==''
+    assert api.get('/api/client/profile',headers=staff).status_code==403
+    assert api.patch('/api/client/profile',headers=other,json=update).status_code==403
+    assert api.get('/api/client/profile',headers=admin).status_code==403
+    assert api.patch('/api/client/profile',headers=admin,json=update).status_code==403
+
+
+def test_client_profile_validation_and_tenant_isolation():
+    import uuid
+    ids,client,staff,other,admin=setup_accounts()
+    valid={'full_name':'Feature Client','birthday':None,'phone':'','city':'','country':'','about':''}
+    assert api.patch('/api/client/profile',headers=client,json={**valid,'full_name':'   '}).status_code==422
+    assert api.patch('/api/client/profile',headers=client,json={**valid,'birthday':'2099-12-12'}).status_code==422
+    assert api.patch('/api/client/profile',headers=client,json={**valid,'birthday':'1840-01-01'}).status_code==422
+    assert api.patch('/api/client/profile',headers=client,json={**valid,'phone':'not a phone'}).status_code==422
+    assert api.patch('/api/client/profile',headers=client,json={**valid,'about':'x'*301}).status_code==422
+    with Session() as s:
+        ident=uuid.uuid4().hex[:12]
+        second=User(email='profile.second.'+ident+'@example.test',full_name='Second Client',
+                    role='client',membership_status='ACTIVE',password_hash=hash_pass(PASSWORD))
+        s.add(second);s.commit()
+        second_email=second.email
+    response=api.post('/api/auth/login',json={'email':second_email,'password':PASSWORD,'portal':'client'})
+    assert response.status_code==200,response.text
+    other_client={'Authorization':'Bearer '+response.json()['token']}
+    assert api.get('/api/client/profile',headers=other_client).json()['full_name']=='Second Client'
+    changed=api.patch('/api/client/profile',headers=client,json={**valid,'city':'Vlorë'})
+    assert changed.status_code==200,changed.text
+    assert api.get('/api/client/profile',headers=other_client).json()['city']==''
+
+
+def test_client_avatar_is_sanitized_persistent_and_removable():
+    import base64
+    import io
+    from PIL import Image
+    ids,client,staff,other,admin=setup_accounts()
+    picture=Image.new('RGB',(80,80),(28,100,111))
+    buffer=io.BytesIO()
+    picture.save(buffer,format='PNG')
+    value='data:image/png;base64,'+base64.b64encode(buffer.getvalue()).decode('ascii')
+    result=api.put('/api/client/profile/avatar',headers=client,json={'image_data':value})
+    assert result.status_code==200,result.text
+    image=result.json()['avatar_data']
+    assert image.startswith('data:image/jpeg;base64,')
+    assert image==api.get('/api/client/profile',headers=client).json()['avatar_data']
+    assert api.get('/api/client/profile',headers=staff).status_code==403
+    assert api.put('/api/client/profile/avatar',headers=admin,json={'image_data':value}).status_code==403
+    assert api.delete('/api/client/profile/avatar',headers=other).status_code==403
+    bad_formats=['data:image/svg+xml;base64,'+base64.b64encode(b'<svg/>').decode(),
+                 'data:image/png;base64,notbase64',
+                 'data:image/png;base64,'+base64.b64encode(b'not an image').decode()]
+    for payload in bad_formats:
+        response=api.put('/api/client/profile/avatar',headers=client,json={'image_data':payload})
+        assert response.status_code==422,response.text
+    too_large='data:image/png;base64,'+'A'*420000
+    assert api.put('/api/client/profile/avatar',headers=client,json={'image_data':too_large}).status_code==422
+    response=api.delete('/api/client/profile/avatar',headers=client)
+    assert response.status_code==200 and response.json()['avatar_data'] is None
+    assert api.get('/api/client/profile',headers=client).json()['avatar_data'] is None

@@ -56,3 +56,147 @@
     background-position:right top,center,center,center;
   }
 }
+
+
+/* Client-only photographic card textures: supplied satin, arch, blush and water. */
+/* A single optimized, local 4-panel texture sprite. Panels left to right:
+   deep-teal satin / beige arch / blush palm shadows / turquoise water.
+   Texture treatment is restricted to authenticated Client surfaces. */
+
+/* Existing data, buttons, layouts, and cards remain unchanged. */
+.member-overview .member-metric-primary::before{
+  background-image:url('./assets/client-card-textures.jpg');
+  background-size:400% auto;
+  background-position:0% 50%;
+  background-repeat:no-repeat;
+  opacity:.64;
+  mix-blend-mode:normal;
+}
+.member-overview .member-metrics>.member-metric:nth-child(2),
+.member-overview .member-metrics>.member-metric:nth-child(3){
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+}
+.member-overview .member-metrics>.member-metric:nth-child(2)::before,
+.member-overview .member-metrics>.member-metric:nth-child(3)::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:url('./assets/client-card-textures.jpg');
+  background-size:400% auto;
+  background-repeat:no-repeat;
+  mix-blend-mode:multiply;
+}
+.member-overview .member-metrics>.member-metric:nth-child(2)::before{
+  background-position:33.3333% 50%;
+  opacity:.23;
+}
+.member-overview .member-metrics>.member-metric:nth-child(3)::before{
+  background-position:100% 50%;
+  opacity:.12;
+}
+.member-overview .member-metrics>.member-metric:nth-child(2)>*,
+.member-overview .member-metrics>.member-metric:nth-child(3)>*{
+  position:relative;
+  z-index:1;
+}
+
+/* Soft palm shadows complement—not replace—the existing chapter visual. */
+.member-overview .member-credit-invitation::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:url('./assets/client-card-textures.jpg');
+  background-size:400% auto;
+  background-position:66.6667% 50%;
+  background-repeat:no-repeat;
+  opacity:.37;
+  mix-blend-mode:multiply;
+}
+.member-overview .member-credit-invitation>*{
+  position:relative;
+  z-index:1;
+}
+
+/* Experience artwork: texture replaces only decorative art, not service data. */
+.member-overview .member-recommendation-art-1,
+.member-overview .member-recommendation-art-2,
+.member-overview .member-recommendation-art-3{
+  background-repeat:no-repeat;
+  background-size:cover,400% auto;
+}
+.member-overview .member-recommendation-art-1{
+  background-image:linear-gradient(0deg,rgba(201,221,226,.82),rgba(201,221,226,.12) 80%),url('./assets/client-card-textures.jpg');
+  background-position:center,100% 50%;
+}
+.member-overview .member-recommendation-art-2{
+  background-image:linear-gradient(0deg,rgba(228,237,229,.88),rgba(228,237,229,.19) 80%),url('./assets/client-card-textures.jpg');
+  background-position:center,66.6667% 50%;
+}
+.member-overview .member-recommendation-art-3{
+  background-image:linear-gradient(0deg,rgba(243,222,223,.84),rgba(243,222,223,.2) 80%),url('./assets/client-card-textures.jpg');
+  background-position:center,33.3333% 50%;
+}
+
+/* Select card accents on other Client pages, without affecting Partner/Admin. */
+.client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2),
+.credit-shop .credit-shop-card-grid .credit-package,
+.client-explore-page .client-explore-categories .client-explore-category:nth-child(2),
+.client-explore-page .client-explore-categories .client-explore-category:nth-child(4){
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+}
+.client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2)::before,
+.credit-shop .credit-shop-card-grid .credit-package::before,
+.client-explore-page .client-explore-categories .client-explore-category:nth-child(2)::before,
+.client-explore-page .client-explore-categories .client-explore-category:nth-child(4)::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:url('./assets/client-card-textures.jpg');
+  background-size:400% auto;
+  background-repeat:no-repeat;
+  mix-blend-mode:multiply;
+}
+.client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2)::before{
+  background-position:100% 50%;
+  opacity:.2;
+}
+.credit-shop .credit-shop-card-grid .credit-package:nth-child(1)::before{
+  background-position:33.3333% 50%;
+  opacity:.15;
+}
+.credit-shop .credit-shop-card-grid .credit-package-emphasis::before{
+  background-position:0% 50%;
+  opacity:.48;
+  mix-blend-mode:normal;
+}
+.credit-shop .credit-shop-card-grid .credit-package:last-child:not(:first-child):not(.credit-package-emphasis)::before{
+  background-position:66.6667% 50%;
+  opacity:.15;
+}
+.client-explore-page .client-explore-categories .client-explore-category:nth-child(2)::before{
+  background-position:33.3333% 50%;
+  opacity:.17;
+}
+.client-explore-page .client-explore-categories .client-explore-category:nth-child(4)::before{
+  background-position:66.6667% 50%;
+  opacity:.17;
+}
+.client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2)>*,
+.credit-shop .credit-shop-card-grid .credit-package>*{
+  position:relative;
+  z-index:1;
+}
+.client-explore-page .client-explore-categories .client-explore-category:nth-child(2)>*,
+.client-explore-page .client-explore-categories .client-explore-category:nth-child(4)>*{
+  z-index:1;
+}

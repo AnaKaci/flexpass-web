@@ -19,3 +19,20 @@
 .dashboard-app-shell .dashboard-main .dashboard-nav-opener{
   background:transparent;
 }
+
+/* Luxury editorial atmosphere for authenticated Client pages only.
+   Partner/Admin keep the existing six-stop background above.
+   Public pages, sign-in, navigation and data/functionality are unchanged. */
+.dashboard-app-shell:has(> .dashboard-client-sidebar) .dashboard-main{
+  background-color:#fcf5f1;
+  background-image:
+    radial-gradient(ellipse 44% 33% at 98% 2%,rgba(242,212,214,.85),transparent 85%),
+    radial-gradient(ellipse 49% 38% at 8% 55%,rgba(229,240,237,.76),transparent 85%),
+    radial-gradient(ellipse 40% 38% at 88% 95%,rgba(244,211,210,.66),transparent 89%),
+    linear-gradient(125deg,#fffaf7 0%,#fbeeea 36%,#f6f7f4 64%,#fae9e7 100%);
+  background-repeat:no-repeat;
+  background-size:cover;
+}
+.dashboard-app-shell:has(> .dashboard-client-sidebar) .dashboard-main .dash-content{
+  background:transparent;
+}

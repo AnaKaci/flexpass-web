@@ -86,8 +86,8 @@ export function ClientExplore({
 
       <div className="client-explore-categories" role="group" aria-label="Experience categories">
         {categories.map(item=><button type="button" key={item.key}
-          className={`client-explore-category ${category===item.key?'is-active':''}`}
-          aria-pressed={category===item.key}
+          className={`client-explore-category ${!hasSearch&&category===item.key?'is-active':''}`}
+          aria-pressed={!hasSearch&&category===item.key}
           onClick={()=>selectCategory(item.key)}>
           <UIIcon name={item.icon} size={23}/>
           <span className="client-explore-category-text"><strong>{labels[item.key]}</strong><small>{item.note}</small></span>

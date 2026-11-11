@@ -1582,12 +1582,31 @@ def seed():
 
 seed()
 DIST = ROOT / 'frontend' / 'dist'
+
+class CachedStaticFiles(StaticFiles):
+    """Cache public files only. Versioned Vite assets are immutable; API responses aren't."""
+    def __init__(self, *args, cache_control: str, **kwargs):
+        self.cache_control = cache_control
+        super().__init__(*args, **kwargs)
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code in (200, 304):
+            response.headers['Cache-Control'] = self.cache_control
+        return response
+
 if DIST.is_dir():
-    app.mount('/assets', StaticFiles(directory=DIST / 'assets'), name='assets')
-    # Vite copies frontend/public/brand/* to dist/brand/*.
-    # Render previously mounted only /assets, causing brand photography to 404.
+    # Vite emits content-hashed asset URLs, so caching them for a year is safe.
+    app.mount('/assets', CachedStaticFiles(
+        directory=DIST / 'assets',
+        cache_control='public, max-age=31536000, immutable',
+    ), name='assets')
+    # Non-versioned brand URLs get a short cache to keep asset updates visible.
     if (DIST / 'brand').is_dir():
-        app.mount('/brand', StaticFiles(directory=DIST / 'brand'), name='brand')
+        app.mount('/brand', CachedStaticFiles(
+            directory=DIST / 'brand',
+            cache_control='public, max-age=3600',
+        ), name='brand')
 
 @app.get('/')
 @app.get('/services')

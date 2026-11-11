@@ -36,6 +36,10 @@ for(const [input,output] of images){
   let current;
   try{current=await stat(outputFile)}catch{current=null}
   if(current&&current.mtimeMs>=original.mtimeMs&&current.size>0)continue;
-  const result=await sharp(sourceFile).webp({quality:92,effort:5,smartSubsample:true}).toFile(outputFile);
+  const pipeline=sharp(sourceFile);
+  // This decorative texture appears in small cards: 1600px is ample for high-DPI rendering.
+  // Its 3540px original remains unchanged in the repository.
+  if(input==='blush_pink_recreated_4K.png')pipeline.resize({width:1600,withoutEnlargement:true});
+  const result=await pipeline.webp({quality:92,effort:5,smartSubsample:true}).toFile(outputFile);
   console.log(`Optimized ${input}: ${Math.round(original.size/1024)} KB → ${Math.round(result.size/1024)} KB (${result.width}×${result.height})`);
 }

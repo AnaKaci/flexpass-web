@@ -17,6 +17,7 @@ interface AppContextValue {
   info:AppInfo|null;
   signIn:(email:string,password:string,portal:Role)=>Promise<User>;
   signOut:()=>void;
+  refreshUser:()=>Promise<void>;
   notify:(text:string,isError?:boolean)=>void;
 }
 const AppContext=createContext<AppContextValue|null>(null);
@@ -158,8 +159,9 @@ export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem
   useEffect(()=>{if(!message)return;const id=window.setTimeout(()=>setMessage(null),4500);return()=>window.clearTimeout(id)},[message]);
   const signIn=async(email:string,password:string,portal:Role)=>{const result:LoginResult=await login(email,password,portal);sessionStorage.setItem(TOKEN_KEY,result.token);setToken(result.token);setUser(result.user);setLoading(false);return result.user;};
   const signOut=()=>{sessionStorage.removeItem(TOKEN_KEY);setToken('');setUser(null)};
+  const refreshUser=async()=>{if(token)setUser(await request<User>('/auth/me',token));};
   const notify=(body:string,error=false)=>setMessage({body,error});
-  const context:AppContextValue={user,token,info,signIn,signOut,notify};
+  const context:AppContextValue={user,token,info,signIn,signOut,refreshUser,notify};
   if(loading)return <div className="loading">Validating session...</div>;
   return <AppContext.Provider value={context}><Routes>
     <Route path="/" element={<Home/>}/>

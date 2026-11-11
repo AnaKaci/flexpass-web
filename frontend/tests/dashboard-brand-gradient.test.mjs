@@ -12,15 +12,26 @@ test('Client, Partner and Admin dashboards share the supplied lily-and-silk back
     assert.ok(brand.includes(variable+':'),'missing FlexPass brand token '+variable);
   }
   assert.match(css,/\.dashboard-app-shell \.dashboard-main\{[\s\S]*?background-image:/);
-  assert.ok(css.includes("url('./assets/blush-silk-lily-dashboard.webp')"));
+  assert.ok(css.includes("url('./assets/Blush Silk and Lily Serenity.png')"));
   assert.ok(!css.includes('.dashboard-app-shell:has(> .dashboard-client-sidebar) .dashboard-main{'),
     'client-only background overrides would hide the shared artwork');
   assert.ok(!css.includes('.quiet-home'));
   assert.ok(!css.includes('.auth-photo-stage'));
-  const image=readFileSync(new URL('../src/assets/blush-silk-lily-dashboard.webp',import.meta.url));
-  assert.equal(image.toString('ascii',0,4),'RIFF');
-  assert.equal(image.toString('ascii',8,12),'WEBP');
-  assert.ok(image.length>3000,'background should contain actual image pixels');
+  const assets=[
+    'Blush Silk and Lily Serenity.png',
+    'Abstract Teal Satin Wave Texture.png',
+    'Tranquil Turquoise Caustic Waves.png',
+    'Warm Plaster Archway Geometry.png',
+    'blush_pink_recreated_4K.png',
+  ];
+  for(const name of assets){
+    assert.ok(css.includes("url('./assets/"+name+"')"),'missing image reference '+name);
+    const image=readFileSync(new URL('../src/assets/'+name,import.meta.url));
+    assert.equal(image.subarray(0,8).toString('hex'),'89504e470d0a1a0a','invalid PNG '+name);
+    assert.ok(image.length>100_000,'image is unexpectedly small '+name);
+  }
+  assert.ok(!css.includes("url('./assets/client-card-textures.jpg')"),'low-resolution sprite must not be used');
+  assert.ok(!css.includes("url('./assets/blush-silk-lily-dashboard.webp')"),'old compressed background must not be used');
 });
 
 test('dashboard background is not covered by ivory content or mobile navigation strips',()=>{

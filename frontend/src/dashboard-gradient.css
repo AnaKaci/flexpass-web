@@ -4,7 +4,7 @@
 .dashboard-app-shell .dashboard-main{
   background-color:#f8ebea;
   background-image:
-    url('./assets/blush-silk-lily-dashboard.webp'),
+    url('./assets/Blush Silk and Lily Serenity.png'),
     linear-gradient(115deg,#fdf4f2 0%,#f6e4e4 100%);
   background-repeat:no-repeat,no-repeat;
   background-position:right top,center;
@@ -25,20 +25,22 @@
   }
 }
 
-/* Client-only photographic card textures: supplied satin, arch, blush and water. */
-/* A single optimized, local 4-panel texture sprite. Panels left to right:
-   deep-teal satin / beige arch / blush palm shadows / turquoise water.
-   Texture treatment is restricted to authenticated Client surfaces. */
 
-/* Existing data, buttons, layouts, and cards remain unchanged. */
+/* Individual high-resolution textures uploaded to GitHub by the user.
+   Decorative only. Existing Client card content and actions are untouched.
+   No texture overlays are applied to Business or Admin cards. */
+
+/* Deep teal satin: available credits. */
 .member-overview .member-metric-primary::before{
-  background-image:url('./assets/client-card-textures.jpg');
-  background-size:400% auto;
-  background-position:0% 50%;
+  background-image:url('./assets/Abstract Teal Satin Wave Texture.png');
+  background-size:cover;
+  background-position:center;
   background-repeat:no-repeat;
-  opacity:.64;
+  opacity:.59;
   mix-blend-mode:normal;
 }
+
+/* Arch and turquoise reflections: secondary membership summary cards. */
 .member-overview .member-metrics>.member-metric:nth-child(2),
 .member-overview .member-metrics>.member-metric:nth-child(3){
   position:relative;
@@ -52,18 +54,19 @@
   inset:0;
   z-index:0;
   pointer-events:none;
-  background-image:url('./assets/client-card-textures.jpg');
-  background-size:400% auto;
+  background-size:cover;
   background-repeat:no-repeat;
   mix-blend-mode:multiply;
 }
 .member-overview .member-metrics>.member-metric:nth-child(2)::before{
-  background-position:33.3333% 50%;
-  opacity:.23;
+  background-image:url('./assets/Warm Plaster Archway Geometry.png');
+  background-position:center;
+  opacity:.25;
 }
 .member-overview .member-metrics>.member-metric:nth-child(3)::before{
-  background-position:100% 50%;
-  opacity:.12;
+  background-image:url('./assets/Tranquil Turquoise Caustic Waves.png');
+  background-position:center;
+  opacity:.18;
 }
 .member-overview .member-metrics>.member-metric:nth-child(2)>*,
 .member-overview .member-metrics>.member-metric:nth-child(3)>*{
@@ -71,18 +74,18 @@
   z-index:1;
 }
 
-/* Soft palm shadows complement—not replace—the existing chapter visual. */
+/* Blush palm shadows: the chapter invitation, keeping its existing photography. */
 .member-overview .member-credit-invitation::before{
   content:"";
   position:absolute;
   inset:0;
   z-index:0;
   pointer-events:none;
-  background-image:url('./assets/client-card-textures.jpg');
-  background-size:400% auto;
-  background-position:66.6667% 50%;
+  background-image:url('./assets/blush_pink_recreated_4K.png');
+  background-size:cover;
+  background-position:center;
   background-repeat:no-repeat;
-  opacity:.37;
+  opacity:.32;
   mix-blend-mode:multiply;
 }
 .member-overview .member-credit-invitation>*{
@@ -90,27 +93,31 @@
   z-index:1;
 }
 
-/* Experience artwork: texture replaces only decorative art, not service data. */
+/* The three experience-art panels, left-to-right: water, blush, arch. */
 .member-overview .member-recommendation-art-1,
 .member-overview .member-recommendation-art-2,
 .member-overview .member-recommendation-art-3{
   background-repeat:no-repeat;
-  background-size:cover,400% auto;
+  background-size:cover,cover;
+  background-position:center,center;
 }
 .member-overview .member-recommendation-art-1{
-  background-image:linear-gradient(0deg,rgba(201,221,226,.82),rgba(201,221,226,.12) 80%),url('./assets/client-card-textures.jpg');
-  background-position:center,100% 50%;
+  background-image:
+    linear-gradient(0deg,rgba(201,221,226,.80),rgba(201,221,226,.08) 80%),
+    url('./assets/Tranquil Turquoise Caustic Waves.png');
 }
 .member-overview .member-recommendation-art-2{
-  background-image:linear-gradient(0deg,rgba(228,237,229,.88),rgba(228,237,229,.19) 80%),url('./assets/client-card-textures.jpg');
-  background-position:center,66.6667% 50%;
+  background-image:
+    linear-gradient(0deg,rgba(228,237,229,.76),rgba(228,237,229,.08) 80%),
+    url('./assets/blush_pink_recreated_4K.png');
 }
 .member-overview .member-recommendation-art-3{
-  background-image:linear-gradient(0deg,rgba(243,222,223,.84),rgba(243,222,223,.2) 80%),url('./assets/client-card-textures.jpg');
-  background-position:center,33.3333% 50%;
+  background-image:
+    linear-gradient(0deg,rgba(243,222,223,.78),rgba(243,222,223,.07) 80%),
+    url('./assets/Warm Plaster Archway Geometry.png');
 }
 
-/* Select card accents on other Client pages, without affecting Partner/Admin. */
+/* Small, selective accents on Client Profile, Credit Packages, and Explore. */
 .client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2),
 .credit-shop .credit-shop-card-grid .credit-package,
 .client-explore-page .client-explore-categories .client-explore-category:nth-child(2),
@@ -128,35 +135,35 @@
   inset:0;
   z-index:0;
   pointer-events:none;
-  background-image:url('./assets/client-card-textures.jpg');
-  background-size:400% auto;
+  background-size:cover;
   background-repeat:no-repeat;
+  background-position:center;
   mix-blend-mode:multiply;
 }
 .client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2)::before{
-  background-position:100% 50%;
-  opacity:.2;
+  background-image:url('./assets/Tranquil Turquoise Caustic Waves.png');
+  opacity:.19;
 }
 .credit-shop .credit-shop-card-grid .credit-package:nth-child(1)::before{
-  background-position:33.3333% 50%;
-  opacity:.15;
+  background-image:url('./assets/Warm Plaster Archway Geometry.png');
+  opacity:.16;
 }
 .credit-shop .credit-shop-card-grid .credit-package-emphasis::before{
-  background-position:0% 50%;
-  opacity:.48;
-  mix-blend-mode:normal;
+  background-image:url('./assets/Abstract Teal Satin Wave Texture.png');
+  opacity:.46;
+  mix-blend-mode:soft-light;
 }
 .credit-shop .credit-shop-card-grid .credit-package:last-child:not(:first-child):not(.credit-package-emphasis)::before{
-  background-position:66.6667% 50%;
-  opacity:.15;
+  background-image:url('./assets/blush_pink_recreated_4K.png');
+  opacity:.16;
 }
 .client-explore-page .client-explore-categories .client-explore-category:nth-child(2)::before{
-  background-position:33.3333% 50%;
-  opacity:.17;
+  background-image:url('./assets/Warm Plaster Archway Geometry.png');
+  opacity:.18;
 }
 .client-explore-page .client-explore-categories .client-explore-category:nth-child(4)::before{
-  background-position:66.6667% 50%;
-  opacity:.17;
+  background-image:url('./assets/blush_pink_recreated_4K.png');
+  opacity:.18;
 }
 .client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2)>*,
 .credit-shop .credit-shop-card-grid .credit-package>*{

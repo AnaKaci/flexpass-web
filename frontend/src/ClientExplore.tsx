@@ -69,7 +69,14 @@ export function ClientExplore({
         </div>
       </div>
       <div className="client-explore-hero-visual">
-        <img src={`${import.meta.env.BASE_URL}brand/arch-view.jpg`} alt="Mediterranean stone arch framing calm blue water" decoding="async"/>
+        <img
+          src="https://images.unsplash.com/photo-1781455495642-63c87143b8eb?auto=format&amp;fit=crop&amp;w=2000&amp;q=88"
+          srcSet="https://images.unsplash.com/photo-1781455495642-63c87143b8eb?auto=format&amp;fit=crop&amp;w=900&amp;q=85 900w, https://images.unsplash.com/photo-1781455495642-63c87143b8eb?auto=format&amp;fit=crop&amp;w=1600&amp;q=88 1600w, https://images.unsplash.com/photo-1781455495642-63c87143b8eb?auto=format&amp;fit=crop&amp;w=2400&amp;q=88 2400w"
+          sizes="(max-width: 720px) 100vw, 46vw"
+          alt="Sunlit white Mediterranean terrace overlooking the blue Aegean Sea"
+          loading="eager"
+          decoding="async"
+        />
         <span className="client-explore-visual-caption">WELLBEING, YOUR WAY</span>
       </div>
     </section>

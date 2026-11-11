@@ -1,9 +1,11 @@
+import {useSearchParams} from 'react-router-dom';
 import type {Group,Service,EmployeeSummary} from './types';
 import {labels} from './api';
 import {ServiceCard} from './ServicesPage';
 import {UIIcon} from './UIIcon';
 import {BrandLogo} from './BrandLogo';
 import type {IconName} from './UIIcon';
+import {filterExploreServices} from './clientServiceSearch';
 
 const categories:ReadonlyArray<{key:Group;icon:IconName;note:string}>= [
   {key:'fitness',icon:'activity',note:'Strength & movement'},
@@ -17,6 +19,7 @@ export function ClientExplore({
   category,
   onCategory,
   catalog,
+  allServices,
   onService,
   summary,
   onWallet
@@ -24,11 +27,27 @@ export function ClientExplore({
   category:Group;
   onCategory:(v:Group)=>void;
   catalog:Service[];
+  allServices:Service[];
   onService:(s:Service)=>void;
   summary:EmployeeSummary;
   onWallet:()=>void;
 }){
-  const openSessions=catalog.reduce((count,item)=>count+item.slots.filter(slot=>slot.available>0).length,0);
+  const [params,setParams]=useSearchParams();
+  const search=params.get('q')||'';
+  const hasSearch=Boolean(search.trim());
+  const results=hasSearch?filterExploreServices(allServices,search):catalog;
+  const openSessions=results.reduce((count,item)=>count+item.slots.filter(slot=>slot.available>0).length,0);
+  function updateSearch(next:string){
+    const nextParams=new URLSearchParams(params);
+    const value=next.slice(0,120);
+    if(value.trim())nextParams.set('q',value);
+    else nextParams.delete('q');
+    setParams(nextParams,{replace:true});
+  }
+  function selectCategory(next:Group){
+    if(search)updateSearch('');
+    onCategory(next);
+  }
   return <div className="client-explore-page">
     <section className="client-explore-hero" aria-labelledby="client-explore-heading">
       <div className="client-explore-hero-content">
@@ -69,33 +88,53 @@ export function ClientExplore({
         {categories.map(item=><button type="button" key={item.key}
           className={`client-explore-category ${category===item.key?'is-active':''}`}
           aria-pressed={category===item.key}
-          onClick={()=>onCategory(item.key)}>
+          onClick={()=>selectCategory(item.key)}>
           <UIIcon name={item.icon} size={23}/>
           <span className="client-explore-category-text"><strong>{labels[item.key]}</strong><small>{item.note}</small></span>
           <UIIcon name="arrow" size={16}/>
         </button>)}
       </div>
 
+      <div className="client-explore-search" role="search">
+        <label htmlFor="client-explore-search-input">Find an experience or business</label>
+        <div className="client-explore-search-control">
+          <UIIcon name="search" size={21}/>
+          <input id="client-explore-search-input" type="search" value={search}
+            onChange={event=>updateSearch(event.target.value)}
+            maxLength={120} autoComplete="off"
+            placeholder="Search services, businesses, wellness, locations…"
+            aria-describedby="client-explore-search-hint"/>
+          {hasSearch&&<button type="button" className="client-explore-search-clear" onClick={()=>updateSearch('')} aria-label="Clear experience search">
+            Clear <UIIcon name="close" size={15}/>
+          </button>}
+        </div>
+        <p id="client-explore-search-hint">{hasSearch
+          ?'Searching all collections. Select a category above to return to browsing.'
+          :'Search across every business and experience, regardless of category.'}</p>
+      </div>
+
       <div className="client-explore-results-heading">
         <div>
           <span className="client-explore-section-kicker">02 / EXPERIENCE LIST</span>
-          <h2>{labels[category]} <em>experiences</em></h2>
+          <h2>{hasSearch?'Search results':labels[category]} <em>{hasSearch?'for you':'experiences'}</em></h2>
         </div>
         <div className="client-explore-results-meta" role="status">
-          <strong>{catalog.length}</strong> {catalog.length===1?'experience':'experiences'}
+          <strong>{results.length}</strong> {results.length===1?'experience':'experiences'}
           <span aria-hidden="true">·</span>
           <strong>{openSessions}</strong> available session {openSessions===1?'time':'times'}
         </div>
       </div>
-      {catalog.length
+      {results.length
         ?<div className="services-grid client-explore-service-grid">
-          {catalog.map(service=><ServiceCard service={service} onSelect={onService} key={service.id}/>)}
+          {results.map(service=><ServiceCard service={service} onSelect={onService} key={service.id}/>)}
         </div>
         :<div className="client-explore-empty" role="status">
           <UIIcon name="calendar" size={29}/>
-          <h3>Nothing available here just yet.</h3>
-          <p>Explore another collection to find your next experience.</p>
-          <button type="button" className="btn btn-outline" onClick={()=>onCategory('fitness')}>Browse Fitness <UIIcon name="arrow" size={16}/></button>
+          <h3>{hasSearch?'No matching experiences.':'Nothing available here just yet.'}</h3>
+          <p>{hasSearch?'Try a different service name, business or location.':'Explore another collection to find your next experience.'}</p>
+          {hasSearch
+            ?<button type="button" className="btn btn-outline" onClick={()=>updateSearch('')}>Clear search <UIIcon name="arrow" size={16}/></button>
+            :<button type="button" className="btn btn-outline" onClick={()=>selectCategory('fitness')}>Browse Fitness <UIIcon name="arrow" size={16}/></button>}
         </div>
       }
     </section>

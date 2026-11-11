@@ -4,7 +4,7 @@
 .dashboard-app-shell .dashboard-main{
   background-color:#f8ebea;
   background-image:
-    url('./assets/Blush Silk and Lily Serenity.png'),
+    url('./optimized/blush-silk-lily.webp'),
     linear-gradient(115deg,#fdf4f2 0%,#f6e4e4 100%);
   background-repeat:no-repeat,no-repeat;
   background-position:right top,center;
@@ -32,7 +32,7 @@
 
 /* Deep teal satin: available credits. */
 .member-overview .member-metric-primary::before{
-  background-image:url('./assets/Abstract Teal Satin Wave Texture.png');
+  background-image:url('./optimized/deep-teal-satin.webp');
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
@@ -59,12 +59,12 @@
   mix-blend-mode:multiply;
 }
 .member-overview .member-metrics>.member-metric:nth-child(2)::before{
-  background-image:url('./assets/Warm Plaster Archway Geometry.png');
+  background-image:url('./optimized/warm-plaster-arch.webp');
   background-position:center;
   opacity:.25;
 }
 .member-overview .member-metrics>.member-metric:nth-child(3)::before{
-  background-image:url('./assets/Tranquil Turquoise Caustic Waves.png');
+  background-image:url('./optimized/turquoise-caustics.webp');
   background-position:center;
   opacity:.18;
 }
@@ -81,7 +81,7 @@
   inset:0;
   z-index:0;
   pointer-events:none;
-  background-image:url('./assets/blush_pink_recreated_4K.png');
+  background-image:url('./optimized/blush-palm-shadows.webp');
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
@@ -104,17 +104,17 @@
 .member-overview .member-recommendation-art-1{
   background-image:
     linear-gradient(0deg,rgba(201,221,226,.80),rgba(201,221,226,.08) 80%),
-    url('./assets/Tranquil Turquoise Caustic Waves.png');
+    url('./optimized/turquoise-caustics.webp');
 }
 .member-overview .member-recommendation-art-2{
   background-image:
     linear-gradient(0deg,rgba(228,237,229,.76),rgba(228,237,229,.08) 80%),
-    url('./assets/blush_pink_recreated_4K.png');
+    url('./optimized/blush-palm-shadows.webp');
 }
 .member-overview .member-recommendation-art-3{
   background-image:
     linear-gradient(0deg,rgba(243,222,223,.78),rgba(243,222,223,.07) 80%),
-    url('./assets/Warm Plaster Archway Geometry.png');
+    url('./optimized/warm-plaster-arch.webp');
 }
 
 /* Small, selective accents on Client Profile, Credit Packages, and Explore. */
@@ -141,28 +141,28 @@
   mix-blend-mode:multiply;
 }
 .client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2)::before{
-  background-image:url('./assets/Tranquil Turquoise Caustic Waves.png');
+  background-image:url('./optimized/turquoise-caustics.webp');
   opacity:.19;
 }
 .credit-shop .credit-shop-card-grid .credit-package:nth-child(1)::before{
-  background-image:url('./assets/Warm Plaster Archway Geometry.png');
+  background-image:url('./optimized/warm-plaster-arch.webp');
   opacity:.16;
 }
 .credit-shop .credit-shop-card-grid .credit-package-emphasis::before{
-  background-image:url('./assets/Abstract Teal Satin Wave Texture.png');
+  background-image:url('./optimized/deep-teal-satin.webp');
   opacity:.46;
   mix-blend-mode:soft-light;
 }
 .credit-shop .credit-shop-card-grid .credit-package:last-child:not(:first-child):not(.credit-package-emphasis)::before{
-  background-image:url('./assets/blush_pink_recreated_4K.png');
+  background-image:url('./optimized/blush-palm-shadows.webp');
   opacity:.16;
 }
 .client-explore-page .client-explore-categories .client-explore-category:nth-child(2)::before{
-  background-image:url('./assets/Warm Plaster Archway Geometry.png');
+  background-image:url('./optimized/warm-plaster-arch.webp');
   opacity:.18;
 }
 .client-explore-page .client-explore-categories .client-explore-category:nth-child(4)::before{
-  background-image:url('./assets/blush_pink_recreated_4K.png');
+  background-image:url('./optimized/blush-palm-shadows.webp');
   opacity:.18;
 }
 .client-profile-page .client-profile-metrics .client-profile-metric:nth-child(2)>*,

@@ -10,3 +10,6 @@ __pycache__/
 !.env.example
 .venv/
 specification/
+
+# Build-time browser-optimized copies of the original artwork
+frontend/src/optimized/

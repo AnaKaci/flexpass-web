@@ -24,11 +24,12 @@ test('Client, Partner and Admin dashboards share the supplied lily-and-silk back
     'Warm Plaster Archway Geometry.png',
     'blush_pink_recreated_4K.png',
   ];
-  for(const name of assets){
-    assert.ok(css.includes("url('./assets/"+name+"')"),'missing image reference '+name);
+  const optimized=['blush-silk-lily.webp','deep-teal-satin.webp','turquoise-caustics.webp','warm-plaster-arch.webp','blush-palm-shadows.webp'];
+  for(const [index,name] of assets.entries()){
+    assert.ok(css.includes("url('./optimized/"+optimized[index]+"')"),'missing optimized image reference '+name);
     const image=readFileSync(new URL('../src/assets/'+name,import.meta.url));
-    assert.equal(image.subarray(0,8).toString('hex'),'89504e470d0a1a0a','invalid PNG '+name);
-    assert.ok(image.length>100_000,'image is unexpectedly small '+name);
+    assert.equal(image.subarray(0,8).toString('hex'),'89504e470d0a1a0a','invalid original PNG '+name);
+    assert.ok(image.length>100_000,'original image is unexpectedly small '+name);
   }
   assert.ok(!css.includes("url('./assets/client-card-textures.jpg')"),'low-resolution sprite must not be used');
   assert.ok(!css.includes("url('./assets/blush-silk-lily-dashboard.webp')"),'old compressed background must not be used');

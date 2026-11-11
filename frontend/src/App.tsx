@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, lazy, Suspense, useContext, useEffect, useState } from 'react';
 import type { PropsWithChildren, ReactNode, FormEvent } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { AppInfo, LoginResult, Role, User } from './types';
 import { TOKEN_KEY, login, pagesPreview, post, request } from './api';
-import { ServicesPage } from './ServicesPage';
-import { Dashboard } from './Dashboard';
+const Dashboard = lazy(async () => ({default:(await import('./Dashboard')).Dashboard}));
+const ServicesPage = lazy(async () => ({default:(await import('./ServicesPage')).ServicesPage}));
 import { UIIcon } from './UIIcon';
 import { BrandLogo } from './BrandLogo';
 import { LuminaHero } from './LuminaHero';
@@ -150,9 +150,9 @@ function StaticPage({kind}:{kind:'contact'|'privacy'|'terms'}){
     <div className="content-page-actions"><Link to="/" className="btn btn-outline">Back to FlexPass <UIIcon name="arrow" size={16}/></Link></div>
   </main></PublicLayout>;
 }
-function Authenticated({role}:{role:Role}){const {user}=useApp();if(!user)return <Navigate to={role==='admin'?'/admin/login':role==='partner'?'/login/business':'/login/client'} replace/>;if(user.role!==role)return <Navigate to={`/${user.role}`} replace/>;return <Dashboard role={role}/>;}
+function Authenticated({role}:{role:Role}){const {user}=useApp();if(!user)return <Navigate to={role==='admin'?'/admin/login':role==='partner'?'/login/business':'/login/client'} replace/>;if(user.role!==role)return <Navigate to={`/${user.role}`} replace/>;return <Suspense fallback={<div className="loading" role="status">Loading workspace…</div>}><Dashboard role={role}/></Suspense>;}
 function EmployeeSectionRedirect(){const {section}=useParams<{section:string}>();return <Navigate to={`/client/${section||'overview'}`} replace/>;}
-function ProtectedServices(){const {user}=useApp();if(!user)return <Navigate to="/login/client" replace/>;if(user.role!=='client')return <Navigate to={`/${user.role}`} replace/>;return <PublicLayout><ServicesPage/></PublicLayout>}
+function ProtectedServices(){const {user}=useApp();if(!user)return <Navigate to="/login/client" replace/>;if(user.role!=='client')return <Navigate to={`/${user.role}`} replace/>;return <PublicLayout><Suspense fallback={<div className="loading" role="status">Loading experiences…</div>}><ServicesPage/></Suspense></PublicLayout>}
 export function App(){const [token,setToken]=useState(()=>sessionStorage.getItem(TOKEN_KEY)||'');const [user,setUser]=useState<User|null>(null);const [info,setInfo]=useState<AppInfo|null>(null);const [loading,setLoading]=useState(Boolean(sessionStorage.getItem(TOKEN_KEY)));const [message,setMessage]=useState<{body:string;error:boolean}|null>(null);
   useEffect(()=>{request<AppInfo>('/info').then(setInfo).catch(()=>{});},[]);
   useEffect(()=>{if(!token){setLoading(false);setUser(null);return;}let active=true;request<User>('/auth/me',token).then(u=>{if(active)setUser(u);}).catch(()=>{if(active){setToken('');sessionStorage.removeItem(TOKEN_KEY);setUser(null);}}).finally(()=>{if(active)setLoading(false);});return()=>{active=false};},[token]);

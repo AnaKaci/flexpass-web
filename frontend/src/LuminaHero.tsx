@@ -57,6 +57,8 @@ export function LuminaHero(){
   const [active,setActive]=useState(0);
   const [generation,setGeneration]=useState(0);
   const [paused,setPaused]=useState(false);
+  // Load the visible slide first; fetch other slide images only when needed.
+  const [loadedSlides,setLoadedSlides]=useState<Set<number>>(()=>new Set([0]));
   const [isVisible,setIsVisible]=useState(()=>typeof document==='undefined'||!document.hidden);
   const [reduceMotion,setReduceMotion]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const navRef=useRef<HTMLElement>(null);
@@ -76,13 +78,27 @@ export function LuminaHero(){
   useEffect(()=>{
     if(paused||reduceMotion||!isVisible)return;
     const timeout=window.setTimeout(()=>{
-      setActive(previous=>(previous+1)%EXPERIENCES.length);
+      setActive(previous=>{
+        const next=(previous+1)%EXPERIENCES.length;
+        setLoadedSlides(loaded=>new Set(loaded).add(next));
+        return next;
+      });
       setGeneration(previous=>previous+1);
     },SLIDE_MS);
     return()=>window.clearTimeout(timeout);
   },[active,generation,paused,reduceMotion,isVisible]);
 
+  useEffect(()=>{
+    if(!isVisible||paused)return;
+    const id=window.setTimeout(()=>{
+      const next=(active+1)%EXPERIENCES.length;
+      setLoadedSlides(previous=>previous.has(next)?previous:new Set(previous).add(next));
+    },2400);
+    return()=>window.clearTimeout(id);
+  },[active,isVisible,paused]);
+
   function select(index:number){
+    setLoadedSlides(previous=>new Set(previous).add(index));
     setActive(index);
     setGeneration(previous=>previous+1);
   }
@@ -115,11 +131,11 @@ export function LuminaHero(){
       {EXPERIENCES.map((item,index)=><img
         key={item.image}
         className={`lumina-hero-photo ${active===index?'is-active':''}`}
-        src={assetPath(item.image)}
+        src={loadedSlides.has(index)?assetPath(item.image):undefined}
         alt=""
-        loading="eager"
+        loading={index===active?'eager':'lazy'}
         decoding="async"
-        fetchPriority={index===0?'high':'auto'}
+        fetchPriority={index===active?'high':'low'}
         onError={photoFallback}
       />)}
       <div className="lumina-hero-scrim"/>

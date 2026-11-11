@@ -36,3 +36,23 @@
 .dashboard-app-shell:has(> .dashboard-client-sidebar) .dashboard-main .dash-content{
   background:transparent;
 }
+
+/* Client-only floral backdrop. This is the page background (not the balance card).
+   The SVG is a local Vite asset, so paths work on Render and GitHub Pages. */
+.dashboard-app-shell:has(> .dashboard-client-sidebar) .dashboard-main{
+  background-color:#fcf5f1;
+  background-image:
+    url('./assets/client-floral-atmosphere.svg'),
+    radial-gradient(ellipse 43% 30% at 93% 3%,rgba(242,212,214,.60),transparent 85%),
+    radial-gradient(ellipse 49% 38% at 8% 60%,rgba(229,240,237,.45),transparent 85%),
+    linear-gradient(125deg,#fffaf7 0%,#fbeeea 36%,#f6f7f4 64%,#fae9e7 100%);
+  background-size:max(100%,1100px) auto,cover,cover,cover;
+  background-position:right top,center,center,center;
+  background-repeat:no-repeat;
+}
+@media(max-width:760px){
+  .dashboard-app-shell:has(> .dashboard-client-sidebar) .dashboard-main{
+    background-size:1000px auto,cover,cover,cover;
+    background-position:right top,center,center,center;
+  }
+}

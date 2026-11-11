@@ -27,7 +27,7 @@ export function CreditShop({
 
     <div className="credit-shop-section-heading">
       <div>
-        <span className="credit-shop-section-index">01 / YOUR OPTIONS</span>
+        <span className="credit-shop-section-index">YOUR OPTIONS</span>
         <h2>Make more room for <em>you.</em></h2>
       </div>
       <p>Select the package that suits the experiences you want to explore.</p>

@@ -12,7 +12,7 @@ test('Client, Partner and Admin dashboards share the supplied lily-and-silk back
     assert.ok(brand.includes(variable+':'),'missing FlexPass brand token '+variable);
   }
   assert.match(css,/\.dashboard-app-shell \.dashboard-main\{[\s\S]*?background-image:/);
-  assert.ok(css.includes("url('./assets/Blush Silk and Lily Serenity.png')"));
+  assert.ok(css.includes("url('./optimized/blush-silk-lily.webp')"));
   assert.ok(!css.includes('.dashboard-app-shell:has(> .dashboard-client-sidebar) .dashboard-main{'),
     'client-only background overrides would hide the shared artwork');
   assert.ok(!css.includes('.quiet-home'));

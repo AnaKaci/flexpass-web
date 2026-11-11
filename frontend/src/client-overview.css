@@ -830,3 +830,41 @@
   .member-overview .member-metric,
   .member-overview .member-recommendation-card{transition:none}
 }
+
+/* Client balance: botanical shadow and tactile texture (presentation-only). */
+.member-overview .member-metric-primary,
+.member-overview .member-metric-primary:hover{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  background:linear-gradient(118deg,#064247 0%,#10565c 75%,#0b4245 100%);
+}
+.member-overview .member-metric-primary::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22780%22%20height%3D%22320%22%20viewBox%3D%220%200%20780%20320%22%3E%0A%3Cdefs%3E%0A%20%20%3Cfilter%20id%3D%22soft%22%3E%3CfeGaussianBlur%20stdDeviation%3D%224%22%2F%3E%3C%2Ffilter%3E%0A%20%20%3Cfilter%20id%3D%22grain%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.56%22%20numOctaves%3D%223%22%20seed%3D%227%22%20stitchTiles%3D%22stitch%22%2F%3E%3CfeColorMatrix%20type%3D%22saturate%22%20values%3D%220%22%2F%3E%3C%2Ffilter%3E%0A%20%20%3ClinearGradient%20id%3D%22fade%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c5e5db%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%22.44%22%20stop-color%3D%22%23c5e5db%22%20stop-opacity%3D%22.05%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23c5e5db%22%20stop-opacity%3D%22.25%22%2F%3E%3C%2FlinearGradient%3E%0A%3C%2Fdefs%3E%0A%3Crect%20width%3D%22780%22%20height%3D%22320%22%20fill%3D%22url(%23fade)%22%2F%3E%0A%3Cg%20filter%3D%22url(%23soft)%22%20opacity%3D%22.56%22%20fill%3D%22%23b0d4cd%22%3E%0A%20%20%3Cpath%20d%3D%22M687%20-74C656%2041%20630%20116%20556%20208Q625%20151%20678%2084Q713%2033%20734%20-42Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M633%20-35C608%2051%20585%20101%20511%20171Q575%20139%20619%2095Q659%2051%20678%20-20Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M582%20-68C570%2029%20552%2087%20484%20139Q547%20111%20574%2069Q602%2022%20613%20-59Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M733%20-21C715%2079%20694%20126%20635%20177Q713%20147%20744%2092Q771%2041%20771%20-28Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M566%2034C604%2051%20643%2075%20670%20111Q646%2052%20614%2022Q586%201%20557%20-5Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M565%2085C607%2096%20634%20114%20664%20151Q639%20103%20614%2079Q589%2057%20548%2051Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M526%20129C566%20140%20597%20165%20620%20200Q611%20156%20584%20126Q560%20105%20525%2099Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M677%20111C714%20112%20748%20127%20778%20156L781%20105Q731%2084%20689%2090Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M660%20160C705%20160%20744%20187%20782%20219L781%20170Q732%20144%20665%20139Z%22%2F%3E%0A%3C%2Fg%3E%0A%3Cg%20opacity%3D%22.23%22%20filter%3D%22url(%23soft)%22%20fill%3D%22%23042f34%22%3E%0A%20%20%3Cpath%20d%3D%22M772%20-30Q688%2060%20635%20200Q717%20118%20778%2062Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M723%20-44Q639%2026%20577%20150Q648%2094%20736%2034Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M676%2022Q635%2091%20587%20169Q670%20110%20715%2046Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M735%2044Q694%2095%20674%20145Q741%20113%20780%2079Z%22%2F%3E%0A%3C%2Fg%3E%0A%3Cg%20opacity%3D%22.10%22%3E%3Crect%20width%3D%22780%22%20height%3D%22320%22%20filter%3D%22url(%23grain)%22%2F%3E%3C%2Fg%3E%0A%3C%2Fsvg%3E");
+  background-position:right center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  opacity:.95;
+}
+.member-overview .member-metric-primary::after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  width:260px;
+  height:180px;
+  right:-78px;
+  bottom:-118px;
+  border:1.5px solid rgba(225,194,132,.88);
+  border-radius:50%;
+  transform:rotate(-18deg);
+  pointer-events:none;
+}
+.member-overview .member-metric-primary > *{
+  position:relative;
+  z-index:1;
+}

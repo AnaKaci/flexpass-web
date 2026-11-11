@@ -1,4 +1,6 @@
 """FlexPass functional pilot API. Development auth and seed data; not production-ready."""
+import base64
+import binascii
 import csv
 import hashlib
 import hmac
@@ -7,15 +9,17 @@ import json
 from urllib.request import Request as UrlRequest, urlopen
 from urllib.error import HTTPError, URLError
 import os
+import re
 import secrets
 import smtplib
 from email.message import EmailMessage
 from urllib.parse import quote
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
 import jwt
+from PIL import Image, ImageOps, UnidentifiedImageError
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -110,6 +114,18 @@ class User(Base):
     plan_id = Column(Integer, ForeignKey('plans.id'))
     membership_status = Column(String(25), default='ACTIVE')
     created_at = Column(DateTime, default=now)
+
+class ClientProfileDetails(Base):
+    """Client-maintained optional information. Separate table preserves existing users."""
+    __tablename__ = 'client_profile_details'
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    birthday = Column(String(10), nullable=True)
+    phone = Column(String(35), nullable=False, default='')
+    city = Column(String(100), nullable=False, default='')
+    country = Column(String(80), nullable=False, default='')
+    about = Column(String(300), nullable=False, default='')
+    avatar_data = Column(Text, nullable=True)
+    updated_at = Column(DateTime, nullable=False, default=now)
 
 class AccountInvitation(Base):
     __tablename__ = 'account_invitations'
@@ -254,6 +270,17 @@ class ServiceReview(Base):
     rating = Column(Integer, nullable=False)
     comment = Column(String(500), nullable=False)
     created_at = Column(DateTime, default=now, nullable=False)
+
+class ClientProfileUpdateBody(BaseModel):
+    full_name: str = Field(min_length=2, max_length=160)
+    birthday: Optional[date] = None
+    phone: str = Field(default='', max_length=35)
+    city: str = Field(default='', max_length=100)
+    country: str = Field(default='', max_length=80)
+    about: str = Field(default='', max_length=300)
+
+class ClientAvatarBody(BaseModel):
+    image_data: str = Field(min_length=30, max_length=450000)
 
 class ClientRegistrationBody(BaseModel):
     full_name: str = Field(min_length=2, max_length=160)
@@ -564,6 +591,99 @@ def register_client(body:ClientRegistrationBody):
 
 @app.get('/api/auth/me')
 def me(u=Depends(get_user)):return user_view(u)
+
+def client_profile_view(user, details):
+    """Never include passwords, banking details, other clients or internal auth state."""
+    return {'full_name':user.full_name, 'email':user.email, 'status':user.membership_status,
+            'birthday':details.birthday if details else None,
+            'phone':details.phone if details else '',
+            'city':details.city if details else '',
+            'country':details.country if details else '',
+            'about':details.about if details else '',
+            'avatar_data':details.avatar_data if details else None}
+
+@app.get('/api/client/profile')
+def client_profile(u=Depends(roles('client','employee'))):
+    with Session() as s:
+        details=s.get(ClientProfileDetails,u.id)
+        return client_profile_view(u,details)
+
+@app.patch('/api/client/profile')
+def edit_client_profile(body:ClientProfileUpdateBody,u=Depends(roles('client','employee'))):
+    cleaned_name=body.full_name.strip()
+    if len(cleaned_name)<2:raise HTTPException(422,'Full name must contain at least two characters')
+    if body.birthday and (body.birthday>date.today() or body.birthday.year<1900):
+        raise HTTPException(422,'Enter a valid past birthday')
+    phone=body.phone.strip()
+    if phone and not re.fullmatch(r'[+0-9() .-]{3,35}',phone):
+        raise HTTPException(422,'Enter a valid phone number')
+    with Session() as s:
+        user=s.get(User,u.id)
+        if not user:raise HTTPException(403,'Account inactive')
+        details=s.get(ClientProfileDetails,u.id)
+        if not details:
+            details=ClientProfileDetails(user_id=u.id)
+            s.add(details)
+        user.full_name=cleaned_name
+        details.birthday=body.birthday.isoformat() if body.birthday else None
+        details.phone=phone
+        details.city=body.city.strip()
+        details.country=body.country.strip()
+        details.about=body.about.strip()
+        details.updated_at=now()
+        audit(s,u.id,'CLIENT_PROFILE_UPDATED','Client edited own profile information')
+        s.commit()
+        return client_profile_view(user,details)
+
+def sanitize_profile_avatar(value:str):
+    """Decode a photo, check actual image format/dimensions, strip metadata and re-encode."""
+    parts=value.split(',',1)
+    if len(parts)!=2 or parts[0] not in ('data:image/jpeg;base64','data:image/png;base64','data:image/webp;base64'):
+        raise HTTPException(422,'Please upload a JPEG, PNG or WebP image')
+    try:
+        raw=base64.b64decode(parts[1],validate=True)
+        if not raw or len(raw)>260000:
+            raise HTTPException(422,'Photo must be smaller than 260 KB after resizing')
+        with Image.open(io.BytesIO(raw)) as picture:
+            if picture.format not in ('JPEG','PNG','WEBP'):
+                raise HTTPException(422,'Unsupported photo format')
+            if picture.width>2048 or picture.height>2048 or picture.width<16 or picture.height<16:
+                raise HTTPException(422,'Photo dimensions must be between 16 and 2048 pixels')
+            picture=ImageOps.exif_transpose(picture)
+            picture.thumbnail((320,320))
+            buffer=io.BytesIO()
+            picture.convert('RGB').save(buffer,format='JPEG',quality=78,optimize=True)
+        encoded=base64.b64encode(buffer.getvalue()).decode('ascii')
+        return 'data:image/jpeg;base64,'+encoded
+    except HTTPException:
+        raise
+    except (binascii.Error,ValueError,UnidentifiedImageError,OSError,Image.DecompressionBombError):
+        raise HTTPException(422,'Invalid image data')
+
+@app.put('/api/client/profile/avatar')
+def upload_client_avatar(body:ClientAvatarBody,u=Depends(roles('client','employee'))):
+    data=sanitize_profile_avatar(body.image_data)
+    with Session() as s:
+        details=s.get(ClientProfileDetails,u.id)
+        if not details:
+            details=ClientProfileDetails(user_id=u.id)
+            s.add(details)
+        details.avatar_data=data
+        details.updated_at=now()
+        audit(s,u.id,'CLIENT_AVATAR_UPDATED','Client updated own profile photo')
+        s.commit()
+        return {'avatar_data':data}
+
+@app.delete('/api/client/profile/avatar')
+def delete_client_avatar(u=Depends(roles('client','employee'))):
+    with Session() as s:
+        details=s.get(ClientProfileDetails,u.id)
+        if details:
+            details.avatar_data=None
+            details.updated_at=now()
+            audit(s,u.id,'CLIENT_AVATAR_REMOVED','Client removed own profile photo')
+            s.commit()
+        return {'avatar_data':None}
 
 @app.get('/api/catalog')
 def catalog(group:Optional[str]=None,subcategory:Optional[str]=None,search:str='',zone:str='',maxCredits:Optional[int]=None,u=Depends(get_user)):

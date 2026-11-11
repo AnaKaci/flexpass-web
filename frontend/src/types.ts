@@ -6,6 +6,17 @@ export type EmployeeSection = ClientSection;
 export type PartnerSection = 'overview' | 'calendar' | 'reservations' | 'services' | 'settlements' | 'feedback' | 'notifications';
 export type AdminSection = 'clients' | 'overview' | 'companies' | 'partners' | 'employees' | 'plans' | 'products' | 'orders' | 'invoices' | 'settlements' | 'audit' | 'analytics' | 'notifications';
 export type Section = EmployeeSection | PartnerSection | AdminSection;
+export interface ClientProfileDetails {
+  full_name:string;
+  email:string;
+  status:string;
+  birthday:string|null;
+  phone:string;
+  city:string;
+  country:string;
+  about:string;
+  avatar_data:string|null;
+}
 export interface User { id:number; full_name:string; email:string; role:Role; company_id:number|null; partner_id:number|null; plan_id:number|null; status:string; }
 export interface LoginResult { token:string; user:User; }
 export interface AppInfo { app:string; preview:boolean; seeded:boolean; demo_mode:boolean; groups:Group[]; zones:string[]; subcategories:Record<Group,string[]>; tagline:string; bank_transfer?:{demo_enabled:boolean;configured:boolean;bank_name:string;beneficiary:string;iban:string}; }

@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-label="Subtle blush floral atmosphere">
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2=".9" y2="1">
+      <stop offset="0" stop-color="#fffaf7"/>
+      <stop offset=".48" stop-color="#faeeeb"/>
+      <stop offset="1" stop-color="#f7ecea"/>
+    </linearGradient>
+    <radialGradient id="blush"><stop offset="0" stop-color="#e9c9c7" stop-opacity=".58"/><stop offset="1" stop-color="#eccdcc" stop-opacity="0"/></radialGradient>
+    <radialGradient id="ivory"><stop offset="0" stop-color="#fffdf9" stop-opacity=".94"/><stop offset="1" stop-color="#f8e9e8" stop-opacity="0"/></radialGradient>
+    <linearGradient id="petal1" x1=".03" y1=".18" x2=".96" y2=".98">
+      <stop offset="0" stop-color="#fffdfb"/>
+      <stop offset=".29" stop-color="#fff0ed"/>
+      <stop offset=".6" stop-color="#f6cfd1"/>
+      <stop offset=".88" stop-color="#e9b2ba"/>
+      <stop offset="1" stop-color="#fff2f0"/>
+    </linearGradient>
+    <linearGradient id="petal2" x1=".2" y1="0" x2=".88" y2="1">
+      <stop offset="0" stop-color="#fffefa"/>
+      <stop offset=".4" stop-color="#fde8e8"/>
+      <stop offset=".74" stop-color="#efb9bf"/>
+      <stop offset="1" stop-color="#fff8f4"/>
+    </linearGradient>
+    <linearGradient id="petal3" x1=".2" y1=".8" x2="1" y2=".15">
+      <stop offset="0" stop-color="#f5c1c6"/>
+      <stop offset=".31" stop-color="#fff4ef"/>
+      <stop offset=".64" stop-color="#f9d6d6"/>
+      <stop offset="1" stop-color="#fffdfa"/>
+    </linearGradient>
+    <linearGradient id="petal4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffcf8"/>
+      <stop offset=".5" stop-color="#f7c9cb"/>
+      <stop offset="1" stop-color="#dd969e"/>
+    </linearGradient>
+    <linearGradient id="silk" x1="0" y1="0" x2="1" y2=".18">
+      <stop offset="0" stop-color="#fffdf9" stop-opacity="0"/>
+      <stop offset=".35" stop-color="#fffaf8" stop-opacity=".25"/>
+      <stop offset=".7" stop-color="#fffefa" stop-opacity=".75"/>
+      <stop offset="1" stop-color="#ffefec" stop-opacity=".05"/>
+    </linearGradient>
+    <linearGradient id="silkOutline" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fffaf5" stop-opacity="0"/>
+      <stop offset=".65" stop-color="#fffdf9" stop-opacity=".88"/>
+      <stop offset="1" stop-color="#f4d0ce" stop-opacity=".64"/>
+    </linearGradient>
+    <filter id="petalShadow" x="-40%" y="-40%" width="190%" height="190%">
+      <feGaussianBlur stdDeviation="15"/>
+    </filter>
+    <filter id="soft" x="-40%" y="-40%" width="190%" height="190%"><feGaussianBlur stdDeviation="36"/></filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".31" numOctaves="2" seed="17" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="1050" fill="url(#canvas)"/>
+  <ellipse cx="1260" cy="65" rx="580" ry="310" fill="url(#blush)"/>
+  <ellipse cx="90" cy="620" rx="690" ry="500" fill="url(#ivory)" opacity=".65"/>
+  <ellipse cx="1370" cy="950" rx="490" ry="260" fill="url(#blush)" opacity=".65"/>
+  <!-- Silk, translucent ribbon sweeping behind the lily -->
+  <path d="M580 202C823 101 972 90 1126 124c179 39 301 3 474-162v170c-207 100-330 125-475 69-132-50-278-47-545 1Z" fill="url(#silk)" opacity=".55"/>
+  <path d="M614 201C847 105 964 94 1138 123c167 28 305-22 468-135" fill="none" stroke="url(#silkOutline)" stroke-width="6" opacity=".43"/>
+  <!-- Soft naturalistic shadow beneath the lily -->
+  <g transform="translate(1188 40) rotate(7)" opacity=".34" filter="url(#petalShadow)">
+    <path d="M75 5C-37-128-120-136-138-88c-24 64 72 137 157 159Z" fill="#bc8e91"/>
+    <path d="M82 18C103-123 176-186 237-159c35 15 19 106-119 194Z" fill="#b78d92"/>
+    <path d="M78 28C232-27 312 7 300 61c-19 78-166 50-228-1Z" fill="#bc8b96"/>
+    <path d="M63 30C-46 146-163 156-178 92c-19-80 109-116 205-85Z" fill="#c5969f"/>
+  </g>
+  <!-- Oversized cropped blush lily, top-right -->
+  <g transform="translate(1230 20) rotate(7)">
+    <path d="M18 45C-117 10-196-67-158-128c27-44 133-55 203 15 44 44 48 107 18 161Z" fill="url(#petal1)" stroke="#f9d5d3" stroke-width="1.6"/>
+    <path d="M44 32C25-105 118-225 202-203c64 18 41 114-46 192-54 48-96 55-112 43Z" fill="url(#petal2)" stroke="#f1cecb" stroke-width="1.6"/>
+    <path d="M53 41C162-75 311-94 339-33c32 69-71 143-215 118-44-8-71-25-71-44Z" fill="url(#petal3)" stroke="#edbdc2" stroke-width="1.6"/>
+    <path d="M39 50C34 141-36 239-116 211c-58-21-40-112 28-165 58-44 109-41 127 4Z" fill="url(#petal2)" stroke="#efc4c5" stroke-width="1.6"/>
+    <path d="M58 49C124 108 169 242 114 266c-77 34-134-83-113-172 7-32 27-48 57-45Z" fill="url(#petal4)" stroke="#e6afb4" stroke-width="1.4"/>
+    <path d="M42 49C17 3 11-49 33-113" stroke="#f6d0ce" stroke-width="3.6" fill="none" opacity=".74"/>
+    <path d="M55 50C96 4 149-45 214-72" stroke="#f3c8c9" stroke-width="3.4" fill="none" opacity=".8"/>
+    <path d="M50 59C-32 97-65 147-87 190" stroke="#f3c5c5" stroke-width="2.8" fill="none" opacity=".8"/>
+    <path d="M55 51C80 89 96 140 109 202" stroke="#e7adb1" stroke-width="3" fill="none" opacity=".62"/>
+    <path d="M55 49C-12 9-78-23-122-61" stroke="#f2c6c4" stroke-width="2.2" fill="none" opacity=".62"/>
+    <g stroke="#e7b55d" stroke-linecap="round">
+      <path d="M51 46L40 -92" stroke-width="3.5"/>
+      <path d="M59 51L106 -57" stroke-width="2.8"/>
+      <path d="M49 50L-20 -56" stroke-width="2.5"/>
+    </g>
+    <g fill="#d9a340">
+      <ellipse cx="40" cy="-92" rx="7" ry="19" transform="rotate(-13 40 -92)"/>
+      <ellipse cx="106" cy="-57" rx="6" ry="16" transform="rotate(26 106 -57)"/>
+      <ellipse cx="-20" cy="-56" rx="5" ry="15" transform="rotate(-32 -20 -56)"/>
+    </g>
+    <ellipse cx="51" cy="50" rx="26" ry="23" fill="#f5d4b5" opacity=".93"/>
+  </g>
+  <!-- Delicate secondary floral impressions in the upper side -->
+  <g transform="translate(1532 289) scale(.42)" opacity=".24" filter="url(#soft)">
+    <path d="M0 0C-110-180-200-150-180-80-160-13-80 30 0 0Z" fill="#dca7ae"/>
+    <path d="M0 0C100-190 200-170 194-100 192-23 80 45 0 0Z" fill="#eab9bf"/>
+    <path d="M0 0C210 65 210 140 140 160 68 168 4 89 0 0Z" fill="#e6a5b0"/>
+  </g>
+  <!-- Silk-like warm-ivory ribbons rolling along the lower-right -->
+  <path d="M772 1054C1046 1025 1071 948 1242 925c138-19 271 35 358-24v149Z" fill="#e7b9b6" opacity=".31"/>
+  <path d="M754 1055C965 1050 1098 947 1232 938c171-12 261 31 368-33v145Z" fill="#fffbf6" opacity=".72"/>
+  <path d="M810 1058C999 1004 1136 958 1260 961c174 4 247 25 340-37" stroke="#fffdfa" stroke-width="4" opacity=".89" fill="none"/>
+  <path d="M1092 1050C1230 973 1378 1006 1491 968c51-18 86-39 109-56" fill="none" stroke="#e7bab6" stroke-width="2.1" opacity=".64"/>
+  <!-- Fine atmospheric texture -->
+  <rect width="1600" height="1050" opacity=".017" filter="url(#grain)"/>
+</svg>

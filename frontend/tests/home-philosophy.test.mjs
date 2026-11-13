@@ -27,3 +27,10 @@ test('philosophy serves mobile-sized photos while retaining a 4K option and lazy
   assert.ok(css.includes('@media(max-width:700px)'));
   assert.match(css,/\.quiet-home \.quiet-statement-gallery img\{[^}]*object-fit:cover/s);
 });
+
+test('philosophy removes its decorative counter, monogram and photo borders',()=>{
+  assert.ok(!app.includes('01 / A FLEXIBLE EVERYDAY'));
+  assert.ok(!app.includes('quiet-statement-counter'));
+  assert.ok(!app.includes('quiet-statement-gallery-mark'));
+  assert.match(css,/\.quiet-home \.quiet-statement-landscape\{[^}]*border:0;/s);
+});

@@ -254,7 +254,7 @@
 .quiet-home-footer{
   margin-top:0;
   border:0;
-  padding:clamp(50px,5vw,70px) 0 43px;
+  padding:clamp(35px,4vw,53px) 0 31px;
   background:#073C41;
 }
 .quiet-home-footer .footer-inner{max-width:1450px}

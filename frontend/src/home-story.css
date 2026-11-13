@@ -5,7 +5,7 @@
   width:100%;
   max-width:1510px;
   margin-inline:auto;
-  padding-inline:clamp(24px,5.8vw,95px);
+  padding-inline:clamp(20px,4.8vw,76px);
 }
 .home-editorial-label{
   font:650 10px/1.5 'Inter',sans-serif;
@@ -14,7 +14,7 @@
   text-transform:uppercase;
 }
 .home-editorial-collections{
-  padding:clamp(67px,8vw,122px) 0 clamp(65px,7vw,112px);
+  padding:clamp(42px,5.4vw,78px) 0 clamp(42px,5.4vw,76px);
   background:#FFFCF7;
   color:#10565C;
 }
@@ -23,7 +23,7 @@
   grid-template-columns:minmax(175px,.56fr) minmax(0,1.8fr);
   column-gap:clamp(24px,5vw,80px);
   align-items:start;
-  margin-bottom:clamp(37px,4.8vw,66px);
+  margin-bottom:clamp(24px,3.2vw,43px);
 }
 .home-editorial-introduction>.home-editorial-label{
   padding-top:16px;
@@ -45,7 +45,7 @@
   letter-spacing:-.035em;
 }
 .home-editorial-heading p{
-  margin:23px 0 0;
+  margin:16px 0 0;
   max-width:690px;
   color:#526E65;
   font:400 clamp(14px,1.18vw,16px)/1.9 'Inter',sans-serif;
@@ -60,17 +60,17 @@
   gap:clamp(13px,2vw,27px);
 }
 .home-collection-grid .home-collection:nth-child(2){
-  margin-top:clamp(65px,7vw,112px);
+  margin-top:clamp(36px,4.3vw,65px);
 }
 .home-collection-grid .home-collection:nth-child(3){
-  margin-top:clamp(130px,14vw,224px);
+  margin-top:clamp(72px,8.6vw,130px);
 }
 .home-collection{
   margin:0;
   display:flex;
   flex-direction:column;
   min-width:0;
-  border-bottom:1px solid rgba(16,86,92,.26);
+  border-bottom:0;
 }
 .home-collection-image{
   aspect-ratio:4/4.8;
@@ -90,7 +90,7 @@
 .home-collection:first-child .home-collection-image img{object-position:50% 50%}
 .home-collection:hover .home-collection-image img{transform:scale(1.025)}
 .home-collection-caption{
-  padding:22px 0 24px;
+  padding:16px 0 18px;
   color:#10565C;
 }
 .home-collection-caption>span{
@@ -110,7 +110,7 @@
   font:400 13px/1.65 'Inter',sans-serif;
 }
 .home-editorial-journey{
-  padding:clamp(67px,7.5vw,112px) 0 clamp(68px,7.4vw,108px);
+  padding:clamp(45px,5.6vw,80px) 0 clamp(45px,5.4vw,77px);
   background:#F5EFE4;
   color:#10565C;
   border-top:1px solid rgba(16,86,92,.16);
@@ -147,11 +147,11 @@
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:clamp(25px,4vw,64px);
-  margin-top:clamp(39px,5.2vw,76px);
+  margin-top:clamp(25px,3.5vw,49px);
 }
 .home-editorial-step{
   border-top:1px solid rgba(16,86,92,.48);
-  padding-top:23px;
+  padding-top:16px;
   min-width:0;
 }
 .home-editorial-step-word{
@@ -165,7 +165,7 @@
   color:#10565C;
   font:400 clamp(25px,2.8vw,40px)/1.12 'Cormorant Garamond',Georgia,serif;
   letter-spacing:-.022em;
-  margin:19px 0 12px;
+  margin:13px 0 9px;
 }
 .home-editorial-step p{
   color:#526E65;
@@ -179,7 +179,7 @@
   overflow:hidden;
   background:#10565C;
   color:#F5EFE4;
-  padding:clamp(70px,8.2vw,130px) 0 clamp(67px,8vw,119px);
+  padding:clamp(44px,5.9vw,84px) 0 clamp(42px,5.6vw,78px);
 }
 /* Full-bleed people-free yoga photograph, with a flat brand-teal overlay
    to preserve the ivory text's readability. */
@@ -208,7 +208,7 @@
 }
 .home-editorial-invitation .home-editorial-label{color:#F3DEDF}
 .home-editorial-invitation-heading h2{
-  margin:17px 0 clamp(36px,5vw,72px);
+  margin:14px 0 clamp(24px,3.3vw,44px);
   max-width:1100px;
   color:#F5EFE4;
   font:400 clamp(39px,5.4vw,83px)/1.09 'Bodoni Moda',Georgia,serif;
@@ -229,12 +229,12 @@
   display:flex;
   flex-direction:column;
   align-items:flex-start;
-  min-height:270px;
-  padding:clamp(25px,3.5vw,50px) clamp(20px,4.2vw,65px) clamp(26px,3.3vw,46px) 0;
+  min-height:225px;
+  padding:clamp(19px,2.8vw,35px) clamp(20px,3.4vw,52px) clamp(19px,2.8vw,35px) 0;
 }
 .home-editorial-portal+.home-editorial-portal{
   border-left:1px solid rgba(245,239,228,.27);
-  padding-left:clamp(28px,4.5vw,69px);
+  padding-left:clamp(23px,3.3vw,52px);
 }
 .home-editorial-portal>span{
   color:#C9DDE2;
@@ -242,7 +242,7 @@
   letter-spacing:.15em;
 }
 .home-editorial-portal h3{
-  margin:18px 0 11px;
+  margin:12px 0 8px;
   color:#F5EFE4;
   font:400 clamp(28px,3.4vw,49px)/1.12 'Cormorant Garamond',Georgia,serif;
   letter-spacing:-.026em;
@@ -250,7 +250,7 @@
 .home-editorial-portal p{
   color:#D5E4DE;
   max-width:415px;
-  margin:0 0 24px;
+  margin:0 0 17px;
   font:400 13px/1.85 'Inter',sans-serif;
 }
 .home-editorial-portal a{
@@ -270,8 +270,8 @@
 .home-editorial-portal a:hover{gap:44px;border-color:#F3DEDF}
 .home-editorial-portal a:focus-visible{outline:2px solid #F3DEDF;outline-offset:4px}
 @media(max-width:900px){
-  .home-collection-grid .home-collection:nth-child(2){margin-top:clamp(32px,5vw,52px)}
-  .home-collection-grid .home-collection:nth-child(3){margin-top:clamp(64px,10vw,104px)}
+  .home-collection-grid .home-collection:nth-child(2){margin-top:clamp(20px,3.4vw,36px)}
+  .home-collection-grid .home-collection:nth-child(3){margin-top:clamp(40px,6.8vw,72px)}
   .home-editorial-introduction,
   .home-editorial-journey-heading{
     grid-template-columns:minmax(130px,.45fr) minmax(0,1.55fr);
@@ -288,7 +288,7 @@
   .home-editorial-journey-heading{display:block}
   .home-editorial-introduction>.home-editorial-label,
   .home-editorial-journey-heading>.home-editorial-label{
-    margin-bottom:28px;
+    margin-bottom:18px;
     max-width:175px;
   }
   .home-editorial-heading h2,
@@ -311,15 +311,15 @@
   .home-collection-grid .home-collection:nth-child(3){margin-top:0}
   .home-collection{scroll-snap-align:start}
   .home-collection-image{aspect-ratio:4/4.9}
-  .home-editorial-steps{grid-template-columns:1fr;gap:28px;margin-top:40px}
+  .home-editorial-steps{grid-template-columns:1fr;gap:22px;margin-top:27px}
   .home-editorial-step h3{font-size:34px;margin:12px 0 7px}
   .home-editorial-step p{max-width:510px}
   .home-editorial-portals{grid-template-columns:1fr}
-  .home-editorial-portal{min-height:0;padding:27px 0 34px}
+  .home-editorial-portal{min-height:0;padding:21px 0 25px}
   .home-editorial-portal+.home-editorial-portal{
     border-left:0;
     border-top:1px solid rgba(245,239,228,.27);
-    padding:27px 0 34px;
+    padding:21px 0 25px;
   }
   .home-editorial-portal h3{font-size:38px}
   .home-editorial-invitation-heading h2{font-size:clamp(43px,9.3vw,61px)}
@@ -339,23 +339,23 @@
 .quiet-home .quiet-statement-inner.quiet-statement-editorial{
   max-width:1560px;
   margin:0 auto;
-  padding:clamp(76px,8.6vw,135px) clamp(25px,6vw,105px);
+  padding:clamp(45px,5.8vw,85px) clamp(25px,6vw,105px);
   display:grid;
   grid-template-columns:minmax(0,.92fr) minmax(0,1fr);
   align-items:center;
-  column-gap:clamp(45px,7vw,130px);
+  column-gap:clamp(31px,5vw,86px);
 }
 .quiet-home .quiet-statement-copy{
   min-width:0;
   align-self:center;
-  padding-block:clamp(16px,3vw,45px);
+  padding-block:clamp(10px,2vw,27px);
 }
 .quiet-home .quiet-statement-lead{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
   gap:24px;
-  margin-bottom:clamp(48px,6vw,93px);
+  margin-bottom:clamp(25px,3.3vw,49px);
 }
 .quiet-home .quiet-statement-eyebrow{
   flex:none;
@@ -367,13 +367,6 @@
   color:#10565c;
   padding-top:13px;
   border-top:1px solid #aa1350;
-}
-.quiet-home .quiet-statement-counter{
-  padding-top:13px;
-  color:#927a76;
-  white-space:nowrap;
-  font:600 9px/1.7 'Inter',sans-serif;
-  letter-spacing:.115em;
 }
 .quiet-home .quiet-statement h2{
   display:block;
@@ -396,7 +389,7 @@
   display:block;
   grid-column:auto;
   max-width:430px;
-  margin:clamp(24px,3vw,39px) 0 0;
+  margin:clamp(17px,2.2vw,28px) 0 0;
   font:400 clamp(14px,1.1vw,16px)/1.85 'Inter',sans-serif;
   color:#59716c;
 }
@@ -404,7 +397,7 @@
   display:flex;
   align-items:center;
   gap:17px;
-  margin-top:clamp(40px,5.5vw,83px);
+  margin-top:clamp(25px,3.5vw,53px);
   color:#8a8179;
   font:650 10px/1.45 'Inter',sans-serif;
   letter-spacing:.17em;
@@ -419,7 +412,7 @@
   position:relative;
   width:100%;
   min-width:0;
-  min-height:clamp(450px,42vw,655px);
+  min-height:clamp(360px,34vw,530px);
   align-self:center;
 }
 .quiet-home .quiet-statement-gallery figure{
@@ -437,8 +430,8 @@
 }
 .quiet-home .quiet-statement-portrait{
   inset:0 15% 10% 0;
-  border-radius:2px;
-  box-shadow:0 25px 48px rgba(49,42,39,.11);
+  border-radius:0;
+  box-shadow:0 16px 33px rgba(49,42,39,.08);
 }
 .quiet-home .quiet-statement-portrait img{
   object-position:center 52%;
@@ -459,20 +452,12 @@
   bottom:0;
   width:52%;
   height:39%;
-  border:9px solid #f9f3ee;
-  box-shadow:0 18px 36px rgba(29,45,42,.15);
-  border-radius:1px;
+  border:0;
+  box-shadow:0 13px 28px rgba(29,45,42,.1);
+  border-radius:0;
 }
 .quiet-home .quiet-statement-landscape img{
   object-position:center 55%;
-}
-.quiet-home .quiet-statement-gallery-mark{
-  position:absolute;
-  right:4%;
-  top:0;
-  color:#b19c91;
-  font:400 19px/1 'Bodoni Moda',Georgia,serif;
-  letter-spacing:.08em;
 }
 @media(max-width:1100px){
   .quiet-home .quiet-statement-inner.quiet-statement-editorial{
@@ -482,10 +467,9 @@
   }
   .quiet-home .quiet-statement-lead{
     flex-direction:column;
-    gap:7px;
-    margin-bottom:44px;
+    gap:0;
+    margin-bottom:28px;
   }
-  .quiet-home .quiet-statement-counter{padding-top:0}
   .quiet-home .quiet-statement h2{font-size:clamp(44px,5.8vw,68px)}
 }
 @media(max-width:700px){
@@ -493,27 +477,25 @@
     display:flex;
     flex-direction:column;
     align-items:stretch;
-    gap:34px;
-    padding:clamp(59px,10vw,79px) 22px clamp(58px,9vw,75px);
+    gap:24px;
+    padding:clamp(42px,7vw,62px) 22px clamp(43px,7vw,61px);
   }
   .quiet-home .quiet-statement-copy{padding:0}
   .quiet-home .quiet-statement-lead{
     flex-direction:row;
     align-items:center;
-    margin-bottom:31px;
+    margin-bottom:21px;
   }
-  .quiet-home .quiet-statement-counter{font-size:8px}
   .quiet-home .quiet-statement h2{font-size:clamp(42px,9.5vw,67px)}
   .quiet-home .quiet-statement p{max-width:520px;margin-top:21px;font-size:14px}
-  .quiet-home .quiet-statement-signoff{margin-top:32px;font-size:9px}
+  .quiet-home .quiet-statement-signoff{margin-top:23px;font-size:9px}
   .quiet-home .quiet-statement-gallery{
     min-height:0;
-    height:clamp(340px,115vw,560px);
+    height:clamp(300px,95vw,470px);
     width:min(100%,520px);
     margin:0 auto;
   }
   .quiet-home .quiet-statement-portrait{inset:0 13% 9% 0}
-  .quiet-home .quiet-statement-landscape{border-width:6px}
   .quiet-home .quiet-statement-portrait figcaption{
     bottom:16px;
     left:14px;
@@ -522,6 +504,6 @@
   }
 }
 @media(max-width:390px){
-  .quiet-home .quiet-statement-lead{flex-direction:column;align-items:flex-start;gap:4px}
+  .quiet-home .quiet-statement-lead{flex-direction:column;align-items:flex-start;gap:0}
   .quiet-home .quiet-statement h2{font-size:42px}
 }

@@ -77,7 +77,6 @@ function Home(){
         <div className="quiet-statement-copy">
           <div className="quiet-statement-lead">
             <span className="quiet-statement-eyebrow">OUR PHILOSOPHY</span>
-            <span className="quiet-statement-counter">01 / A FLEXIBLE EVERYDAY</span>
           </div>
           <h2 id="quiet-statement-title">A healthier, happier <em>everyday.</em></h2>
           <p>Make space for what matters. A flexible way to experience more of what you enjoy.</p>
@@ -124,7 +123,6 @@ function Home(){
               fetchPriority="low"
             />
           </figure>
-          <span className="quiet-statement-gallery-mark" aria-hidden="true">F / P</span>
         </div>
       </div>
     </section>

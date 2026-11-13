@@ -40,8 +40,8 @@ test('footer rows stretch to full width so navigation reaches the right edge',()
 
 test('collection cards form a descending staircase on desktop and tablet',()=>{
   assert.match(storyStyles,/\.home-collection-grid\{[^}]*align-items:start/s);
-  assert.match(storyStyles,/\.home-collection-grid \.home-collection:nth-child\(2\)\{\s*margin-top:clamp\(65px,7vw,112px\)/);
-  assert.match(storyStyles,/\.home-collection-grid \.home-collection:nth-child\(3\)\{\s*margin-top:clamp\(130px,14vw,224px\)/);
+  assert.match(storyStyles,/\.home-collection-grid \.home-collection:nth-child\(2\)\{\s*margin-top:clamp\(36px,4.3vw,65px\)/);
+  assert.match(storyStyles,/\.home-collection-grid \.home-collection:nth-child\(3\)\{\s*margin-top:clamp\(72px,8.6vw,130px\)/);
   assert.match(storyStyles,/@media\(max-width:900px\)/);
 });
 test('mobile collection keeps swipeable cards aligned without vertical clipping',()=>{
@@ -61,4 +61,12 @@ test('homepage invitation uses the supplied people-free photo as a full-bleed ba
   assert.match(storyStyles,/\.home-editorial-invitation-photo\{[^}]*object-fit:cover/s);
   assert.match(storyStyles,/\.home-editorial-invitation::before\{[^}]*background:rgba\(7,45,48,\.68\)/s);
   assert.doesNotMatch(home,/Imagery is illustrative and does not represent specific FlexPass partner venues/);
+});
+
+test('home sections are more compact and photographs are borderless',()=>{
+  assert.match(storyStyles,/\.quiet-home \.quiet-statement-landscape\{[^}]*border:0;/s);
+  assert.match(storyStyles,/\.home-collection\{[^}]*border-bottom:0;/s);
+  assert.match(storyStyles,/\.home-editorial-collections\{[^}]*padding:clamp\(42px,5\.4vw,78px\)/s);
+  assert.match(storyStyles,/\.home-editorial-journey\{[^}]*padding:clamp\(45px,5\.6vw,80px\)/s);
+  assert.match(storyStyles,/\.home-editorial-invitation\{[^}]*padding:clamp\(44px,5\.9vw,84px\)/s);
 });

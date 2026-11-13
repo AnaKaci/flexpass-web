@@ -40,6 +40,11 @@ DEMO_MODE = os.environ.get('FLEXPASS_DEMO_MODE', 'false' if ENVIRONMENT == 'prod
 # Simulated bank transfer can never run in production, even if demo data is enabled there.
 SIMULATED_BANK_TRANSFERS = DEMO_MODE and ENVIRONMENT in ('development', 'test', 'staging')
 CANCELLATION_CUTOFF_HOURS = max(0, int(os.environ.get('FLEXPASS_CANCELLATION_CUTOFF_HOURS', '0')))
+CANCELLATION_FULL_HOURS = max(1, int(os.environ.get('FLEXPASS_CANCELLATION_FULL_REFUND_HOURS', '24')))
+CANCELLATION_PARTIAL_HOURS = max(0, int(os.environ.get('FLEXPASS_CANCELLATION_PARTIAL_REFUND_HOURS', '6')))
+CANCELLATION_PARTIAL_PERCENT = max(0, min(100, int(os.environ.get('FLEXPASS_CANCELLATION_PARTIAL_REFUND_PERCENT', '50'))))
+if CANCELLATION_PARTIAL_HOURS >= CANCELLATION_FULL_HOURS:
+    raise RuntimeError('Cancellation partial threshold must be below full refund threshold.')
 SECRET = os.environ.get('FLEXPASS_SECRET', 'change-me-demo-only-local-secret')
 if ENVIRONMENT == 'production':
     if len(SECRET) < 32 or SECRET == 'change-me-demo-only-local-secret':
@@ -271,6 +276,9 @@ class ServiceReview(Base):
     comment = Column(String(500), nullable=False)
     created_at = Column(DateTime, default=now, nullable=False)
 
+from .booking_features import (SlotHold, WaitlistEntry, BookingCancellation,
+                               active_holds, reconcile_waitlist, cancellation_quote)
+
 class ClientProfileUpdateBody(BaseModel):
     full_name: str = Field(min_length=2, max_length=160)
     birthday: Optional[date] = None
@@ -318,6 +326,7 @@ class PartnerInviteBody(BaseModel):
 
 class BookBody(BaseModel):
     slot_id: int
+    hold_id: Optional[int] = None
 class CompanyBody(BaseModel):
     name: str = Field(min_length=2)
     hr_email: str = ''
@@ -700,7 +709,7 @@ def catalog(group:Optional[str]=None,subcategory:Optional[str]=None,search:str='
         out=[]
         for service,partner in rows:
             slots=s.scalars(select(Slot).where(Slot.service_id==service.id,Slot.start_at>now()).order_by(Slot.start_at).limit(20)).all()
-            out.append({'id':service.id,'name':service.name,'group':service.group_name,'subcategory':service.subcategory,'description':service.description,'credits':service.credits,'duration_minutes':service.duration_minutes,'partner':partner.name,'partner_id':partner.id,'zone':partner.zone,'slots':[{'id':x.id,'start_at':iso(x.start_at),'capacity':x.capacity,'available':max(0,x.capacity-x.reserved)} for x in slots]})
+            out.append({'id':service.id,'name':service.name,'group':service.group_name,'subcategory':service.subcategory,'description':service.description,'credits':service.credits,'duration_minutes':service.duration_minutes,'partner':partner.name,'partner_id':partner.id,'zone':partner.zone,'slots':[{'id':x.id,'start_at':iso(x.start_at),'capacity':x.capacity,'available':max(0,x.capacity-x.reserved-active_holds(s,x.id))} for x in slots]})
         return out
 
 @app.get('/api/client/summary')
@@ -751,14 +760,31 @@ def make_booking(body:BookBody,req:Request,u=Depends(roles('employee','client'))
             service=s.get(Service,sl.service_id)
             if not service or not service.active:raise HTTPException(400,'Service unavailable')
             if sl.start_at <= now():raise HTTPException(409,'Slot already started')
-            if sl.reserved>=sl.capacity:raise HTTPException(409,'No remaining places')
+            reconcile_waitlist(s,sl)
+            hold=None
+            if body.hold_id is not None:
+                hold=s.scalar(select(SlotHold).where(SlotHold.id==body.hold_id,
+                         SlotHold.user_id==u.id,SlotHold.slot_id==sl.id).with_for_update())
+                if not hold or hold.expires_at<=now():
+                    raise HTTPException(409,'Hold expired; select the session again')
+            if sl.reserved+active_holds(s,sl.id)-(1 if hold else 0)>=sl.capacity:
+                raise HTTPException(409,'No remaining places')
             if balance(s,u.id)<service.credits: raise HTTPException(409,'Insufficient credits')
-            if s.scalar(select(Booking).where(Booking.user_id==u.id,Booking.slot_id==sl.id)):raise HTTPException(409,'Already booked this slot')
+            if s.scalar(select(Booking).where(Booking.user_id==u.id,Booking.slot_id==sl.id)):
+                raise HTTPException(409,'Already booked this slot')
             sl.reserved+=1
             b=Booking(reference='FP-'+secrets.token_hex(4).upper(),user_id=u.id,slot_id=sl.id,service_id=service.id,partner_id=service.partner_id,credits_snapshot=service.credits,payout_snapshot_cents=service.payout_cents,status='BOOKED')
             s.add(b);s.flush()
-            if key: s.add(BookingRequest(user_id=u.id,idempotency_key=key,slot_id=sl.id,booking_id=b.id))
-            s.add(Ledger(user_id=u.id,booking_id=b.id,kind='DEBIT',amount=-service.credits,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Booking {b.reference}'))
+            if hold:
+                if hold.waitlist_id:
+                    entry=s.get(WaitlistEntry,hold.waitlist_id)
+                    if entry and entry.status=='OFFERED':entry.status='BOOKED'
+                s.delete(hold);s.flush()
+            if key:s.add(BookingRequest(user_id=u.id,idempotency_key=key,slot_id=sl.id,booking_id=b.id))
+            s.add(Ledger(user_id=u.id,booking_id=b.id,kind='DEBIT',
+                         source='PERSONAL' if u.role=='client' else 'COMPANY',
+                         amount=-service.credits,period=now().strftime('%Y-%m'),
+                         actor_id=u.id,reason=f'Booking {b.reference}'))
             audit(s,u.id,'BOOKING_CREATED',b.reference)
             notify_user(s,u.id,'BOOKING_CREATED','Booking confirmed',
                         f'Your reservation {b.reference} is confirmed.')
@@ -780,15 +806,29 @@ def cancel_booking(booking_id:int,u=Depends(roles('employee','client'))):
             if b.user_id!=u.id:raise HTTPException(403,'Not your booking')
             if b.status!='BOOKED':raise HTTPException(409,'Only active bookings may be cancelled')
             sl=s.scalar(select(Slot).where(Slot.id==b.slot_id).with_for_update())
-            if sl.start_at<=now()+timedelta(hours=CANCELLATION_CUTOFF_HOURS):raise HTTPException(409,'Cancellation window closed for this pilot')
+            quote=cancellation_quote(b,sl)
+            if not quote['allowed']:raise HTTPException(409,'Cancellation window closed')
+            if sl.reserved<1:raise HTTPException(409,'Slot inventory inconsistent')
             b.status='CANCELLED';b.cancelled_at=now();sl.reserved-=1
-            s.add(Ledger(user_id=b.user_id,booking_id=b.id,kind='REFUND',amount=b.credits_snapshot,period=now().strftime('%Y-%m'),actor_id=u.id,reason=f'Cancellation {b.reference}'))
-            audit(s,u.id,'BOOKING_CANCELLED',b.reference)
+            amount=quote['refund_credits']
+            if amount:
+                s.add(Ledger(user_id=b.user_id,booking_id=b.id,kind='REFUND',
+                             source='PERSONAL' if u.role=='client' else 'COMPANY',
+                             amount=amount,period=now().strftime('%Y-%m'),actor_id=u.id,
+                             reason=f'Cancellation {b.reference}: {quote["policy_tier"]}'))
+            s.add(BookingCancellation(booking_id=b.id,refunded_credits=amount,
+                  retained_credits=quote['retained_credits'],policy_tier=quote['policy_tier'],
+                  actor_id=u.id))
+            reconcile_waitlist(s,sl)
+            audit(s,u.id,'BOOKING_CANCELLED',
+                  f'{b.reference},refund={amount},tier={quote["policy_tier"]}')
             notify_user(s,u.id,'BOOKING_CANCELLED','Booking cancelled',
-                        f'Reservation {b.reference} was cancelled and credits returned.')
+                        f'Reservation {b.reference} was cancelled. {amount} credits returned.')
             notify_partner(s,b.partner_id,'BOOKING_CANCELLED','Reservation cancelled',
                            f'Reservation {b.reference} was cancelled.')
-            s.commit();return {'status':'CANCELLED','refunded':b.credits_snapshot}
+            s.commit();return {'status':'CANCELLED','refunded':amount,
+                               'retained':quote['retained_credits'],
+                               'policy_tier':quote['policy_tier']}
         except HTTPException:s.rollback();raise
         except Exception:s.rollback();raise
 
@@ -1580,6 +1620,8 @@ def seed():
         s.add(Invoice(company_id=c1.id,period=now().strftime('%Y-%m'),reference='DEMO-INV-001',amount_cents=0,status='DRAFT'))
         s.commit()
 
+from .booking_features import install_routes
+install_routes()
 seed()
 DIST = ROOT / 'frontend' / 'dist'
 

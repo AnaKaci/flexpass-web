@@ -706,10 +706,24 @@ def catalog(group:Optional[str]=None,subcategory:Optional[str]=None,search:str='
             key=f'%{search.lower()}%'
             q=q.where((func.lower(Service.name).like(key)) | (func.lower(Partner.name).like(key)) | (func.lower(Service.description).like(key)))
         rows=s.execute(q.order_by(Service.id)).all()
-        out=[]
+        # Batch held-seat counts across the displayed slots instead of a query
+        # per slot (important for fast Explore page loads).
+        items=[]
         for service,partner in rows:
-            slots=s.scalars(select(Slot).where(Slot.service_id==service.id,Slot.start_at>now()).order_by(Slot.start_at).limit(20)).all()
-            out.append({'id':service.id,'name':service.name,'group':service.group_name,'subcategory':service.subcategory,'description':service.description,'credits':service.credits,'duration_minutes':service.duration_minutes,'partner':partner.name,'partner_id':partner.id,'zone':partner.zone,'slots':[{'id':x.id,'start_at':iso(x.start_at),'capacity':x.capacity,'available':max(0,x.capacity-x.reserved-active_holds(s,x.id))} for x in slots]})
+            slots=s.scalars(select(Slot).where(Slot.service_id==service.id,
+                  Slot.start_at>now()).order_by(Slot.start_at).limit(20)).all()
+            items.append((service,partner,slots))
+        all_ids=[sl.id for _service,_partner,slots in items for sl in slots]
+        held_counts={}
+        for offset in range(0,len(all_ids),500):
+            page=all_ids[offset:offset+500]
+            holds=s.execute(select(SlotHold.slot_id,func.count(SlotHold.id))
+                            .where(SlotHold.slot_id.in_(page),SlotHold.expires_at>now())
+                            .group_by(SlotHold.slot_id)).all()
+            held_counts.update({slot_id:int(count) for slot_id,count in holds})
+        out=[]
+        for service,partner,slots in items:
+            out.append({'id':service.id,'name':service.name,'group':service.group_name,'subcategory':service.subcategory,'description':service.description,'credits':service.credits,'duration_minutes':service.duration_minutes,'partner':partner.name,'partner_id':partner.id,'zone':partner.zone,'slots':[{'id':x.id,'start_at':iso(x.start_at),'capacity':x.capacity,'available':max(0,x.capacity-x.reserved-held_counts.get(x.id,0))} for x in slots]})
         return out
 
 @app.get('/api/client/summary')

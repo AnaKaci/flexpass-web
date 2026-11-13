@@ -358,7 +358,8 @@ def install_routes():
                 extra = body.refund_credits - already
                 if extra:
                     db.add(c.Ledger(user_id=booking.user_id, booking_id=booking.id,
-                                    kind='REFUND', source='PERSONAL',
+                                    kind='REFUND',
+                                    source='PERSONAL' if db.get(c.User,booking.user_id).role=='client' else 'COMPANY',
                                     amount=extra, period=now().strftime('%Y-%m'),
                                     actor_id=u.id, reason='Admin correction: ' + body.reason))
                 record = db.scalar(select(BookingCancellation).where(

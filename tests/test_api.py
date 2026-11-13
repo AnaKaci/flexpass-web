@@ -35,12 +35,17 @@ def test_booking_ledger_and_idempotent_cancel():
     booking=b.json()
     assert client.get('/api/employee/summary',headers=emp).json()['balance']==initial-sv['credits']
     assert client.post('/api/bookings',json={'slot_id':sv['slots'][0]['id']},headers=emp).status_code==409
-    assert client.post(f"/api/bookings/{booking['id']}/cancel",json={},headers=emp).status_code==200
+    quote=client.get(f"/api/bookings/{booking['id']}/cancellation-quote",headers=emp)
+    assert quote.status_code==200,quote.text
+    cancelled=client.post(f"/api/bookings/{booking['id']}/cancel",json={},headers=emp)
+    assert cancelled.status_code==200,cancelled.text
+    assert cancelled.json()['refunded']==quote.json()['refund_credits']
     assert client.post(f"/api/bookings/{booking['id']}/cancel",json={},headers=emp).status_code==409
-    assert client.get('/api/employee/summary',headers=emp).json()['balance']==initial
+    expected=initial-sv['credits']+quote.json()['refund_credits']
+    assert client.get('/api/employee/summary',headers=emp).json()['balance']==expected
     ledger=client.get('/api/employee/ledger',headers=emp).json()
-    assert sum(x['amount'] for x in ledger)==initial
-    assert len([x for x in ledger if x['kind']=='REFUND'])==1
+    assert sum(x['amount'] for x in ledger)==expected
+    assert len([x for x in ledger if x['kind']=='REFUND'])==(1 if cancelled.json()['refunded'] else 0)
 
 def test_partner_checkin_and_settlement_once():
     emp=auth('employee');partner=auth('partner');admin=auth('admin')

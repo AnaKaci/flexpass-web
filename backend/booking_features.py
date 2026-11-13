@@ -113,7 +113,7 @@ def reconcile_waitlist(db, slot):
     for entry in queue:
         if seats == 0:
             break
-        member = db.scalar(select(c.User).where(c.User.id == entry.user_id).with_for_update())
+        member = db.get(c.User, entry.user_id)  # Slot lock already serializes the offer
         if not member or member.membership_status != 'ACTIVE' or c.balance(db, entry.user_id) < service.credits:
             entry.status = 'EXPIRED'
             c.notify_user(db, entry.user_id, 'WAITLIST_UNAVAILABLE',

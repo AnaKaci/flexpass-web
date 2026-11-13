@@ -73,10 +73,59 @@ function Home(){
   return <PublicLayout home><main className="home-page quiet-home">
     <LuminaHero/>
     <section className="quiet-statement" aria-labelledby="quiet-statement-title">
-      <div className="quiet-statement-inner">
-        <span className="quiet-statement-eyebrow">OUR PHILOSOPHY</span>
-        <h2 id="quiet-statement-title">A healthier, happier <em>everyday.</em></h2>
-        <p>Make space for what matters. A flexible way to experience more of what you enjoy.</p>
+      <div className="quiet-statement-inner quiet-statement-editorial">
+        <div className="quiet-statement-copy">
+          <div className="quiet-statement-lead">
+            <span className="quiet-statement-eyebrow">OUR PHILOSOPHY</span>
+            <span className="quiet-statement-counter">01 / A FLEXIBLE EVERYDAY</span>
+          </div>
+          <h2 id="quiet-statement-title">A healthier, happier <em>everyday.</em></h2>
+          <p>Make space for what matters. A flexible way to experience more of what you enjoy.</p>
+          <div className="quiet-statement-signoff" aria-hidden="true">
+            <span/>
+            THE ART OF FEELING WELL
+          </div>
+        </div>
+        <div className="quiet-statement-gallery">
+          <figure className="quiet-statement-portrait">
+            <img
+              src="https://images.unsplash.com/photo-1772268485810-29dc9d231f26?auto=format&fit=crop&w=960&q=80"
+              srcSet="https://images.unsplash.com/photo-1772268485810-29dc9d231f26?auto=format&fit=crop&w=640&q=80 640w,
+                https://images.unsplash.com/photo-1772268485810-29dc9d231f26?auto=format&fit=crop&w=960&q=80 960w,
+                https://images.unsplash.com/photo-1772268485810-29dc9d231f26?auto=format&fit=crop&w=1440&q=80 1440w,
+                https://images.unsplash.com/photo-1772268485810-29dc9d231f26?auto=format&fit=crop&w=1920&q=80 1920w,
+                https://images.unsplash.com/photo-1772268485810-29dc9d231f26?auto=format&fit=crop&w=2560&q=80 2560w,
+                https://images.unsplash.com/photo-1772268485810-29dc9d231f26?auto=format&fit=crop&w=3840&q=80 3840w"
+              sizes="(max-width: 700px) 78vw, (max-width: 1100px) 41vw, 33vw"
+              width={3024}
+              height={4032}
+              alt="Natural sunlight falling through sheer curtains and leafy shadows"
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+            />
+            <figcaption>LIGHT, SPACE, AND A MOMENT OF CALM</figcaption>
+          </figure>
+          <figure className="quiet-statement-landscape">
+            <img
+              src="https://images.unsplash.com/photo-1527604234320-e7f7bb99bc6c?auto=format&fit=crop&w=800&q=80"
+              srcSet="https://images.unsplash.com/photo-1527604234320-e7f7bb99bc6c?auto=format&fit=crop&w=480&q=80 480w,
+                https://images.unsplash.com/photo-1527604234320-e7f7bb99bc6c?auto=format&fit=crop&w=800&q=80 800w,
+                https://images.unsplash.com/photo-1527604234320-e7f7bb99bc6c?auto=format&fit=crop&w=1200&q=80 1200w,
+                https://images.unsplash.com/photo-1527604234320-e7f7bb99bc6c?auto=format&fit=crop&w=1600&q=80 1600w,
+                https://images.unsplash.com/photo-1527604234320-e7f7bb99bc6c?auto=format&fit=crop&w=2400&q=80 2400w,
+                https://images.unsplash.com/photo-1527604234320-e7f7bb99bc6c?auto=format&fit=crop&w=3840&q=80 3840w"
+              sizes="(max-width: 700px) 57vw, (max-width: 1100px) 26vw, 19vw"
+              width={5184}
+              height={3888}
+              alt="A quiet lake reflecting the soft light of sunrise"
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+            />
+          </figure>
+          <span className="quiet-statement-gallery-mark" aria-hidden="true">F / P</span>
+        </div>
       </div>
     </section>
     <HomeStory/>

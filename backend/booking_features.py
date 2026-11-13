@@ -74,8 +74,10 @@ def waitlist_view(db, entry):
     held = db.scalar(select(SlotHold).where(SlotHold.waitlist_id == entry.id,
                       SlotHold.expires_at > now())) if entry.status == 'OFFERED' else None
     slot = db.get(core().Slot, entry.slot_id)
+    service = db.get(core().Service, slot.service_id) if slot else None
     return {'id': entry.id, 'slot_id': entry.slot_id,
-            'start_at': iso(slot.start_at) if slot else None, 'status': entry.status,
+            'start_at': iso(slot.start_at) if slot else None,
+            'service_name': service.name if service else '', 'status': entry.status,
             'joined_at': iso(entry.created_at), 'offer_expires_at': iso(entry.offer_expires_at),
             'hold_id': held.id if held else None}
 
@@ -319,6 +321,15 @@ def install_routes():
             if booking.status != 'BOOKED':
                 raise HTTPException(409, 'Only active bookings can be cancelled')
             return {'booking_id': booking.id, **cancellation_quote(booking, db.get(c.Slot, booking.slot_id))}
+
+    @c.app.get('/api/admin/bookings')
+    def admin_bookings(u=Depends(c.roles('admin'))):
+        with c.Session() as db:
+            rows=db.scalars(select(c.Booking).order_by(c.Booking.id.desc()).limit(150)).all()
+            return [{**c.booking_view(db,b),
+                     'refunded_credits':int(db.scalar(select(func.coalesce(func.sum(c.Ledger.amount),0)).where(
+                         c.Ledger.booking_id==b.id,c.Ledger.kind=='REFUND')) or 0)}
+                    for b in rows]
 
     @c.app.post('/api/admin/bookings/{booking_id}/refund')
     def correct_refund(booking_id: int, body: AdminRefundBody,

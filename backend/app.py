@@ -1679,7 +1679,7 @@ DASHBOARD_SECTIONS = {
     'client': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet', 'notifications', 'profile'},
     'employee': {'overview', 'shop', 'discover', 'orders', 'bookings', 'wallet', 'notifications'},  # legacy alias
     'partner': {'overview', 'calendar', 'reservations', 'services', 'settlements', 'feedback', 'notifications'},
-    'admin': {'overview', 'clients', 'partners', 'products', 'orders', 'settlements', 'audit', 'analytics', 'notifications'},
+    'admin': {'overview', 'clients', 'partners', 'products', 'orders', 'bookings', 'settlements', 'audit', 'analytics', 'notifications'},
 }
 
 @app.get('/client/{section}')

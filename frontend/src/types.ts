@@ -4,7 +4,7 @@ export type Status = 'BOOKED' | 'CHECKED_IN' | 'CANCELLED';
 export type ClientSection = 'overview' | 'discover' | 'bookings' | 'wallet' | 'shop' | 'orders' | 'notifications' | 'profile';
 export type EmployeeSection = ClientSection;
 export type PartnerSection = 'overview' | 'calendar' | 'reservations' | 'services' | 'settlements' | 'feedback' | 'notifications';
-export type AdminSection = 'clients' | 'overview' | 'companies' | 'partners' | 'employees' | 'plans' | 'products' | 'orders' | 'invoices' | 'settlements' | 'audit' | 'analytics' | 'notifications';
+export type AdminSection = 'bookings' | 'clients' | 'overview' | 'companies' | 'partners' | 'employees' | 'plans' | 'products' | 'orders' | 'invoices' | 'settlements' | 'audit' | 'analytics' | 'notifications';
 export type Section = EmployeeSection | PartnerSection | AdminSection;
 export interface ClientProfileDetails {
   full_name:string;
